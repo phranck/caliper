@@ -56,6 +56,17 @@ COLOURS = {
 }
 
 
+def _rounded(value: float) -> int:
+    """Rounds to the nearest whole number, halves away from zero.
+
+    Caliper's C++ side rounds this way, and the two have to agree: a value
+    converted here and the same value converted there would otherwise land
+    on different pixels at exactly one half. Python's own round breaks ties
+    towards even, which is the difference.
+    """
+    return int(value - 0.5) if value < 0 else int(value + 0.5)
+
+
 def points(millimetres: float, points_per_mm: float) -> int:
     """Converts a physical size into points on a given panel.
 
@@ -63,7 +74,7 @@ def points(millimetres: float, points_per_mm: float) -> int:
     @param points_per_mm The density of the panel it is drawn on.
     @returns The size in whole points.
     """
-    return round(millimetres * points_per_mm)
+    return _rounded(millimetres * points_per_mm)
 
 
 def type_size(reading_mm: float, points_per_mm: float) -> int:
@@ -78,7 +89,7 @@ def type_size(reading_mm: float, points_per_mm: float) -> int:
     @returns The type size in whole points.
     """
     cap_height_mm = CAP_ANGLE_MRAD / 1000.0 * reading_mm
-    return round(cap_height_mm * points_per_mm / CAP_RATIO)
+    return _rounded(cap_height_mm * points_per_mm / CAP_RATIO)
 
 
 def inner_radius(outer_mm: float, gap_mm: float | None = None) -> float:
