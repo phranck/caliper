@@ -1,0 +1,85 @@
+# The design values, and the only place they are written.
+#
+# From here `tools/generate_tokens.py` writes the C++ header the device uses and
+# the Python module the papers are drawn from. Neither output is ever edited by
+# hand, so the two cannot disagree with each other or with this file.
+#
+# Spacings are millimetres rather than points. A margin answers to an eye and a
+# finger, so on a denser panel it should look the same rather than occupy the
+# same number of pixels. Points appear nowhere in this file; they are what comes
+# out of it once a panel is known.
+
+[spacing]
+edge = "3.27 mm"      # the screen's edge to anything inside it
+group = "3.27 mm"     # two groups side by side, such as a cover and its text
+inset = "2.72 mm"     # a surface's own edge to its content
+line_gap = "1.63 mm"  # two lines that belong together
+
+[touch]
+# What a hand needs, and the floor the checks measure against. These are the
+# only two values in this file that come from a body rather than from a design,
+# which is why they are the two that never change with the panel.
+fingertip = "9.0 mm"
+thumb = "12.0 mm"
+
+[type]
+# The scale is a rule, not a collection. Every grade is the cap height seen
+# under one angle, so a grade that drifts out of the set shows up rather than
+# settling in.
+#
+# The angle is the one the panel's own scale was drawn at, and the reading
+# distances are what each grade is meant to be legible from. Both together
+# produce the four grades the interface uses today, to the point.
+cap_angle_mrad = 6.1
+
+# How much of a type size its capitals occupy, and where the rest of the letter
+# sits. Measured from the four cuts of Blogger Sans, which share these figures.
+cap_ratio = 0.7050
+x_height_ratio = 0.5050
+descender_ratio = 0.2400
+
+title = "945 mm"
+heading = "565 mm"
+body = "410 mm"
+small = "345 mm"
+
+[radius]
+# Only the outer corners are stated. A corner inside another is computed from
+# the one around it, because writing the two as separate numbers produces a
+# pinched corner the first time either moves.
+panel = "4.35 mm"    # the largest surface, such as a dialog or a card
+tile = "2.72 mm"     # a tile, a button, a key
+artwork = "1.63 mm"  # a cover, which brings a corner of its own
+
+# The exponent of the superellipse. At 4.5 the shape is hard to tell from a
+# rounded rectangle; at 3.2 the curve runs visibly into the flanks, which is
+# what makes a squircle one.
+squircle = 3.2
+
+# A squircle rounds in proportion to its size and a radius does not, so the
+# exponent that suits a button of 60 points eats a quarter of the edge of a
+# cover of 200. Artwork therefore gets its own, higher one.
+squircle_artwork = 8.0
+
+[colour]
+# A colour has no measurement, so these pass through untouched.
+bg = "#17120e"
+surface = "#221a14"
+raised = "#30251b"
+key = "#3d3126"          # a key cap, lighter than the surface beneath it
+key_edge = "#45382b"     # its edge, half a step lighter again
+ink = "#faf4ec"
+muted = "#c3b1a0"
+faint = "#8d7c6c"
+accent = "#f0a85c"
+accent_ink = "#2b1806"
+accent_dim = "#6b4415"
+line = "#3d3128"
+
+# What lies over a dimmed screen. One step lighter than `raised`, because the
+# layer beneath pushes everything back and a dialog in the same colour would go
+# back with it.
+overlay = "#3f3226"
+
+danger = "#e8705a"
+danger_ink = "#2b0c06"   # the text on the warning colour
