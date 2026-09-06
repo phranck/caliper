@@ -1,0 +1,21 @@
+# Caliper conventions
+
+## The language is C++20, and it is not C
+
+Every line of this library is C++20. There is no C part, no "plain C core", and no header written to be includable from C. Anyone reaching for C here has misread the point of the library.
+
+The reason is the one thing Caliper exists to do. A millimeter and a pixel are different kinds of quantity, and in C both are a number, so nothing stops one being written where the other belongs. That is the mistake this project already made once on a real panel. As distinct types the compiler refuses it, and the error cannot be written at all. Take the types away and what is left is a naming convention with a build step.
+
+The same choice buys the conversions at compile time. A panel that is known when the firmware is built costs nothing at run time, because `constexpr` does the arithmetic; a panel established at start-up runs the same line then.
+
+LVGL is C and stays C. It is called as the C library it is, and its headers are included as they come. Wrapping it, replacing it, or building a C-shaped layer in front of it is not something this library does.
+
+## How it is built
+
+No exceptions, no RTTI, and no allocation after start-up. These are the settings ESP-IDF already defaults to for C++, so this is a statement of what holds rather than a set of flags to add.
+
+The library builds twice: as an ESP-IDF component for the device, and for the host, where the tests run without a board attached. Both builds come from the same tree.
+
+## Where the rest is
+
+`Papers/plan/plan.html`, identifier `PAP-CAL-001`, carries the design and is the source for the issues. It lives outside this repository and is synchronised separately, so it is not on GitHub.
