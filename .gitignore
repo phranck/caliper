@@ -1,0 +1,16 @@
+# Working documents for the operator, synchronised outside this repository.
+Papers
+
+# Build output
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# macOS
+.DS_Store
+
+# Local agent artefacts
+.claude/
+.serena/
