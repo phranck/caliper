@@ -8,7 +8,7 @@ It answers four questions that a graphics toolkit deliberately leaves open, and 
 
 **Anything carrying text has a minimum width, never a fixed one.** A fixed width truncates a longer word the moment the interface carries a second language. A control sizes to its label plus its padding, and never below the minimum the layout asks for, so a row of buttons stays even and a translation stays whole.
 
-**The design values live in one place.** Spacings, radii, the type scale, the palette and the touch minima are written once, as data. The C header and anything else that needs them is generated from it, so a device and the documents describing it cannot drift apart.
+**The design values live in one place.** Spacings, radii, the type scale, the palette and the touch minima are written once, as data. The header and anything else that needs them is generated from it, so a device and the documents describing it cannot drift apart.
 
 **Every build is checked.** Nothing smaller than a fingertip, nothing closer to an edge than the margin, no text over its box in any language, every nested corner concentric, every edge on the grid, and nothing hidden behind a band. The checks run over the finished object tree, on the host as well as on the device, and a failure stops the build.
 
@@ -19,6 +19,8 @@ Early. The design is written down in the plan; the code is being built in stages
 ## Requirements
 
 Caliper is bound to LVGL and does not stand on its own. It is built and used as an ESP-IDF component, and the core carries no dependency on ESP-IDF itself, so it also builds for the host, which is where the checks run in tests.
+
+It is written in C++20 and calls LVGL as the C it is. The language carries the point of the whole thing: a millimetre and a point are separate types, so putting one where the other belongs does not compile, and that is the mistake this library exists to prevent. Conversions are `constexpr`, so a panel known at build time costs nothing at run time. It builds without exceptions, without RTTI and without allocation after start.
 
 The panel it is designed for is 800 by 480 or larger. Below that a keyboard of ten keys at fingertip size no longer fits between the margins, and the answer there is a different keyboard rather than a smaller one.
 
