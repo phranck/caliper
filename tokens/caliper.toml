@@ -106,7 +106,7 @@ artwork = "1.63 mm"  # a cover, which brings a corner of its own
 # A button's own corner. It is not the tile's: a tile is 68 points tall and a
 # button 48, and the same radius on the shorter one comes within a few points of
 # a pill. The corner follows the height rather than being shared with it.
-button = "1.90 mm"
+button = "1.63 mm"
 
 # The exponent of the superellipse. At 4.5 the shape is hard to tell from a
 # rounded rectangle; at 3.2 the curve runs visibly into the flanks, which is
@@ -120,26 +120,41 @@ squircle_artwork = 8.0
 
 [colour]
 # A colour has no measurement, so these pass through untouched.
-bg = "#17120e"
-surface = "#221a14"
-raised = "#30251b"
-key = "#3d3126"          # a key cap, lighter than the surface beneath it
-key_edge = "#45382b"     # its edge, half a step lighter again
-ink = "#faf4ec"
-muted = "#c3b1a0"
-faint = "#8d7c6c"
-accent = "#f0a85c"
-accent_ink = "#2b1806"
-accent_dim = "#6b4415"
+#
+# Greys rather than browns, and neutral greys: red, green and blue are equal in
+# every one of them. A dark interface with a cast in its grounds reads as a
+# colour somebody chose, and here the only colour anybody chose is the accent.
+# That is what makes it the one thing on a screen that can be acted on.
+#
+# The steps are the lightnesses of a dark developer interface, computed to the
+# same relative luminance so the weight of each surface against the next is the
+# one that was designed.
+bg = "#111111"
+surface = "#1b1b1b"
+raised = "#262626"
+key = "#3d3d3d"          # a key cap, lighter than the surface beneath it
+key_edge = "#4b4b4b"     # its edge, half a step lighter again
+ink = "#ececec"
+muted = "#939393"
+faint = "#757575"
+
+# The accent, and white on it. Measured against the ground it sits on it stands
+# at 6.25 to 1, and the label on a button at 3.03 to 1, which is the floor for
+# a word set this large. A lighter blue reads better on the ground and carries
+# white worse; this is the point where both still hold.
+accent = "#009ce9"
+accent_ink = "#ffffff"
+accent_dim = "#0a5570"
+
 # A hairline between two rows of a list. Three tenths of the way from the
 # surface towards the ink, because a line that parts two entries is doing its
 # work when one notices the parting rather than the line.
-line = "#2b221a"
+line = "#353535"
 
 # What lies over a dimmed screen. One step lighter than `raised`, because the
 # layer beneath pushes everything back and a dialog in the same colour would go
 # back with it.
-overlay = "#3f3226"
+overlay = "#323232"
 
-danger = "#e8705a"
-danger_ink = "#2b0c06"   # the text on the warning colour
+danger = "#f85149"
+danger_ink = "#ffffff"   # the text on the warning colour

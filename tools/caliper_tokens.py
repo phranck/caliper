@@ -42,7 +42,7 @@ RADIUS_MM = {
     "panel": 4.35,
     "tile": 2.72,
     "artwork": 1.63,
-    "button": 1.9,
+    "button": 1.63,
 }
 
 SQUIRCLE = 3.2
@@ -51,21 +51,21 @@ SQUIRCLE_ARTWORK = 8.0
 GRID_UNIT = 2
 
 COLOURS = {
-    "bg": "#17120e",
-    "surface": "#221a14",
-    "raised": "#30251b",
-    "key": "#3d3126",
-    "key-edge": "#45382b",
-    "ink": "#faf4ec",
-    "muted": "#c3b1a0",
-    "faint": "#8d7c6c",
-    "accent": "#f0a85c",
-    "accent-ink": "#2b1806",
-    "accent-dim": "#6b4415",
-    "line": "#2b221a",
-    "overlay": "#3f3226",
-    "danger": "#e8705a",
-    "danger-ink": "#2b0c06",
+    "bg": "#111111",
+    "surface": "#1b1b1b",
+    "raised": "#262626",
+    "key": "#3d3d3d",
+    "key-edge": "#4b4b4b",
+    "ink": "#ececec",
+    "muted": "#939393",
+    "faint": "#757575",
+    "accent": "#009ce9",
+    "accent-ink": "#ffffff",
+    "accent-dim": "#0a5570",
+    "line": "#353535",
+    "overlay": "#323232",
+    "danger": "#f85149",
+    "danger-ink": "#ffffff",
 }
 
 

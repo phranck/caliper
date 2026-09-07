@@ -46,7 +46,7 @@ inline constexpr Reading kStatus{295.0f};
 inline constexpr Millimeter kRadiusPanel{4.35f};
 inline constexpr Millimeter kRadiusTile{2.72f};
 inline constexpr Millimeter kRadiusArtwork{1.63f};
-inline constexpr Millimeter kRadiusButton{1.9f};
+inline constexpr Millimeter kRadiusButton{1.63f};
 inline constexpr float kSquircle = 3.2f;
 inline constexpr float kSquircleArtwork = 8.0f;
 
@@ -62,21 +62,21 @@ inline constexpr Point kGrid{2};
 
 // The palette. A colour has no measurement, so these pass through as they
 // were written.
-inline constexpr std::uint32_t kBg = 0x17120e;
-inline constexpr std::uint32_t kSurface = 0x221a14;
-inline constexpr std::uint32_t kRaised = 0x30251b;
-inline constexpr std::uint32_t kKey = 0x3d3126;
-inline constexpr std::uint32_t kKeyEdge = 0x45382b;
-inline constexpr std::uint32_t kInk = 0xfaf4ec;
-inline constexpr std::uint32_t kMuted = 0xc3b1a0;
-inline constexpr std::uint32_t kFaint = 0x8d7c6c;
-inline constexpr std::uint32_t kAccent = 0xf0a85c;
-inline constexpr std::uint32_t kAccentInk = 0x2b1806;
-inline constexpr std::uint32_t kAccentDim = 0x6b4415;
-inline constexpr std::uint32_t kLine = 0x2b221a;
-inline constexpr std::uint32_t kOverlay = 0x3f3226;
-inline constexpr std::uint32_t kDanger = 0xe8705a;
-inline constexpr std::uint32_t kDangerInk = 0x2b0c06;
+inline constexpr std::uint32_t kBg = 0x111111;
+inline constexpr std::uint32_t kSurface = 0x1b1b1b;
+inline constexpr std::uint32_t kRaised = 0x262626;
+inline constexpr std::uint32_t kKey = 0x3d3d3d;
+inline constexpr std::uint32_t kKeyEdge = 0x4b4b4b;
+inline constexpr std::uint32_t kInk = 0xececec;
+inline constexpr std::uint32_t kMuted = 0x939393;
+inline constexpr std::uint32_t kFaint = 0x757575;
+inline constexpr std::uint32_t kAccent = 0x009ce9;
+inline constexpr std::uint32_t kAccentInk = 0xffffff;
+inline constexpr std::uint32_t kAccentDim = 0x0a5570;
+inline constexpr std::uint32_t kLine = 0x353535;
+inline constexpr std::uint32_t kOverlay = 0x323232;
+inline constexpr std::uint32_t kDanger = 0xf85149;
+inline constexpr std::uint32_t kDangerInk = 0xffffff;
 
 }  // namespace cal::token
 
