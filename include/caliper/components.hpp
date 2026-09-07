@@ -155,6 +155,44 @@ Object row(Object parent, const Panel &panel, const char *name,
            const char *value = nullptr, const lv_image_dsc_t *icon = nullptr);
 
 /**
+ * Marks a row as the one that is chosen, or takes the mark away again.
+ *
+ * A marked row raises its ground and sets its name in the accent colour, which
+ * is the same pair everything on these screens uses to say "this one". It is
+ * safe to call on a row that is already in the state asked for.
+ *
+ * @param row The row.
+ * @param current Whether it is the chosen one.
+ */
+void mark_current(Object row, bool current);
+
+/**
+ * Turns a group of rows into a list where touching one chooses it.
+ *
+ * Exactly one row is marked at any time, and touching another moves the mark.
+ * The group then sends `LV_EVENT_VALUE_CHANGED`, so a caller attaches an
+ * ordinary event handler to the group and asks `chosen` which row it is. That
+ * keeps the choice in the object tree rather than in a variable beside it,
+ * which is what lets the checks see it.
+ *
+ * Every row also gains a pressed appearance. Without one a finger gets no
+ * answer until the screen changes, and on a panel that redraws in tens of
+ * milliseconds that reads as a device that did not notice.
+ *
+ * @param group The group, with its rows already in it.
+ * @param chosen Which row starts marked, counted from nought, or -1 for none.
+ */
+void choose_one(Object group, int chosen = 0);
+
+/**
+ * Which row of a group is the chosen one.
+ *
+ * @param group A group that was passed to `choose_one`.
+ * @returns The row's place in the group, counted from nought, or -1 for none.
+ */
+int chosen(Object group);
+
+/**
  * A card: a surface with its own corner, holding whatever is put into it.
  *
  * @param parent What it goes into.
@@ -182,6 +220,41 @@ Object card(Object parent, const Panel &panel, Point width, Point height);
  */
 Object button(Object parent, const Panel &panel, const char *label,
               bool accent = false);
+
+/**
+ * A stack of things standing in the middle of what is left of a screen.
+ *
+ * It counts the heights and the gaps together and places the stack as a whole.
+ * Set by hand such a stack sits too low almost every time, because the eye
+ * counts the lines and forgets the gaps between them.
+ *
+ * This is what a spacer cannot do. A single object in the middle of a surface
+ * is an alignment, but four of them stacked need two nested containers, because
+ * a flex layout works in one direction, and that costs six objects for what an
+ * alignment does without one.
+ *
+ * @param parent What it goes into, normally the content area.
+ * @param panel The panel, for the measurements.
+ * @returns The block, to put things into. They stack downwards.
+ */
+Object centred_block(Object parent, const Panel &panel);
+
+/**
+ * What a screen says when it has one thing to say.
+ *
+ * A symbol, a heading, a line under it and one control: the shape of a welcome,
+ * an empty state or a question. Everything is optional except the heading,
+ * because without that there is nothing being said.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param icon The symbol above it, or nullptr.
+ * @param heading What it says.
+ * @param line The line under it, or nullptr.
+ * @returns The block, so a caller can put a control at the bottom of it.
+ */
+Object hero(Object parent, const Panel &panel, const lv_image_dsc_t *icon,
+            const char *heading, const char *line = nullptr);
 
 /**
  * Empty space between two things.
