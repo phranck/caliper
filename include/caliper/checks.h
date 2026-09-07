@@ -110,6 +110,14 @@ struct Finding {
 
    /// What it has to be.
    std::int32_t required;
+
+   /// Where it stands and how large it is. A name says what kind of thing it
+   /// is and every container is called the same, so without this a finding on
+   /// a screen with forty objects on it cannot be traced back to one of them.
+   Point left{0};
+   Point top{0};
+   Point width{0};
+   Point height{0};
 };
 
 /// What a caller does with a finding. Returning is the only option: the checks
@@ -145,7 +153,8 @@ constexpr int Check(const Element& element, const Panel& panel, const Bands& ban
    const auto found = [&](Rule rule, std::int32_t actual, std::int32_t required) {
       findings += 1;
       if (report != nullptr) {
-         report(Finding{rule, element.name, actual, required});
+         report(
+             Finding{rule, element.name, actual, required, element.left, element.top, element.width, element.height});
       }
    };
 

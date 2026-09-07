@@ -131,8 +131,9 @@ void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
 
 /// Writes a finding the way somebody reading a serial log wants it.
 void log_finding(const Finding& finding) {
-   ESP_LOGE(kTag, "%s: \"%s\" is %" PRId32 ", needs %" PRId32, NameOf(finding.rule), finding.name, finding.actual,
-            finding.required);
+   ESP_LOGE(kTag, "%s: \"%s\" is %" PRId32 ", needs %" PRId32 " (%" PRId32 ",%" PRId32 " %" PRId32 "x%" PRId32 ")",
+            NameOf(finding.rule), finding.name, finding.actual, finding.required, finding.left.value, finding.top.value,
+            finding.width.value, finding.height.value);
 }
 
 }  // namespace

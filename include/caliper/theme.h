@@ -33,6 +33,10 @@ struct Typography {
    /// screen, where a condensed face is tight and a normal one reads at a
    /// glance. Null falls back to `small`.
    const lv_font_t* status = nullptr;
+
+   /// The smallest grade, which is what a sidebar item is labelled in. It falls
+   /// back to the status face where none is given.
+   const lv_font_t* caption = nullptr;
 };
 
 /**

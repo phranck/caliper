@@ -9,7 +9,10 @@ SPACING_MM = {
     "group": 3.27,
     "inset": 2.72,
     "line_gap": 1.63,
+    "floating": 1.09,
+    "player_inset": 1.09,
     "status_edge": 1.09,
+    "status_gap": 2.18,
 }
 
 LAYOUT_MM = {
@@ -17,6 +20,9 @@ LAYOUT_MM = {
     "header": 9.25,
     "footer": 10.88,
     "button": 6.53,
+    "media_key": 6.8,
+    "sidebar": 11.97,
+    "sidebar_item": 10.88,
 }
 
 TOUCH_MM = {
@@ -30,7 +36,8 @@ READING_MM = {
     "heading": 560.0,
     "body": 405.0,
     "small": 345.0,
-    "status": 295.0,
+    "status": 265.0,
+    "caption": 203.0,
 }
 
 CAP_ANGLE_MRAD = 6.1
@@ -40,7 +47,7 @@ DESCENDER_RATIO = 0.2
 
 RADIUS_MM = {
     "panel": 4.35,
-    "tile": 2.72,
+    "tile": 2.18,
     "artwork": 1.63,
     "button": 1.63,
 }
@@ -57,6 +64,7 @@ COLOURS = {
     "key": "#3d3d3d",
     "key-edge": "#4b4b4b",
     "ink": "#ececec",
+    "status-ink": "#f0f0f0",
     "muted": "#939393",
     "faint": "#757575",
     "accent": "#009ce9",
