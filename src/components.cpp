@@ -295,14 +295,6 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
         lv_obj_set_style_bg_color(line, lv_color_hex(token::surface), 0);
         lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
         lv_obj_set_style_radius(line, panel(token::radius_tile).value, 0);
-    } else if (lv_obj_get_child_count(parent) > 1) {
-        // A hairline above every row but the first, starting where the text
-        // starts. Drawn as a border rather than as an object, so a list of
-        // thirty rows does not cost thirty more of them.
-        lv_obj_set_style_border_color(line, lv_color_hex(token::line), 0);
-        lv_obj_set_style_border_width(line, 1, 0);
-        lv_obj_set_style_border_side(line, LV_BORDER_SIDE_TOP, 0);
-        lv_obj_set_style_border_post(line, true, 0);
     }
 
     std::int32_t text_left = 0;
@@ -323,6 +315,28 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
         text_left = icon->header.w + panel(token::inset).value;
     }
 
+    if (grouped && lv_obj_get_child_count(parent) > 1) {
+        // A hairline above every row but the first, starting where the text
+        // starts and running to the far edge of the group. That inset is what
+        // makes a list read as a column of entries: a line across the whole
+        // width would part it into separate things again, which is the look the
+        // group exists to leave behind.
+        //
+        // Its width has to be a figure rather than a share of the row, because
+        // it is the row's width less the indent, so the layout is settled here
+        // to ask what that width is.
+        lv_obj_update_layout(line);
+        const std::int32_t inset = panel(token::inset).value;
+
+        Object hairline = lv_obj_create(line);
+        make_plain(hairline);
+        lv_obj_set_size(hairline, lv_obj_get_width(line) - inset - text_left, 1);
+        lv_obj_align(hairline, LV_ALIGN_TOP_LEFT, text_left, 0);
+        lv_obj_set_style_bg_color(hairline, lv_color_hex(token::line), 0);
+        lv_obj_set_style_bg_opa(hairline, LV_OPA_COVER, 0);
+        lv_obj_remove_flag(hairline, LV_OBJ_FLAG_CLICKABLE);
+    }
+
     Object label = lv_label_create(line);
     lv_label_set_text(label, name);
     lv_obj_set_style_text_color(label, lv_color_hex(token::ink), 0);
@@ -339,6 +353,100 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
     }
 
     return line;
+}
+
+namespace {
+
+/**
+ * The label carrying a row's name.
+ *
+ * A row holds up to three children in an order that depends on what it was
+ * given, so the name is not always the first. It is always the first label,
+ * because the value is added after it.
+ *
+ * @param row The row.
+ * @returns The label, or a null object for a row that carries no name.
+ */
+Object name_of(Object row)
+{
+    for (std::uint32_t index = 0; index < lv_obj_get_child_count(row); ++index) {
+        Object child = lv_obj_get_child(row, index);
+        if (lv_obj_check_type(child, &lv_label_class)) {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * Moves the mark to the row that was touched.
+ *
+ * The choice lives in the rows themselves rather than in a variable here, so
+ * nothing has to be kept in step with the object tree and the checks can read
+ * it the same way anything else on the screen is read.
+ */
+void on_row_touched(lv_event_t *event)
+{
+    Object touched = static_cast<Object>(lv_event_get_target(event));
+    Object group = lv_obj_get_parent(touched);
+
+    for (std::uint32_t index = 0; index < lv_obj_get_child_count(group); ++index) {
+        Object row = lv_obj_get_child(group, index);
+        mark_current(row, row == touched);
+    }
+
+    lv_obj_send_event(group, LV_EVENT_VALUE_CHANGED, nullptr);
+}
+
+}  // namespace
+
+void mark_current(Object row, bool current)
+{
+    if (current) {
+        lv_obj_add_state(row, LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(row, lv_color_hex(token::raised), 0);
+        lv_obj_set_style_bg_opa(row, LV_OPA_COVER, 0);
+    } else {
+        lv_obj_remove_state(row, LV_STATE_CHECKED);
+
+        // Back to transparent rather than to the surface colour: inside a group
+        // the surface belongs to the group, and painting it again here would
+        // show at the corners the group clips.
+        lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
+    }
+
+    Object name = name_of(row);
+    if (name != nullptr) {
+        lv_obj_set_style_text_color(name, lv_color_hex(current ? token::accent : token::ink), 0);
+    }
+}
+
+void choose_one(Object group, int chosen_row)
+{
+    for (std::uint32_t index = 0; index < lv_obj_get_child_count(group); ++index) {
+        Object row = lv_obj_get_child(group, index);
+
+        lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(row, on_row_touched, LV_EVENT_CLICKED, nullptr);
+
+        // What the finger gets back before anything else happens. It is the
+        // same ground the mark uses, at half strength, so pressing a row looks
+        // like the beginning of choosing it rather than like a separate colour.
+        lv_obj_set_style_bg_color(row, lv_color_hex(token::raised), LV_STATE_PRESSED);
+        lv_obj_set_style_bg_opa(row, LV_OPA_50, LV_STATE_PRESSED);
+
+        mark_current(row, static_cast<int>(index) == chosen_row);
+    }
+}
+
+int chosen(Object group)
+{
+    for (std::uint32_t index = 0; index < lv_obj_get_child_count(group); ++index) {
+        if (lv_obj_has_state(lv_obj_get_child(group, index), LV_STATE_CHECKED)) {
+            return static_cast<int>(index);
+        }
+    }
+    return -1;
 }
 
 Object card(Object parent, const Panel &panel, Point width, Point height)
@@ -380,6 +488,54 @@ Object button(Object parent, const Panel &panel, const char *label, bool accent)
     align_optically(text, panel, LV_ALIGN_CENTER, panel.type_size(token::body));
 
     return control;
+}
+
+Object centred_block(Object parent, const Panel &panel)
+{
+    Object block = lv_obj_create(parent);
+    make_plain(block);
+    lv_obj_set_width(block, lv_pct(100));
+
+    // As tall as what goes into it, which is what lets it be centred at all:
+    // a block of a stated height would be centred as that height rather than
+    // as its contents.
+    lv_obj_set_height(block, LV_SIZE_CONTENT);
+    lv_obj_center(block);
+
+    lv_obj_set_flex_flow(block, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(block, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_row(block, panel(token::group).value, 0);
+    return block;
+}
+
+Object hero(Object parent, const Panel &panel, const lv_image_dsc_t *icon,
+            const char *heading, const char *line)
+{
+    Object block = centred_block(parent, panel);
+
+    if (icon != nullptr) {
+        Object symbol = lv_image_create(block);
+        lv_image_set_src(symbol, icon);
+        lv_obj_set_size(symbol, icon->header.w, icon->header.h);
+        lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::accent), 0);
+        lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
+    }
+
+    Object title = lv_label_create(block);
+    lv_label_set_text(title, heading);
+    lv_obj_set_style_text_color(title, lv_color_hex(token::ink), 0);
+    if (typography().heading != nullptr) {
+        lv_obj_set_style_text_font(title, typography().heading, 0);
+    }
+
+    if (line != nullptr) {
+        Object under = lv_label_create(block);
+        lv_label_set_text(under, line);
+        lv_obj_set_style_text_color(under, lv_color_hex(token::muted), 0);
+    }
+
+    return block;
 }
 
 Object spacer(Object parent, Point size)
