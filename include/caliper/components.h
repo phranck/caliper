@@ -1,37 +1,37 @@
-#pragma once
+#ifndef CALIPER_COMPONENTS_H_
+#define CALIPER_COMPONENTS_H_
 
+#include "caliper/panel.h"
 #include "lvgl.h"
-
-#include "caliper/panel.hpp"
 
 namespace cal {
 
 /// An object of the graphics library. A component is one, so this header knows
 /// about the library; the core with the units and the checks does not, which is
 /// what lets those run on a machine with no board.
-using Object = lv_obj_t *;
+using Object = lv_obj_t*;
 
 /**
  * What the status bar carries. Everything in it is optional, and what is left
  * out simply does not appear.
  */
 struct StatusBar {
-    /// What stands at the left end. The right end is for the state of the
-    /// device, so this is where anything about the screen itself goes.
-    const char *leading = nullptr;
+   /// What stands at the left end. The right end is for the state of the
+   /// device, so this is where anything about the screen itself goes.
+   const char* leading = nullptr;
 
-    /// The time, right aligned, which is where a person looks for it.
-    const char *clock = nullptr;
+   /// The time, right aligned, which is where a person looks for it.
+   const char* clock = nullptr;
 
-    /// The state of the network, as a symbol, or nullptr for none.
-    const lv_image_dsc_t *network = nullptr;
+   /// The state of the network, as a symbol, or nullptr for none.
+   const lv_image_dsc_t* network = nullptr;
 
-    /// The battery, as a symbol.
-    const lv_image_dsc_t *battery = nullptr;
+   /// The battery, as a symbol.
+   const lv_image_dsc_t* battery = nullptr;
 
-    /// How full it is, shown beside the symbol. Negative leaves the figure out
-    /// and shows the symbol alone, which is what the design makes switchable.
-    int charge = -1;
+   /// How full it is, shown beside the symbol. Negative leaves the figure out
+   /// and shows the symbol alone, which is what the design makes switchable.
+   int charge = -1;
 };
 
 /**
@@ -42,79 +42,84 @@ struct StatusBar {
  * says is what stands on it and in what order.
  */
 class Screen {
-public:
-    /**
-     * Takes over the active screen of the display and prepares it.
-     *
-     * @param panel The panel being drawn on.
-     */
-    explicit Screen(const Panel &panel);
+  public:
+   /**
+    * Takes over the active screen of the display and prepares it.
+    *
+    * @param panel The panel being drawn on.
+    */
+   explicit Screen(const Panel& panel);
 
-    /// The status bar along the very top, on every screen.
-    Object status_bar(const StatusBar &status = StatusBar{});
+   /// The status bar along the very top, on every screen.
+   ///
+   /// Named like a variable rather than in the style of a function, which the
+   /// guide allows for an accessor. `StatusBar` is taken by what it is given,
+   /// and the two cannot both have that name. `panel`, `root` and `typography`
+   /// keep theirs for the same reason.
+   Object status_bar(const StatusBar& status = StatusBar{});
 
-    /**
-     * The header under it, which says what one is looking at.
-     *
-     * @param title What is being looked at.
-     * @param trailing What stands on the right, or nullptr for nothing.
-     */
-    Object header(const char *title, const char *trailing = nullptr);
+   /**
+    * The header under it, which says what one is looking at.
+    *
+    * @param title What is being looked at.
+    * @param trailing What stands on the right, or nullptr for nothing.
+    */
+   Object Header(const char* title, const char* trailing = nullptr);
 
-    /// The footer along the bottom, for whatever the screen offers there.
-    Object footer();
+   /// The footer along the bottom, for whatever the screen offers there.
+   Object Footer();
 
-    /// The area between the bands, which is what everything else goes into.
-    Object content();
+   /// The area between the bands, which is what everything else goes into.
+   Object Content();
 
-    /// The panel this screen is built for.
-    const Panel &panel() const { return panel_; }
+   /// The panel this screen is built for.
+   const Panel& panel() const { return panel_; }
 
-    /// The first row of pixels the content may use, and the first it may not.
-    Point content_top() const;
-    Point content_bottom() const;
+   /// The first row of pixels the content may use, and the first it may not.
+   Point ContentTop() const;
+   Point ContentBottom() const;
 
-    /**
-     * How many rows of a given height are visible at once.
-     *
-     * A list scrolls, so this is not a limit on what may be put into it. It
-     * says what somebody sees without moving anything, which is what decides
-     * whether the important row is one of them.
-     *
-     * @param row_height How tall one row is.
-     * @returns How many are visible, gaps between them included.
-     */
-    int rows_visible(Point row_height) const;
+   /**
+    * How many rows of a given height are visible at once.
+    *
+    * A list scrolls, so this is not a limit on what may be put into it. It
+    * says what somebody sees without moving anything, which is what decides
+    * whether the important row is one of them.
+    *
+    * @param row_height How tall one row is.
+    * @returns How many are visible, gaps between them included.
+    */
+   int RowsVisible(Point row_height) const;
 
-    /// The height a row of a list takes, which is the height of the header.
-    Point row_height() const;
+   /// The height a row of a list takes, which is the height of the header.
+   Point RowHeight() const;
 
-    /// The screen everything on it hangs from, for a pass that walks it.
-    Object root() const { return root_; }
+   /// The screen everything on it hangs from, for a pass that walks it.
+   Object root() const { return root_; }
 
-    /**
-     * Whether an object is one of the bands or sits in one.
-     *
-     * A band reaches outside the content area by definition, so the check that
-     * keeps content clear of the bands cannot be applied to the bands
-     * themselves. Every other check still is.
-     *
-     * @param object The object to ask about.
-     * @returns True when the band check does not apply to it.
-     */
-    bool in_a_band(Object object) const;
+   /**
+    * Whether an object is one of the bands or sits in one.
+    *
+    * A band reaches outside the content area by definition, so the check that
+    * keeps content clear of the bands cannot be applied to the bands
+    * themselves. Every other check still is.
+    *
+    * @param object The object to ask about.
+    * @returns True when the band check does not apply to it.
+    */
+   bool InABand(Object object) const;
 
-    /// Whether an object is one of the bands itself, which spans the panel and
-    /// therefore holds no margin.
-    bool is_a_band(Object object) const;
+   /// Whether an object is one of the bands itself, which spans the panel and
+   /// therefore holds no margin.
+   bool IsABand(Object object) const;
 
-private:
-    Panel panel_;
-    Object root_ = nullptr;
-    Object content_ = nullptr;
-    Object status_ = nullptr;
-    Object header_ = nullptr;
-    Object footer_ = nullptr;
+  private:
+   Panel panel_;
+   Object root_ = nullptr;
+   Object content_ = nullptr;
+   Object status_ = nullptr;
+   Object header_ = nullptr;
+   Object footer_ = nullptr;
 };
 
 /**
@@ -132,7 +137,7 @@ private:
  * @param panel The panel, for the measurements.
  * @returns The group, to put rows into.
  */
-Object list(Object parent, const Panel &panel);
+Object List(Object parent, const Panel& panel);
 
 /**
  * A row of a list: a name on the left, a value on the right.
@@ -151,8 +156,8 @@ Object list(Object parent, const Panel &panel);
  *             colour it is ever drawn in.
  * @returns The row, so a caller can attach an event to it.
  */
-Object row(Object parent, const Panel &panel, const char *name,
-           const char *value = nullptr, const lv_image_dsc_t *icon = nullptr);
+Object Row(Object parent, const Panel& panel, const char* name, const char* value = nullptr,
+           const lv_image_dsc_t* icon = nullptr);
 
 /**
  * Marks a row as the one that is chosen, or takes the mark away again.
@@ -164,7 +169,7 @@ Object row(Object parent, const Panel &panel, const char *name,
  * @param row The row.
  * @param current Whether it is the chosen one.
  */
-void mark_current(Object row, bool current);
+void MarkCurrent(Object row, bool current);
 
 /**
  * Turns a group of rows into a list where touching one chooses it.
@@ -182,7 +187,7 @@ void mark_current(Object row, bool current);
  * @param group The group, with its rows already in it.
  * @param chosen Which row starts marked, counted from nought, or -1 for none.
  */
-void choose_one(Object group, int chosen = 0);
+void ChooseOne(Object group, int chosen = 0);
 
 /**
  * Which row of a group is the chosen one.
@@ -190,7 +195,7 @@ void choose_one(Object group, int chosen = 0);
  * @param group A group that was passed to `choose_one`.
  * @returns The row's place in the group, counted from nought, or -1 for none.
  */
-int chosen(Object group);
+int Chosen(Object group);
 
 /**
  * A card: a surface with its own corner, holding whatever is put into it.
@@ -202,7 +207,7 @@ int chosen(Object group);
  * @param height How tall.
  * @returns The card.
  */
-Object card(Object parent, const Panel &panel, Point width, Point height);
+Object Card(Object parent, const Panel& panel, Point width, Point height);
 
 /**
  * A button, which is never narrower than its label plus its padding and never
@@ -218,8 +223,7 @@ Object card(Object parent, const Panel &panel, Point width, Point height);
  *               action a screen is about.
  * @returns The button.
  */
-Object button(Object parent, const Panel &panel, const char *label,
-              bool accent = false);
+Object Button(Object parent, const Panel& panel, const char* label, bool accent = false);
 
 /**
  * A stack of things standing in the middle of what is left of a screen.
@@ -237,7 +241,7 @@ Object button(Object parent, const Panel &panel, const char *label,
  * @param panel The panel, for the measurements.
  * @returns The block, to put things into. They stack downwards.
  */
-Object centred_block(Object parent, const Panel &panel);
+Object CentredBlock(Object parent, const Panel& panel);
 
 /**
  * What a screen says when it has one thing to say.
@@ -253,8 +257,8 @@ Object centred_block(Object parent, const Panel &panel);
  * @param line The line under it, or nullptr.
  * @returns The block, so a caller can put a control at the bottom of it.
  */
-Object hero(Object parent, const Panel &panel, const lv_image_dsc_t *icon,
-            const char *heading, const char *line = nullptr);
+Object Hero(Object parent, const Panel& panel, const lv_image_dsc_t* icon, const char* heading,
+            const char* line = nullptr);
 
 /**
  * Empty space between two things.
@@ -271,6 +275,8 @@ Object hero(Object parent, const Panel &panel, const lv_image_dsc_t *icon,
  * @param size How large, or zero to grow.
  * @returns The spacer.
  */
-Object spacer(Object parent, Point size = Point{0});
+Object Spacer(Object parent, Point size = Point{0});
 
 }  // namespace cal
+
+#endif  // CALIPER_COMPONENTS_H_

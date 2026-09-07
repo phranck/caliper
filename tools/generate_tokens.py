@@ -25,7 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "tokens" / "caliper.toml"
-HEADER = ROOT / "include" / "caliper" / "tokens.hpp"
+HEADER = ROOT / "include" / "caliper" / "tokens.h"
 MODULE = ROOT / "tools" / "caliper_tokens.py"
 
 #: A value written as a quantity, such as "3.27 mm". Anything else in a group
@@ -105,8 +105,13 @@ def cpp_float(value: float) -> str:
 
 
 def cpp_identifier(name: str) -> str:
-    """Turns a key from the file into something C++ accepts as a name."""
-    return name.replace("-", "_")
+    """Turns a key from the file into the name the Google guide asks for.
+
+    A constant is written with a leading `k` and then mixed case, so `line-gap`
+    in the file becomes `kLineGap` in the header. The key stays as it is: the
+    file is read by people rather than by a compiler.
+    """
+    return "k" + "".join(part.capitalize() for part in name.replace("-", "_").split("_"))
 
 
 def write_header(tokens: dict) -> None:
@@ -121,11 +126,12 @@ def write_header(tokens: dict) -> None:
         "// Generated from tokens/caliper.toml by tools/generate_tokens.py.",
         "// Do not edit: the next build overwrites this file.",
         "",
-        "#pragma once",
+        "#ifndef CALIPER_TOKENS_H_",
+        "#define CALIPER_TOKENS_H_",
         "",
         "#include <cstdint>",
         "",
-        '#include "caliper/units.hpp"',
+        '#include "caliper/units.h"',
         "",
         "namespace cal::token {",
         "",
@@ -140,7 +146,7 @@ def write_header(tokens: dict) -> None:
               "// The heights of the three bands, from which the content area follows."]
     for name, value in tokens["layout"].items():
         lines.append(
-            f"inline constexpr Millimeter band_{cpp_identifier(name)}{{{cpp_float(value)}}};")
+            f"inline constexpr Millimeter {cpp_identifier('band_' + name)}{{{cpp_float(value)}}};")
 
     lines += ["",
               "// What a hand needs. The floor every touch target is measured against."]
@@ -168,7 +174,7 @@ def write_header(tokens: dict) -> None:
                 f"inline constexpr float {cpp_identifier(name)} = {cpp_float(value)};")
         else:
             lines.append(
-                f"inline constexpr Millimeter radius_{cpp_identifier(name)}"
+                f"inline constexpr Millimeter {cpp_identifier('radius_' + name)}"
                 f"{{{cpp_float(value)}}};")
 
     lines += [
@@ -176,13 +182,12 @@ def write_header(tokens: dict) -> None:
         "/// A corner inside another is the one around it less the space between",
         "/// them. Stated as a rule rather than as a second number, so the two",
         "/// cannot fall out of step when either moves.",
-        "constexpr Millimeter inner_radius(Millimeter outer, Millimeter gap = inset)",
-        "{",
-        "    return Millimeter{outer.value - gap.value};",
+        "constexpr Millimeter InnerRadius(Millimeter outer, Millimeter gap = kInset) {",
+        "   return Millimeter{outer.value - gap.value};",
         "}",
         "",
         "// The grid every edge lands on, in whole pixels.",
-        f"inline constexpr Point grid{{{tokens['grid']['unit']}}};",
+        f"inline constexpr Point kGrid{{{tokens['grid']['unit']}}};",
         "",
         "// The palette. A colour has no measurement, so these pass through as they",
         "// were written.",
@@ -192,7 +197,8 @@ def write_header(tokens: dict) -> None:
         lines.append(
             f"inline constexpr std::uint32_t {cpp_identifier(name)} = 0x{value.lstrip('#')};")
 
-    lines += ["", "}  // namespace cal::token", ""]
+    lines += ["", "}  // namespace cal::token", "",
+          "#endif  // CALIPER_TOKENS_H_", ""]
 
     HEADER.parent.mkdir(parents=True, exist_ok=True)
     HEADER.write_text("\n".join(lines), encoding="utf-8")

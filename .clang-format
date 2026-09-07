@@ -1,0 +1,9 @@
+# The Google C++ Style Guide, with the two figures phranck set differently.
+# Everything not named here comes from that guide, so this file says exactly
+# what departs from it and nothing else.
+
+BasedOnStyle: Google
+
+# Three rather than two, and 120 rather than 80.
+IndentWidth: 3
+ColumnLimit: 120
