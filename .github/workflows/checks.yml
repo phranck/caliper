@@ -1,0 +1,48 @@
+# What has to hold before anything reaches main.
+#
+# On every pull request as well as on the push that merges it. Checking only
+# after the merge reports a problem but no longer prevents one, and the merge is
+# where it starts costing.
+
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer commit on a branch supersedes the older run. On main every push is
+# queued instead, because each one is a state somebody may go back to.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  core:
+    name: The arithmetic, without a board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the checks
+        run: cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release && cmake --build build/test
+
+      - name: Run them
+        run: ctest --test-dir build/test --output-on-failure
+
+  component:
+    name: The part that draws, against LVGL
+    runs-on: ubuntu-latest
+    # The core can be green whilst the half that touches the graphics library
+    # does not compile, and that half only builds where ESP-IDF is.
+    container: espressif/idf:v5.3.2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build it as a component
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          cd test/component
+          idf.py set-target esp32s3
+          idf.py build
