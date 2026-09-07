@@ -295,14 +295,6 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
         lv_obj_set_style_bg_color(line, lv_color_hex(token::surface), 0);
         lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
         lv_obj_set_style_radius(line, panel(token::radius_tile).value, 0);
-    } else if (lv_obj_get_child_count(parent) > 1) {
-        // A hairline above every row but the first, starting where the text
-        // starts. Drawn as a border rather than as an object, so a list of
-        // thirty rows does not cost thirty more of them.
-        lv_obj_set_style_border_color(line, lv_color_hex(token::line), 0);
-        lv_obj_set_style_border_width(line, 1, 0);
-        lv_obj_set_style_border_side(line, LV_BORDER_SIDE_TOP, 0);
-        lv_obj_set_style_border_post(line, true, 0);
     }
 
     std::int32_t text_left = 0;
@@ -321,6 +313,28 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
         // The gap between a symbol and the word it belongs to is the same
         // everywhere on these screens, and it is the design's own inset.
         text_left = icon->header.w + panel(token::inset).value;
+    }
+
+    if (grouped && lv_obj_get_child_count(parent) > 1) {
+        // A hairline above every row but the first, starting where the text
+        // starts and running to the far edge of the group. That inset is what
+        // makes a list read as a column of entries: a line across the whole
+        // width would part it into separate things again, which is the look the
+        // group exists to leave behind.
+        //
+        // Its width has to be a figure rather than a share of the row, because
+        // it is the row's width less the indent, so the layout is settled here
+        // to ask what that width is.
+        lv_obj_update_layout(line);
+        const std::int32_t inset = panel(token::inset).value;
+
+        Object hairline = lv_obj_create(line);
+        make_plain(hairline);
+        lv_obj_set_size(hairline, lv_obj_get_width(line) - inset - text_left, 1);
+        lv_obj_align(hairline, LV_ALIGN_TOP_LEFT, text_left, 0);
+        lv_obj_set_style_bg_color(hairline, lv_color_hex(token::line), 0);
+        lv_obj_set_style_bg_opa(hairline, LV_OPA_COVER, 0);
+        lv_obj_remove_flag(hairline, LV_OBJ_FLAG_CLICKABLE);
     }
 
     Object label = lv_label_create(line);
