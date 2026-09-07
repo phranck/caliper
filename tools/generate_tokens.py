@@ -34,7 +34,7 @@ MODULE = ROOT / "tools" / "caliper_tokens.py"
 QUANTITY = re.compile(r"^\s*(-?\d+(?:\.\d+)?)\s*mm\s*$")
 
 #: Groups whose entries are all millimetre quantities.
-MILLIMETRE_GROUPS = ("spacing", "touch")
+MILLIMETRE_GROUPS = ("spacing", "touch", "layout")
 
 #: Where the reading distances live, mixed in with the ratios that are plain
 #: numbers, so this group is read entry by entry.
@@ -137,6 +137,12 @@ def write_header(tokens: dict) -> None:
         lines.append(f"inline constexpr Millimeter {cpp_identifier(name)}{{{cpp_float(value)}}};")
 
     lines += ["",
+              "// The heights of the three bands, from which the content area follows."]
+    for name, value in tokens["layout"].items():
+        lines.append(
+            f"inline constexpr Millimeter band_{cpp_identifier(name)}{{{cpp_float(value)}}};")
+
+    lines += ["",
               "// What a hand needs. The floor every touch target is measured against."]
     for name, value in tokens["touch"].items():
         lines.append(
@@ -208,6 +214,9 @@ def write_module(tokens: dict) -> None:
         "SPACING_MM = {",
     ]
     for name, value in tokens["spacing"].items():
+        lines.append(f'    "{name}": {value},')
+    lines += ["}", "", "LAYOUT_MM = {"]
+    for name, value in tokens["layout"].items():
         lines.append(f'    "{name}": {value},')
     lines += ["}", "", "TOUCH_MM = {"]
     for name, value in tokens["touch"].items():

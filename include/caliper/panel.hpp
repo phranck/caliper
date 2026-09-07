@@ -78,7 +78,7 @@ struct Panel {
      */
     constexpr Point minimum_width(Point label_width,
                                   Millimeter padding = token::inset,
-                                  Millimeter floor = token::fingertip) const
+                                  Millimeter floor = token::minimum) const
     {
         const std::int32_t around_the_label = label_width.value + 2 * (*this)(padding).value;
         const std::int32_t needed_by_a_finger = (*this)(floor).value;

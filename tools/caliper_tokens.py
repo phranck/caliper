@@ -11,9 +11,17 @@ SPACING_MM = {
     "line_gap": 1.63,
 }
 
+LAYOUT_MM = {
+    "status_bar": 4.35,
+    "header": 9.25,
+    "footer": 10.88,
+    "button": 6.53,
+}
+
 TOUCH_MM = {
     "fingertip": 9.0,
     "thumb": 12.0,
+    "minimum": 6.53,
 }
 
 READING_MM = {

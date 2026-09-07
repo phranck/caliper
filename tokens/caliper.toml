@@ -22,6 +22,13 @@ line_gap = "1.63 mm"  # two lines that belong together
 fingertip = "9.0 mm"
 thumb = "12.0 mm"
 
+# The floor the checks measure a control against, which is not the same as a
+# fingertip. A fingertip is how wide a finger is, and it decides a key of a
+# keyboard, where targets sit side by side and a miss lands on the neighbour. A
+# button in a bar is wide and stands alone, so it is hit reliably at less than
+# that. Where a control has to carry the full fingertip, it says so itself.
+minimum = "6.53 mm"
+
 [type]
 # The scale is a rule, not a collection. Every grade is the cap height seen
 # under one angle, so a grade that drifts out of the set shows up rather than
@@ -42,6 +49,25 @@ title = "945 mm"
 heading = "565 mm"
 body = "410 mm"
 small = "345 mm"
+
+[layout]
+# The heights of the three bands. They are in millimetres like every other
+# physical size, so a denser panel keeps a status bar of the same apparent
+# height rather than one half as tall.
+#
+# A band is meant to take its height from what it holds. These are what the
+# design draws today, and they are here so that a screen built from components
+# lands on the drawing rather than near it. Where a band computes its own height
+# later, this is the figure it has to arrive at.
+status_bar = "4.35 mm"
+header = "9.25 mm"
+footer = "10.88 mm"
+
+# How tall a button is drawn. Less than a fingertip, because a bar of buttons at
+# full finger height eats the screen, and what a finger needs is the area it can
+# be hit in rather than the area that is painted. The two are set apart, so the
+# touch target stays 9 mm whilst the button looks like this.
+button = "6.53 mm"
 
 [grid]
 # Nothing lands between two of these. Half a point is invisible on its own and
