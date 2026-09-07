@@ -97,6 +97,7 @@ Object Screen::status_bar(const StatusBar &status)
     lv_obj_set_style_bg_color(band, lv_color_hex(token::surface), 0);
     lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
     lv_obj_set_style_pad_hor(band, panel_(token::status_edge).value, 0);
+    status_ = band;
 
     // Everything sits at the right end, in the order a person reads it: what
     // the device is doing, then how full it is, then the time. Laid out from
@@ -175,6 +176,7 @@ Object Screen::header(const char *title, const char *trailing)
     lv_obj_set_size(band, panel_.width.value, panel_(token::band_header).value);
     lv_obj_set_pos(band, 0, panel_(token::band_status_bar).value);
     lv_obj_set_style_pad_hor(band, panel_(token::edge).value, 0);
+    header_ = band;
 
     Object label = lv_label_create(band);
     lv_label_set_text(label, title);
@@ -206,7 +208,23 @@ Object Screen::footer()
     lv_obj_set_style_bg_color(band, lv_color_hex(token::surface), 0);
     lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
     lv_obj_set_style_pad_hor(band, panel_(token::edge).value, 0);
+    footer_ = band;
     return band;
+}
+
+bool Screen::is_a_band(Object object) const
+{
+    return object == status_ || object == header_ || object == footer_;
+}
+
+bool Screen::in_a_band(Object object) const
+{
+    for (Object walk = object; walk != nullptr; walk = lv_obj_get_parent(walk)) {
+        if (walk == status_ || walk == header_ || walk == footer_) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Object Screen::content()

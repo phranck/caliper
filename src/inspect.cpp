@@ -34,10 +34,24 @@ Element describe(lv_obj_t *object)
     element.width = Point{lv_area_get_width(&area)};
     element.height = Point{lv_area_get_height(&area)};
 
-    element.touchable = lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE);
+    // Clickable is set on almost everything the library creates, so it says
+    // nothing about whether a finger is meant to land there. Two things do: what
+    // the object is, and whether anything is listening. A button is a button
+    // before a handler is attached to it, and a plain container with a handler
+    // is a target even though it looks like scenery.
+    const bool a_control = lv_obj_check_type(object, &lv_button_class) ||
+                           lv_obj_check_type(object, &lv_slider_class) ||
+                           lv_obj_check_type(object, &lv_switch_class) ||
+                           lv_obj_check_type(object, &lv_checkbox_class);
+    element.touchable = a_control ||
+                        (lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE) &&
+                         lv_obj_get_event_count(object) > 0);
 
     element.radius = Point{static_cast<std::int32_t>(
         lv_obj_get_style_radius(object, LV_PART_MAIN))};
+
+    element.draws = lv_obj_get_style_bg_opa(object, LV_PART_MAIN) != LV_OPA_TRANSP ||
+                    lv_obj_get_style_border_width(object, LV_PART_MAIN) > 0;
 
     // A label states its own width once it has been laid out, and that width is
     // what has to fit rather than an estimate from the character count.
@@ -50,6 +64,18 @@ Element describe(lv_obj_t *object)
     if (lv_obj_check_type(object, &lv_image_class)) {
         element.name = "symbol";
         element.is_content = true;
+    }
+
+    // Anything else gets the name of what it is, so a finding can be placed at
+    // all. An empty name in a log is a finding nobody can act on.
+    if (element.name[0] == '\0') {
+        if (lv_obj_check_type(object, &lv_button_class)) {
+            element.name = "button";
+        } else if (lv_obj_get_child_count(object) > 0) {
+            element.name = "container";
+        } else {
+            element.name = "spacer";
+        }
     }
 
     return element;
@@ -77,8 +103,30 @@ Walk walk;
 void visit(lv_obj_t *object, const Bands &bands, bool scrolled)
 {
     const Element element = describe(object);
-    const Bands applicable = scrolled ? Bands{} : bands;
-    walk.findings += check(element, walk.screen->panel(), applicable, walk.report);
+
+    // The band check is left out twice over: inside a scrolling container,
+    // where content below the fold is the point, and for the bands themselves,
+    // which reach outside the content area by definition. Everything else is
+    // checked wherever it stands, which is how a control in a footer gets
+    // measured at all.
+    const bool banded = walk.screen->in_a_band(object);
+    const bool exempt = scrolled || banded;
+    const Bands applicable = exempt ? Bands{} : bands;
+
+    // A band spans the panel, so it has no margin of its own to hold. What
+    // stands inside one holds the bar's margin, which is smaller than the
+    // screen's on purpose. Everything else holds the screen's.
+    Element measured = element;
+    if (walk.screen->is_a_band(object) || object == walk.screen->root()) {
+        measured.margin = Point{0};
+    } else if (banded) {
+        measured.margin = walk.screen->panel()(token::status_edge);
+        measured.margin_vertical = false;
+    } else {
+        measured.margin = walk.screen->panel()(token::edge);
+    }
+
+    walk.findings += check(measured, walk.screen->panel(), applicable, walk.report);
 
     const bool scrolls = scrolled ||
                          lv_obj_has_flag(object, LV_OBJ_FLAG_SCROLLABLE);
@@ -108,10 +156,14 @@ int inspect(Screen &screen, Report report)
 
     walk = Walk{&screen, report, 0};
 
-    // The bands themselves reach outside the content area by definition, so the
-    // walk starts at the content and not at the screen. What sits in a band is
-    // checked against the margins and the grid all the same, one level down.
-    visit(screen.content(), bands, false);
+    // The whole screen, not only the content. A control in a footer is a
+    // control, and leaving the bands out meant an undersized one in there was
+    // never looked at.
+    // The screen itself is the panel and holds no margin to anything.
+    const std::uint32_t children = lv_obj_get_child_count(screen.root());
+    for (std::uint32_t index = 0; index < children; ++index) {
+        visit(lv_obj_get_child(screen.root(), index), bands, false);
+    }
 
     return walk.findings;
 }

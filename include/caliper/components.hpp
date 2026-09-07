@@ -89,10 +89,32 @@ public:
     /// The height a row of a list takes, which is the height of the header.
     Point row_height() const;
 
+    /// The screen everything on it hangs from, for a pass that walks it.
+    Object root() const { return root_; }
+
+    /**
+     * Whether an object is one of the bands or sits in one.
+     *
+     * A band reaches outside the content area by definition, so the check that
+     * keeps content clear of the bands cannot be applied to the bands
+     * themselves. Every other check still is.
+     *
+     * @param object The object to ask about.
+     * @returns True when the band check does not apply to it.
+     */
+    bool in_a_band(Object object) const;
+
+    /// Whether an object is one of the bands itself, which spans the panel and
+    /// therefore holds no margin.
+    bool is_a_band(Object object) const;
+
 private:
     Panel panel_;
     Object root_ = nullptr;
     Object content_ = nullptr;
+    Object status_ = nullptr;
+    Object header_ = nullptr;
+    Object footer_ = nullptr;
 };
 
 /**

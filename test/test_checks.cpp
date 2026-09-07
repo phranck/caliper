@@ -40,7 +40,8 @@ constexpr Element sound{.name = "sound",
                         .text_padding = Point{20},
                         .radius = Point{12},
                         .outer_radius = Point{32},
-                        .outer_gap = Point{20}};
+                        .outer_gap = Point{20},
+                        .margin = Point{16}};
 
 static_assert(findings(sound) == 0);
 
@@ -92,6 +93,17 @@ constexpr Element centred_symbol = [] {
 }();
 static_assert(findings(centred_symbol) == 0);
 
+// Something invisible is exempt from the grid: it cannot be seen to sit beside
+// anything.
+constexpr Element invisible = [] {
+    Element element = sound;
+    element.name = "spacer";
+    element.left = Point{25};
+    element.draws = false;
+    return element;
+}();
+static_assert(findings(invisible) == 0);
+
 // An edge between two points of the grid.
 constexpr Element off_grid = [] {
     Element element = sound;
@@ -109,9 +121,9 @@ constexpr Element under_the_band = [] {
 static_assert(findings(under_the_band) == 1);
 
 // One element can break several rules at once, and each is reported. This one
-// breaks four rules across five findings: too short for a finger, past the left
-// margin, its text twice the room it has, and two of its four edges between
-// points of the grid.
+// breaks four: under the floor a control has to reach, past the left margin,
+// its text twice the room it has, and its left edge between two points of the
+// grid.
 constexpr Element hopeless = [] {
     Element element = sound;
     element.left = Point{7};
@@ -119,7 +131,7 @@ constexpr Element hopeless = [] {
     element.text_width = Point{500};
     return element;
 }();
-static_assert(findings(hopeless) == 5);
+static_assert(findings(hopeless) == 4);
 
 /// Prints a finding the way the device would.
 void print(const Finding &finding)

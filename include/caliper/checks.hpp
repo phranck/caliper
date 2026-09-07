@@ -78,6 +78,23 @@ struct Element {
     /// The space between this element's edge and the enclosing one, which is
     /// what the two corners differ by.
     Point outer_gap{0};
+
+    /// How close to the edge of the panel this may come. It is the screen's
+    /// margin for anything on a screen and the bar's own for anything in the
+    /// status bar, which is deliberately narrower because the bar is 32 points
+    /// tall where the screen is 480. Zero means the element spans the panel by
+    /// design, which is what a band does.
+    Point margin{0};
+
+    /// Whether the margin applies downwards as well as sideways. Inside a band
+    /// it does not: a band is 32 points tall, and a line of text in it cannot
+    /// hold 16 above and below. What frames it there is the band.
+    bool margin_vertical = true;
+
+    /// Whether the element draws anything at all. One that does not, so a
+    /// container holding others or a spacer, cannot be seen to sit half a point
+    /// beside its neighbour, and the grid is there to prevent exactly that.
+    bool draws = true;
 };
 
 /**
@@ -149,17 +166,17 @@ constexpr int check(const Element &element, const Panel &panel, const Bands &ban
     }
 
     // Content against the edge of the panel reads as content against the case.
-    const std::int32_t margin = panel(token::edge).value;
-    if (element.left.value < margin) {
+    const std::int32_t margin = element.margin.value;
+    if (margin > 0 && element.left.value < margin) {
         found(Rule::Margin, element.left.value, margin);
     }
-    if (element.top.value < margin) {
+    if (margin > 0 && element.margin_vertical && element.top.value < margin) {
         found(Rule::Margin, element.top.value, margin);
     }
-    if (panel.width.value - right < margin) {
+    if (margin > 0 && panel.width.value - right < margin) {
         found(Rule::Margin, panel.width.value - right, margin);
     }
-    if (panel.height.value - bottom < margin) {
+    if (margin > 0 && element.margin_vertical && panel.height.value - bottom < margin) {
         found(Rule::Margin, panel.height.value - bottom, margin);
     }
 
@@ -181,14 +198,17 @@ constexpr int check(const Element &element, const Panel &panel, const Bands &ban
     }
 
     // Half a point is invisible alone and plain to see the moment two surfaces
-    // sit side by side. Content is exempt, for the reason at `is_content`.
+    // sit side by side. Content and anything invisible are exempt, for the
+    // reasons at `is_content` and `draws`.
     const std::int32_t step = token::grid.value;
-    if (!element.is_content) {
+    if (!element.is_content && element.draws) {
 
-        // A plain array rather than a braced list, which would pull in a
-        // standard header for nothing but the loop.
-        const std::int32_t edges[4] = {element.left.value, element.top.value,
-                                       element.width.value, element.height.value};
+        // The two edges, and not the size. Where a surface starts is a
+        // decision of the design; how wide it comes out is often the layout
+        // filling what is left or a label deciding for it, and neither of those
+        // can land on a grid. What one sees as a misalignment is two edges
+        // beside each other, which is what this measures.
+        const std::int32_t edges[2] = {element.left.value, element.top.value};
         for (std::int32_t edge : edges) {
             if (edge % step != 0) {
                 found(Rule::Grid, edge, edge - edge % step);
