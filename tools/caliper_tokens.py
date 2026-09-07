@@ -5,10 +5,11 @@ tokens/caliper.toml and run it again.
 """
 
 SPACING_MM = {
-    "edge": 3.27,
+    "edge": 2.18,
     "group": 3.27,
     "inset": 2.72,
     "line_gap": 1.63,
+    "status_edge": 1.09,
 }
 
 LAYOUT_MM = {
@@ -25,21 +26,23 @@ TOUCH_MM = {
 }
 
 READING_MM = {
-    "title": 945.0,
-    "heading": 565.0,
-    "body": 410.0,
+    "title": 935.0,
+    "heading": 560.0,
+    "body": 405.0,
     "small": 345.0,
+    "status": 295.0,
 }
 
 CAP_ANGLE_MRAD = 6.1
-CAP_RATIO = 0.705
-X_HEIGHT_RATIO = 0.505
-DESCENDER_RATIO = 0.24
+CAP_RATIO = 0.7
+X_HEIGHT_RATIO = 0.506
+DESCENDER_RATIO = 0.2
 
 RADIUS_MM = {
     "panel": 4.35,
     "tile": 2.72,
     "artwork": 1.63,
+    "button": 1.9,
 }
 
 SQUIRCLE = 3.2
@@ -59,7 +62,7 @@ COLOURS = {
     "accent": "#f0a85c",
     "accent-ink": "#2b1806",
     "accent-dim": "#6b4415",
-    "line": "#3d3128",
+    "line": "#2b221a",
     "overlay": "#3f3226",
     "danger": "#e8705a",
     "danger-ink": "#2b0c06",

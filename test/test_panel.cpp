@@ -48,24 +48,29 @@ constexpr Point scaled_by_width{rounded(66.0f * 1024.0f / 800.0f)};
 static_assert(scaled_by_width == 84_pt);
 static_assert(scaled_by_width != seven_inch(token::fingertip));
 
+// A line of text is raised by half a descender to look centred, which is three
+// points at body size on this panel.
+static_assert(five_inch.optical_offset(26_pt) == 3_pt);
+static_assert(five_inch.optical_offset(60_pt) == 6_pt);
+
 // The type scale holds its angle, so the grades follow the density too.
 static_assert(five_inch.type_size(token::body) == 26_pt);
 static_assert(seven_inch.type_size(token::body) == 24_pt);
 static_assert(five_inch_hd.type_size(token::body) == 41_pt);
 
 static_assert(five_inch.type_size(token::title) == 60_pt);
-static_assert(seven_inch.type_size(token::title) == 55_pt);
-static_assert(five_inch_hd.type_size(token::title) == 95_pt);
+static_assert(seven_inch.type_size(token::title) == 54_pt);
+static_assert(five_inch_hd.type_size(token::title) == 94_pt);
 
 // A corner inside another, computed from the one around it.
 static_assert(five_inch.inner_radius(token::radius_panel) == 12_pt);
 static_assert(seven_inch.inner_radius(token::radius_panel) == 11_pt);
 
-// A control carrying text is its label plus its padding, and never smaller than
-// a finger needs. A short label is therefore held up by the floor.
-static_assert(five_inch.minimum_width(20_pt) == 66_pt);
+// A control carrying text is its label plus its padding, and never under the
+// floor a control has to reach. A short label is therefore held up by it.
+static_assert(five_inch.minimum_width(20_pt) == 60_pt);
 static_assert(five_inch.minimum_width(200_pt) == 240_pt);
-static_assert(seven_inch.minimum_width(20_pt) == 60_pt);
+static_assert(seven_inch.minimum_width(20_pt) == 56_pt);
 
 // The units keep each other out. None of the following compiles, and that is
 // the deliverable:

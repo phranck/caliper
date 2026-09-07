@@ -1,9 +1,8 @@
 #pragma once
 
-#include "caliper/panel.hpp"
+#include "lvgl.h"
 
-struct _lv_display_t;
-struct _lv_font_t;
+#include "caliper/panel.hpp"
 
 namespace cal {
 
@@ -16,13 +15,25 @@ namespace cal {
  */
 struct Typography {
     /// Ordinary text, and what anything unspecified falls back to.
-    const _lv_font_t *body = nullptr;
+    const lv_font_t *body = nullptr;
 
     /// A heading, larger, for what one is looking at.
-    const _lv_font_t *heading = nullptr;
+    const lv_font_t *heading = nullptr;
 
     /// The smallest grade, for a value beside a name.
-    const _lv_font_t *small = nullptr;
+    const lv_font_t *small = nullptr;
+
+    /// The same size as body in a heavier cut, for the one or two words a
+    /// control carries. A label on a button is read at a glance rather than
+    /// line by line, and the heavier cut is what makes that work at this size.
+    const lv_font_t *strong = nullptr;
+
+    /// What the status bar is set in, at its own grade. It may be a different
+    /// face: the bar carries figures and single words at the very top of the
+    /// screen, where a condensed face is tight and a normal one reads at a
+    /// glance. Null falls back to `small`.
+    const lv_font_t *status = nullptr;
+
 };
 
 /**
@@ -40,7 +51,7 @@ struct Typography {
  *              points.
  * @param fonts The typefaces to set text in.
  */
-void install_theme(_lv_display_t *display, const Panel &panel, const Typography &fonts);
+void install_theme(lv_display_t *display, const Panel &panel, const Typography &fonts);
 
 /// The typefaces the theme was installed with, for a component that sets text.
 const Typography &typography();
