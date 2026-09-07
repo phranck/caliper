@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CALIPER_UNITS_H_
+#define CALIPER_UNITS_H_
 
 #include <cstdint>
 
@@ -24,9 +25,9 @@ namespace cal {
  * one of these types a graphics library ever sees.
  */
 struct Point {
-    std::int32_t value;
+   std::int32_t value;
 
-    friend constexpr bool operator==(Point, Point) = default;
+   friend constexpr bool operator==(Point, Point) = default;
 };
 
 /**
@@ -36,9 +37,9 @@ struct Point {
  * exists: a fingertip is nine millimetres whatever the density beneath it.
  */
 struct Millimeter {
-    float value;
+   float value;
 
-    friend constexpr bool operator==(Millimeter, Millimeter) = default;
+   friend constexpr bool operator==(Millimeter, Millimeter) = default;
 };
 
 /**
@@ -49,28 +50,19 @@ struct Millimeter {
  * from the distance, the angle a capital has to hold and the panel.
  */
 struct Reading {
-    float millimetres;
+   float millimetres;
 
-    friend constexpr bool operator==(Reading, Reading) = default;
+   friend constexpr bool operator==(Reading, Reading) = default;
 };
 
 /// A size on the glass, written as `9.0_mm`.
-constexpr Millimeter operator""_mm(long double size)
-{
-    return Millimeter{static_cast<float>(size)};
-}
+constexpr Millimeter operator""_mm(long double size) { return Millimeter{static_cast<float>(size)}; }
 
 /// A whole number of pixels, written as `800_pt`.
-constexpr Point operator""_pt(unsigned long long size)
-{
-    return Point{static_cast<std::int32_t>(size)};
-}
+constexpr Point operator""_pt(unsigned long long size) { return Point{static_cast<std::int32_t>(size)}; }
 
 /// A reading distance, written as `400.0_read`.
-constexpr Reading operator""_read(long double distance)
-{
-    return Reading{static_cast<float>(distance)};
-}
+constexpr Reading operator""_read(long double distance) { return Reading{static_cast<float>(distance)}; }
 
 /**
  * Rounds to the nearest whole number, halves away from zero.
@@ -84,9 +76,10 @@ constexpr Reading operator""_read(long double distance)
  * @param value The number to round.
  * @returns The nearest whole number.
  */
-constexpr std::int32_t rounded(float value)
-{
-    return static_cast<std::int32_t>(value < 0.0f ? value - 0.5f : value + 0.5f);
+constexpr std::int32_t Rounded(float value) {
+   return static_cast<std::int32_t>(value < 0.0f ? value - 0.5f : value + 0.5f);
 }
 
 }  // namespace cal
+
+#endif  // CALIPER_UNITS_H_

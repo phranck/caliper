@@ -4,7 +4,7 @@
 # lets the tests run on a machine with no board. The sources here are the part
 # that touches the graphics library, so they only build where it exists.
 
-idf_component_register(SRCS "src/theme.cpp" "src/components.cpp" "src/inspect.cpp"
+idf_component_register(SRCS "src/theme.cc" "src/components.cc" "src/inspect.cc"
                        INCLUDE_DIRS "include"
                        REQUIRES lvgl log)
 

@@ -9,13 +9,13 @@
 
 #include <cstdio>
 
-#include "caliper/checks.hpp"
+#include "caliper/checks.h"
 
 namespace {
 
 using namespace cal;
 
-constexpr Panel panel = jc8048w500;
+constexpr Panel panel = kJc8048w500;
 
 /// The bands of a screen of this design: a status bar of 32 and a header of 68
 /// above, a footer of 112 below.
@@ -23,10 +23,7 @@ constexpr Bands bands{.content_top = Point{100}, .content_bottom = Point{368}};
 
 /// Counts findings without reporting them, which is what a compile-time check
 /// can do.
-constexpr int findings(const Element &element)
-{
-    return check(element, panel, bands, nullptr);
-}
+constexpr int findings(const Element& element) { return Check(element, panel, bands, nullptr); }
 
 /// An element that holds every rule: inside the margins, inside the bands, on
 /// the grid, large enough for a finger, its text fitting, its corner concentric.
@@ -49,74 +46,74 @@ static_assert(findings(sound) == 0);
 // this panel. A fingertip is 66 and decides a key of a keyboard, where targets
 // sit side by side; a button in a bar is wide and stands alone.
 constexpr Element small_target = [] {
-    Element element = sound;
-    element.name = "Fertig";
-    element.height = Point{40};
-    return element;
+   Element element = sound;
+   element.name = "Fertig";
+   element.height = Point{40};
+   return element;
 }();
 static_assert(findings(small_target) == 1);
 
 // Against the edge of the panel, where the margin is 16.
 constexpr Element at_the_edge = [] {
-    Element element = sound;
-    element.left = Point{6};
-    return element;
+   Element element = sound;
+   element.left = Point{6};
+   return element;
 }();
 static_assert(findings(at_the_edge) == 1);
 
 // A label wider than the surface carrying it, which is what a second language
 // does to a control sized for the first.
 constexpr Element overflowing = [] {
-    Element element = sound;
-    element.text_width = Point{220};
-    return element;
+   Element element = sound;
+   element.text_width = Point{220};
+   return element;
 }();
 static_assert(findings(overflowing) == 1);
 
 // A corner that is not the outer one less the inset, which is the pinched
 // corner one sees and cannot name.
 constexpr Element pinched = [] {
-    Element element = sound;
-    element.radius = Point{16};
-    return element;
+   Element element = sound;
+   element.radius = Point{16};
+   return element;
 }();
 static_assert(findings(pinched) == 1);
 
 // Content is exempt from the grid: a symbol centred in a row lands where the
 // alignment puts it.
 constexpr Element centred_symbol = [] {
-    Element element = sound;
-    element.name = "symbol";
-    element.left = Point{25};
-    element.is_content = true;
-    return element;
+   Element element = sound;
+   element.name = "symbol";
+   element.left = Point{25};
+   element.is_content = true;
+   return element;
 }();
 static_assert(findings(centred_symbol) == 0);
 
 // Something invisible is exempt from the grid: it cannot be seen to sit beside
 // anything.
 constexpr Element invisible = [] {
-    Element element = sound;
-    element.name = "spacer";
-    element.left = Point{25};
-    element.draws = false;
-    return element;
+   Element element = sound;
+   element.name = "spacer";
+   element.left = Point{25};
+   element.draws = false;
+   return element;
 }();
 static_assert(findings(invisible) == 0);
 
 // An edge between two points of the grid.
 constexpr Element off_grid = [] {
-    Element element = sound;
-    element.left = Point{25};
-    return element;
+   Element element = sound;
+   element.left = Point{25};
+   return element;
 }();
 static_assert(findings(off_grid) == 1);
 
 // Content reaching under the footer.
 constexpr Element under_the_band = [] {
-    Element element = sound;
-    element.height = Point{300};
-    return element;
+   Element element = sound;
+   element.height = Point{300};
+   return element;
 }();
 static_assert(findings(under_the_band) == 1);
 
@@ -125,20 +122,18 @@ static_assert(findings(under_the_band) == 1);
 // its text twice the room it has, and its left edge between two points of the
 // grid.
 constexpr Element hopeless = [] {
-    Element element = sound;
-    element.left = Point{7};
-    element.height = Point{41};
-    element.text_width = Point{500};
-    return element;
+   Element element = sound;
+   element.left = Point{7};
+   element.height = Point{41};
+   element.text_width = Point{500};
+   return element;
 }();
 static_assert(findings(hopeless) == 4);
 
 /// Prints a finding the way the device would.
-void print(const Finding &finding)
-{
-    std::printf("caliper: %s, \"%s\" is %d, needs %d\n",
-                name_of(finding.rule), finding.name,
-                finding.actual, finding.required);
+void print(const Finding& finding) {
+   std::printf("caliper: %s, \"%s\" is %d, needs %d\n", NameOf(finding.rule), finding.name, finding.actual,
+               finding.required);
 }
 
 /**
@@ -147,29 +142,27 @@ void print(const Finding &finding)
  * @param element The element.
  * @param what What the element is meant to demonstrate.
  */
-void run(const Element &element, const char *what)
-{
-    std::printf("%-22s ", what);
-    const int count = check(element, panel, bands, nullptr);
-    if (count == 0) {
-        std::printf("clean\n");
-        return;
-    }
-    std::printf("%d finding%s\n", count, count == 1 ? "" : "s");
-    check(element, panel, bands, print);
+void run(const Element& element, const char* what) {
+   std::printf("%-22s ", what);
+   const int count = Check(element, panel, bands, nullptr);
+   if (count == 0) {
+      std::printf("clean\n");
+      return;
+   }
+   std::printf("%d finding%s\n", count, count == 1 ? "" : "s");
+   Check(element, panel, bands, print);
 }
 
 }  // namespace
 
-int main()
-{
-    run(sound, "sound");
-    run(small_target, "too small for a finger");
-    run(at_the_edge, "against the edge");
-    run(overflowing, "text too wide");
-    run(pinched, "pinched corner");
-    run(off_grid, "off the grid");
-    run(under_the_band, "under the footer");
-    run(hopeless, "several at once");
-    return 0;
+int main() {
+   run(sound, "sound");
+   run(small_target, "too small for a finger");
+   run(at_the_edge, "against the edge");
+   run(overflowing, "text too wide");
+   run(pinched, "pinched corner");
+   run(off_grid, "off the grid");
+   run(under_the_band, "under the footer");
+   run(hopeless, "several at once");
+   return 0;
 }

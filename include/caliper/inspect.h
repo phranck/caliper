@@ -1,7 +1,8 @@
-#pragma once
+#ifndef CALIPER_INSPECT_H_
+#define CALIPER_INSPECT_H_
 
-#include "caliper/checks.hpp"
-#include "caliper/components.hpp"
+#include "caliper/checks.h"
+#include "caliper/components.h"
 
 namespace cal {
 
@@ -20,7 +21,7 @@ namespace cal {
  * @param report Called once per finding, or nullptr to only count.
  * @returns How many findings there were.
  */
-int inspect(Screen &screen, Report report);
+int Inspect(Screen& screen, Report report);
 
 /**
  * Walks a screen and writes every finding to the log.
@@ -28,6 +29,8 @@ int inspect(Screen &screen, Report report);
  * @param screen The screen to walk.
  * @returns How many findings there were, so a caller can refuse to show it.
  */
-int inspect_and_log(Screen &screen);
+int InspectAndLog(Screen& screen);
 
 }  // namespace cal
+
+#endif  // CALIPER_INSPECT_H_

@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # The same settings the device is built with, so anything that would fail there
 # fails here first.
 function(caliper_test name)
-    add_executable(${name} ${name}.cpp)
+    add_executable(${name} ${name}.cc)
     target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
     target_compile_options(${name} PRIVATE
         -Wall -Wextra -Werror -fno-exceptions -fno-rtti)
