@@ -16,9 +16,16 @@ inline constexpr Millimeter group{3.27f};
 inline constexpr Millimeter inset{2.72f};
 inline constexpr Millimeter line_gap{1.63f};
 
+// The heights of the three bands, from which the content area follows.
+inline constexpr Millimeter band_status_bar{4.35f};
+inline constexpr Millimeter band_header{9.25f};
+inline constexpr Millimeter band_footer{10.88f};
+inline constexpr Millimeter band_button{6.53f};
+
 // What a hand needs. The floor every touch target is measured against.
 inline constexpr Millimeter fingertip{9.0f};
 inline constexpr Millimeter thumb{12.0f};
+inline constexpr Millimeter minimum{6.53f};
 
 // The type scale as a rule: every grade is a cap height seen under one
 // angle from the distance it is meant to be read at.

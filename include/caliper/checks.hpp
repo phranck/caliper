@@ -21,7 +21,7 @@ namespace cal {
 
 /// What a finding is about.
 enum class Rule {
-    /// A touch target smaller than a finger.
+    /// A touch target under the floor a control has to reach.
     TouchTarget,
     /// Something closer to the edge of the panel than the margin.
     Margin,
@@ -60,6 +60,12 @@ struct Element {
 
     /// The padding between its own edge and that text.
     Point text_padding{0};
+
+    /// Whether the element is the text itself rather than a surface carrying
+    /// it. Where a line of text sits inside its surface is a matter of
+    /// alignment, so the grid does not apply to it: the grid exists so that two
+    /// surfaces side by side are not half a point apart.
+    bool is_text = false;
 
     /// Its corner, and the corner of whatever encloses it. Both zero where
     /// neither has one.
@@ -130,7 +136,7 @@ constexpr int check(const Element &element, const Panel &panel, const Bands &ban
     // A touch target smaller than a fingertip is one the finger misses, and it
     // looks perfectly reasonable on a screen at four times the size.
     if (element.touchable) {
-        const std::int32_t needed = panel(token::fingertip).value;
+        const std::int32_t needed = panel(token::minimum).value;
         if (element.width.value < needed) {
             found(Rule::TouchTarget, element.width.value, needed);
         }
@@ -172,16 +178,18 @@ constexpr int check(const Element &element, const Panel &panel, const Bands &ban
     }
 
     // Half a point is invisible alone and plain to see the moment two surfaces
-    // sit side by side.
+    // sit side by side. Text is exempt, for the reason at `is_text`.
     const std::int32_t step = token::grid.value;
+    if (!element.is_text) {
 
-    // A plain array rather than a braced list, which would pull in a standard
-    // header for nothing but the loop.
-    const std::int32_t edges[4] = {element.left.value, element.top.value,
-                                   element.width.value, element.height.value};
-    for (std::int32_t edge : edges) {
-        if (edge % step != 0) {
-            found(Rule::Grid, edge, edge - edge % step);
+        // A plain array rather than a braced list, which would pull in a
+        // standard header for nothing but the loop.
+        const std::int32_t edges[4] = {element.left.value, element.top.value,
+                                       element.width.value, element.height.value};
+        for (std::int32_t edge : edges) {
+            if (edge % step != 0) {
+                found(Rule::Grid, edge, edge - edge % step);
+            }
         }
     }
 

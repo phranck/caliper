@@ -1,0 +1,10 @@
+version: "0.1.0"
+description: An LVGL extension that makes an interface on a controller board measurable
+url: https://github.com/phranck/caliper
+license: MIT
+
+dependencies:
+  # The version LEVEL measured on its board. The figures in PAP-HW-005 describe
+  # this one, so a newer major means running that comparison again.
+  lvgl/lvgl: "~9.5.0"
+  idf: ">=5.3"
