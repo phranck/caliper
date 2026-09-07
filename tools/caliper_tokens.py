@@ -37,6 +37,8 @@ RADIUS_MM = {
 SQUIRCLE = 3.2
 SQUIRCLE_ARTWORK = 8.0
 
+GRID_UNIT = 2
+
 COLOURS = {
     "bg": "#17120e",
     "surface": "#221a14",

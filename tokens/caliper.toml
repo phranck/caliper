@@ -43,6 +43,13 @@ heading = "565 mm"
 body = "410 mm"
 small = "345 mm"
 
+[grid]
+# Nothing lands between two of these. Half a point is invisible on its own and
+# plainly visible the moment two surfaces sit side by side, which is why this is
+# a whole number of pixels rather than a millimetre: it exists to keep edges
+# from disagreeing, not to look the same on every panel.
+unit = 2
+
 [radius]
 # Only the outer corners are stated. A corner inside another is computed from
 # the one around it, because writing the two as separate numbers produces a

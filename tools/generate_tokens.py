@@ -84,6 +84,7 @@ def read_tokens() -> dict:
         else:
             tokens["radius"][name] = float(value)
 
+    tokens["grid"] = {name: int(value) for name, value in raw["grid"].items()}
     tokens["colour"] = dict(raw["colour"])
     return tokens
 
@@ -174,6 +175,9 @@ def write_header(tokens: dict) -> None:
         "    return Millimeter{outer.value - gap.value};",
         "}",
         "",
+        "// The grid every edge lands on, in whole pixels.",
+        f"inline constexpr Point grid{{{tokens['grid']['unit']}}};",
+        "",
         "// The palette. A colour has no measurement, so these pass through as they",
         "// were written.",
     ]
@@ -223,6 +227,9 @@ def write_module(tokens: dict) -> None:
     for name, value in tokens["radius"].items():
         if name.startswith("squircle"):
             lines.append(f"{name.upper()} = {value}")
+    lines += [""]
+    for name, value in tokens["grid"].items():
+        lines.append(f"GRID_{name.upper()} = {value}")
     lines += ["", "COLOURS = {"]
     for name, value in tokens["colour"].items():
         lines.append(f'    "{name.replace("_", "-")}": "{value}",')
