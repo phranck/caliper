@@ -61,11 +61,14 @@ struct Element {
     /// The padding between its own edge and that text.
     Point text_padding{0};
 
-    /// Whether the element is the text itself rather than a surface carrying
-    /// it. Where a line of text sits inside its surface is a matter of
-    /// alignment, so the grid does not apply to it: the grid exists so that two
-    /// surfaces side by side are not half a point apart.
-    bool is_text = false;
+    /// Whether the element is content inside a surface rather than a surface
+    /// itself, so a line of text or a symbol. Where such a thing sits is a
+    /// matter of alignment, and alignment lands where it lands: a symbol of 30
+    /// points centred in a row of 68 sits at 19 whatever the grid says.
+    ///
+    /// The grid exists so that two surfaces side by side are not half a point
+    /// apart, and it therefore applies to surfaces.
+    bool is_content = false;
 
     /// Its corner, and the corner of whatever encloses it. Both zero where
     /// neither has one.
@@ -178,9 +181,9 @@ constexpr int check(const Element &element, const Panel &panel, const Bands &ban
     }
 
     // Half a point is invisible alone and plain to see the moment two surfaces
-    // sit side by side. Text is exempt, for the reason at `is_text`.
+    // sit side by side. Content is exempt, for the reason at `is_content`.
     const std::int32_t step = token::grid.value;
-    if (!element.is_text) {
+    if (!element.is_content) {
 
         // A plain array rather than a braced list, which would pull in a
         // standard header for nothing but the loop.

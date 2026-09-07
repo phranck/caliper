@@ -44,7 +44,12 @@ Element describe(lv_obj_t *object)
     if (lv_obj_check_type(object, &lv_label_class)) {
         element.text_width = element.width;
         element.name = lv_label_get_text(object);
-        element.is_text = true;
+        element.is_content = true;
+    }
+
+    if (lv_obj_check_type(object, &lv_image_class)) {
+        element.name = "symbol";
+        element.is_content = true;
     }
 
     return element;

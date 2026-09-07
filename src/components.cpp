@@ -24,6 +24,26 @@ void make_plain(Object object)
     lv_obj_remove_flag(object, LV_OBJ_FLAG_SCROLLABLE);
 }
 
+/**
+ * Aligns a label so that its capitals sit in the middle rather than its box.
+ *
+ * A text box runs from the top of the ascenders to the bottom of the
+ * descenders, so centring it leaves the letters sitting low. Every vertical
+ * centring of text in this library goes through here, because getting it right
+ * in one place and wrong in four is worse than not doing it at all.
+ *
+ * @param label The label to align.
+ * @param panel The panel, for the arithmetic.
+ * @param alignment Where in its parent the label goes, as a middle alignment.
+ * @param size The type size the label is set in.
+ * @param inset How far in from the edge, for a left or right alignment.
+ */
+void align_optically(Object label, const Panel &panel, lv_align_t alignment,
+                     Point size, std::int32_t inset = 0)
+{
+    lv_obj_align(label, alignment, inset, -panel.optical_offset(size).value);
+}
+
 }  // namespace
 
 Screen::Screen(const Panel &panel) : panel_(panel)
@@ -68,7 +88,7 @@ int Screen::rows_visible(Point row_height) const
     return count;
 }
 
-Object Screen::status_bar()
+Object Screen::status_bar(const StatusBar &status)
 {
     Object band = lv_obj_create(root_);
     make_plain(band);
@@ -76,6 +96,75 @@ Object Screen::status_bar()
     lv_obj_set_pos(band, 0, 0);
     lv_obj_set_style_bg_color(band, lv_color_hex(token::surface), 0);
     lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_hor(band, panel_(token::status_edge).value, 0);
+
+    // Everything sits at the right end, in the order a person reads it: what
+    // the device is doing, then how full it is, then the time. Laid out from
+    // the right rather than placed, so leaving one out closes the gap.
+    lv_obj_set_flex_flow(band, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(band, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_column(band, panel_(token::status_edge).value, 0);
+
+    const Point size = panel_.type_size(token::status);
+
+    const auto symbol = [&](const lv_image_dsc_t *source) {
+        Object image = lv_image_create(band);
+        lv_image_set_src(image, source);
+        lv_obj_set_style_image_recolor(image, lv_color_hex(token::muted), 0);
+        lv_obj_set_style_image_recolor_opa(image, LV_OPA_COVER, 0);
+
+        // Its own size, stated. Left to the layout an image is stretched or
+        // squeezed to whatever the row has left, and a symbol that is a point
+        // narrower than it is tall reads as a mistake without looking like one.
+        lv_obj_set_size(image, source->header.w, source->header.h);
+    };
+
+    // Everything in the bar is one weight. What separates the time from the
+    // rest is its colour, not a second cut: at 19 points a heavier face reads
+    // as a different typeface rather than as emphasis.
+    const auto text = [&](const char *content, std::uint32_t colour) {
+        Object label = lv_label_create(band);
+        lv_label_set_text(label, content);
+        lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
+
+        const lv_font_t *face = typography().status != nullptr ? typography().status
+                                                               : typography().small;
+        if (face != nullptr) {
+            lv_obj_set_style_text_font(label, face, 0);
+        }
+
+        // Nudged like every other centred line. In a flex row the alignment is
+        // the container's, so the offset goes on the object itself.
+        lv_obj_set_style_translate_y(label, -panel_.optical_offset(size).value, 0);
+    };
+
+    if (status.leading != nullptr) {
+        text(status.leading, token::muted);
+
+        // A spacer that grows, so what follows sits at the right end whatever
+        // stands at the left.
+        spacer(band);
+    }
+
+    if (status.network != nullptr) {
+        symbol(status.network);
+    }
+
+    if (status.battery != nullptr) {
+        symbol(status.battery);
+    }
+
+    if (status.charge >= 0) {
+        static char charge[8];
+        lv_snprintf(charge, sizeof(charge), "%d %%", status.charge);
+        text(charge, token::muted);
+    }
+
+    if (status.clock != nullptr) {
+        text(status.clock, token::ink);
+    }
+
     return band;
 }
 
@@ -93,7 +182,7 @@ Object Screen::header(const char *title, const char *trailing)
     if (typography().heading != nullptr) {
         lv_obj_set_style_text_font(label, typography().heading, 0);
     }
-    lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
+    align_optically(label, panel_, LV_ALIGN_LEFT_MID, panel_.type_size(token::heading));
 
     if (trailing != nullptr) {
         Object right = lv_label_create(band);
@@ -102,7 +191,7 @@ Object Screen::header(const char *title, const char *trailing)
         if (typography().small != nullptr) {
             lv_obj_set_style_text_font(right, typography().small, 0);
         }
-        lv_obj_align(right, LV_ALIGN_RIGHT_MID, 0, 0);
+        align_optically(right, panel_, LV_ALIGN_RIGHT_MID, panel_.type_size(token::small));
     }
 
     return band;
@@ -149,8 +238,32 @@ Object Screen::content()
     return content_;
 }
 
-Object row(Object parent, const Panel &panel, const char *name, const char *value)
+Object list(Object parent, const Panel &panel)
 {
+    Object group = lv_obj_create(parent);
+    make_plain(group);
+    lv_obj_set_width(group, lv_pct(100));
+    lv_obj_set_height(group, LV_SIZE_CONTENT);
+
+    // One surface for the whole group, with the corner around all of it.
+    lv_obj_set_style_bg_color(group, lv_color_hex(token::surface), 0);
+    lv_obj_set_style_bg_opa(group, LV_OPA_COVER, 0);
+    lv_obj_set_style_radius(group, panel(token::radius_tile).value, 0);
+    lv_obj_set_style_clip_corner(group, true, 0);
+
+    // The rows sit directly on each other. What parts them is a line, not a gap.
+    lv_obj_set_flex_flow(group, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(group, 0, 0);
+    return group;
+}
+
+Object row(Object parent, const Panel &panel, const char *name, const char *value,
+           const lv_image_dsc_t *icon)
+{
+    // Inside a group the row carries no surface of its own: the group draws it
+    // once for all of them, and a second one on top would show at the corners.
+    const bool grouped = lv_obj_get_style_bg_opa(parent, LV_PART_MAIN) != LV_OPA_TRANSP;
+
     Object line = lv_obj_create(parent);
     make_plain(line);
     lv_obj_set_width(line, lv_pct(100));
@@ -158,15 +271,44 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
     // A row is as tall as the header, which is what the design gives both.
     lv_obj_set_height(line, panel(token::band_header).value);
     lv_obj_remove_flag(line, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(line, lv_color_hex(token::surface), 0);
-    lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
-    lv_obj_set_style_radius(line, panel(token::radius_tile).value, 0);
     lv_obj_set_style_pad_hor(line, panel(token::inset).value, 0);
+
+    if (!grouped) {
+        lv_obj_set_style_bg_color(line, lv_color_hex(token::surface), 0);
+        lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
+        lv_obj_set_style_radius(line, panel(token::radius_tile).value, 0);
+    } else if (lv_obj_get_child_count(parent) > 1) {
+        // A hairline above every row but the first, starting where the text
+        // starts. Drawn as a border rather than as an object, so a list of
+        // thirty rows does not cost thirty more of them.
+        lv_obj_set_style_border_color(line, lv_color_hex(token::line), 0);
+        lv_obj_set_style_border_width(line, 1, 0);
+        lv_obj_set_style_border_side(line, LV_BORDER_SIDE_TOP, 0);
+        lv_obj_set_style_border_post(line, true, 0);
+    }
+
+    std::int32_t text_left = 0;
+
+    if (icon != nullptr) {
+        Object symbol = lv_image_create(line);
+        lv_image_set_src(symbol, icon);
+
+        // Tinted rather than coloured in the file. The image carries an alpha
+        // channel and nothing else, so the same one serves a muted row and an
+        // accented one without a second copy.
+        lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::muted), 0);
+        lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
+        lv_obj_align(symbol, LV_ALIGN_LEFT_MID, 0, 0);
+
+        // The gap between a symbol and the word it belongs to is the same
+        // everywhere on these screens, and it is the design's own inset.
+        text_left = icon->header.w + panel(token::inset).value;
+    }
 
     Object label = lv_label_create(line);
     lv_label_set_text(label, name);
     lv_obj_set_style_text_color(label, lv_color_hex(token::ink), 0);
-    lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
+    align_optically(label, panel, LV_ALIGN_LEFT_MID, panel.type_size(token::body), text_left);
 
     if (value != nullptr) {
         Object right = lv_label_create(line);
@@ -175,7 +317,7 @@ Object row(Object parent, const Panel &panel, const char *name, const char *valu
         if (typography().small != nullptr) {
             lv_obj_set_style_text_font(right, typography().small, 0);
         }
-        lv_obj_align(right, LV_ALIGN_RIGHT_MID, 0, 0);
+        align_optically(right, panel, LV_ALIGN_RIGHT_MID, panel.type_size(token::small));
     }
 
     return line;
@@ -196,7 +338,7 @@ Object card(Object parent, const Panel &panel, Point width, Point height)
 Object button(Object parent, const Panel &panel, const char *label, bool accent)
 {
     Object control = lv_button_create(parent);
-    lv_obj_set_style_radius(control, panel(token::radius_tile).value, 0);
+    lv_obj_set_style_radius(control, panel(token::radius_button).value, 0);
     lv_obj_set_style_pad_hor(control, panel(token::inset).value, 0);
 
     // A minimum rather than a size, so a longer word in another language makes
@@ -211,9 +353,13 @@ Object button(Object parent, const Panel &panel, const char *label, bool accent)
 
     Object text = lv_label_create(control);
     lv_label_set_text(text, label);
+    if (typography().strong != nullptr) {
+        lv_obj_set_style_text_font(text, typography().strong, 0);
+    }
     lv_obj_set_style_text_color(
         text, lv_color_hex(accent ? token::accent_ink : token::ink), 0);
-    lv_obj_center(text);
+
+    align_optically(text, panel, LV_ALIGN_CENTER, panel.type_size(token::body));
 
     return control;
 }

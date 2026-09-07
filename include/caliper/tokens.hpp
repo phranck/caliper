@@ -11,10 +11,11 @@ namespace cal::token {
 
 // Spacings. Millimetres, because a margin answers to an eye and a finger
 // rather than to a pixel count.
-inline constexpr Millimeter edge{3.27f};
+inline constexpr Millimeter edge{2.18f};
 inline constexpr Millimeter group{3.27f};
 inline constexpr Millimeter inset{2.72f};
 inline constexpr Millimeter line_gap{1.63f};
+inline constexpr Millimeter status_edge{1.09f};
 
 // The heights of the three bands, from which the content area follows.
 inline constexpr Millimeter band_status_bar{4.35f};
@@ -30,19 +31,21 @@ inline constexpr Millimeter minimum{6.53f};
 // The type scale as a rule: every grade is a cap height seen under one
 // angle from the distance it is meant to be read at.
 inline constexpr float cap_angle_mrad = 6.1f;
-inline constexpr float cap_ratio = 0.705f;
-inline constexpr float x_height_ratio = 0.505f;
-inline constexpr float descender_ratio = 0.24f;
-inline constexpr Reading title{945.0f};
-inline constexpr Reading heading{565.0f};
-inline constexpr Reading body{410.0f};
+inline constexpr float cap_ratio = 0.7f;
+inline constexpr float x_height_ratio = 0.506f;
+inline constexpr float descender_ratio = 0.2f;
+inline constexpr Reading title{935.0f};
+inline constexpr Reading heading{560.0f};
+inline constexpr Reading body{405.0f};
 inline constexpr Reading small{345.0f};
+inline constexpr Reading status{295.0f};
 
 // Only the outer corners. Anything nested is computed by inner_radius
 // below, because two numbers drift into a pinched corner.
 inline constexpr Millimeter radius_panel{4.35f};
 inline constexpr Millimeter radius_tile{2.72f};
 inline constexpr Millimeter radius_artwork{1.63f};
+inline constexpr Millimeter radius_button{1.9f};
 inline constexpr float squircle = 3.2f;
 inline constexpr float squircle_artwork = 8.0f;
 
@@ -70,7 +73,7 @@ inline constexpr std::uint32_t faint = 0x8d7c6c;
 inline constexpr std::uint32_t accent = 0xf0a85c;
 inline constexpr std::uint32_t accent_ink = 0x2b1806;
 inline constexpr std::uint32_t accent_dim = 0x6b4415;
-inline constexpr std::uint32_t line = 0x3d3128;
+inline constexpr std::uint32_t line = 0x2b221a;
 inline constexpr std::uint32_t overlay = 0x3f3226;
 inline constexpr std::uint32_t danger = 0xe8705a;
 inline constexpr std::uint32_t danger_ink = 0x2b0c06;

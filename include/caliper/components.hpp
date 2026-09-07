@@ -1,14 +1,38 @@
 #pragma once
 
-#include "caliper/panel.hpp"
+#include "lvgl.h"
 
-struct _lv_obj_t;
+#include "caliper/panel.hpp"
 
 namespace cal {
 
-/// An object of the graphics library, named so that this header does not have
-/// to include it and everything above it stays free of that dependency.
-using Object = _lv_obj_t *;
+/// An object of the graphics library. A component is one, so this header knows
+/// about the library; the core with the units and the checks does not, which is
+/// what lets those run on a machine with no board.
+using Object = lv_obj_t *;
+
+/**
+ * What the status bar carries. Everything in it is optional, and what is left
+ * out simply does not appear.
+ */
+struct StatusBar {
+    /// What stands at the left end. The right end is for the state of the
+    /// device, so this is where anything about the screen itself goes.
+    const char *leading = nullptr;
+
+    /// The time, right aligned, which is where a person looks for it.
+    const char *clock = nullptr;
+
+    /// The state of the network, as a symbol, or nullptr for none.
+    const lv_image_dsc_t *network = nullptr;
+
+    /// The battery, as a symbol.
+    const lv_image_dsc_t *battery = nullptr;
+
+    /// How full it is, shown beside the symbol. Negative leaves the figure out
+    /// and shows the symbol alone, which is what the design makes switchable.
+    int charge = -1;
+};
 
 /**
  * A screen, which is the frame the components compute from.
@@ -27,7 +51,7 @@ public:
     explicit Screen(const Panel &panel);
 
     /// The status bar along the very top, on every screen.
-    Object status_bar();
+    Object status_bar(const StatusBar &status = StatusBar{});
 
     /**
      * The header under it, which says what one is looking at.
@@ -72,19 +96,41 @@ private:
 };
 
 /**
+ * A group of rows, drawn as one surface.
+ *
+ * The rows inside it share a single background with one corner around the whole
+ * group, and a hairline parts each row from the next. The line starts where the
+ * text starts rather than at the edge of the surface, which is what makes a
+ * list read as a column of entries instead of a stack of separate things.
+ *
+ * A screen may carry several groups, and the space between two of them is what
+ * says they are separate.
+ *
+ * @param parent What it goes into, normally the content area.
+ * @param panel The panel, for the measurements.
+ * @returns The group, to put rows into.
+ */
+Object list(Object parent, const Panel &panel);
+
+/**
  * A row of a list: a name on the left, a value on the right.
  *
  * It takes the full width of whatever it is put into and the height of a row
- * from the design, which is the same height the header takes.
+ * from the design, which is the same height the header takes. Put into a
+ * `list`, it carries no surface of its own and is parted from the next by a
+ * hairline; put anywhere else, it draws its own.
  *
  * @param parent What it goes into.
  * @param panel The panel, for the measurements.
  * @param name What the row is about.
  * @param value What it says, or nullptr for nothing.
+ * @param icon A symbol at the left end, or nullptr for none. It carries an
+ *             alpha channel only and is tinted here, so one file serves every
+ *             colour it is ever drawn in.
  * @returns The row, so a caller can attach an event to it.
  */
 Object row(Object parent, const Panel &panel, const char *name,
-           const char *value = nullptr);
+           const char *value = nullptr, const lv_image_dsc_t *icon = nullptr);
 
 /**
  * A card: a surface with its own corner, holding whatever is put into it.

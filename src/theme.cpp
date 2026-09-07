@@ -56,7 +56,7 @@ void prepare(const Panel &panel)
     lv_style_set_bg_opa(&style_button, LV_OPA_COVER);
     lv_style_set_text_color(&style_button, colour(token::ink));
     lv_style_set_border_width(&style_button, 0);
-    lv_style_set_radius(&style_button, panel(token::radius_tile).value);
+    lv_style_set_radius(&style_button, panel(token::radius_button).value);
     lv_style_set_pad_hor(&style_button, panel(token::inset).value);
 
     // Never under the floor a control has to reach, whatever the label. The
@@ -98,7 +98,7 @@ void apply(lv_theme_t *theme, lv_obj_t *object)
 
 }  // namespace
 
-void install_theme(_lv_display_t *display, const Panel &panel, const Typography &typefaces)
+void install_theme(lv_display_t *display, const Panel &panel, const Typography &typefaces)
 {
     fonts = typefaces;
 

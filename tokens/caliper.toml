@@ -10,10 +10,15 @@
 # out of it once a panel is known.
 
 [spacing]
-edge = "3.27 mm"      # the screen's edge to anything inside it
+edge = "2.18 mm"      # the screen's edge to anything inside it
 group = "3.27 mm"     # two groups side by side, such as a cover and its text
 inset = "2.72 mm"     # a surface's own edge to its content
 line_gap = "1.63 mm"  # two lines that belong together
+
+# The status bar keeps its own, smaller margin. It is 32 points tall where the
+# screen is 480, so the screen's own margin would be coarse there and pull the
+# bar apart. A menu bar behaves the same way for the same reason.
+status_edge = "1.09 mm"
 
 [touch]
 # What a hand needs, and the floor the checks measure against. These are the
@@ -40,15 +45,29 @@ minimum = "6.53 mm"
 cap_angle_mrad = 6.1
 
 # How much of a type size its capitals occupy, and where the rest of the letter
-# sits. Measured from the four cuts of Blogger Sans, which share these figures.
-cap_ratio = 0.7050
-x_height_ratio = 0.5050
-descender_ratio = 0.2400
+# sits. Measured from the files under assets/fonts.
+#
+# The cap height and the descender are the same in all four cuts of Barlow Semi
+# Condensed. The x-height is not: it runs from 0.5060 in Regular to 0.5140 in
+# Bold, and the figure here is the Regular one, because that is what body text
+# is set in and what the fit checks measure against.
+cap_ratio = 0.7000
+x_height_ratio = 0.5060
+descender_ratio = 0.2000
 
-title = "945 mm"
-heading = "565 mm"
-body = "410 mm"
+# Computed back from the four grades the interface uses, so the rule reproduces
+# the scale to the point. A change of typeface changes the cap ratio and moves
+# these with it.
+title = "935 mm"
+heading = "560 mm"
+body = "405 mm"
 small = "345 mm"
+
+# The status bar has its own grade, smaller than the smallest of the others. It
+# is read at a glance from further back than a line of body text, and it is the
+# one place on the screen where a grade may sit outside the reading scale
+# because nothing there is read line by line.
+status = "295 mm"
 
 [layout]
 # The heights of the three bands. They are in millimetres like every other
@@ -84,6 +103,11 @@ panel = "4.35 mm"    # the largest surface, such as a dialog or a card
 tile = "2.72 mm"     # a tile, a button, a key
 artwork = "1.63 mm"  # a cover, which brings a corner of its own
 
+# A button's own corner. It is not the tile's: a tile is 68 points tall and a
+# button 48, and the same radius on the shorter one comes within a few points of
+# a pill. The corner follows the height rather than being shared with it.
+button = "1.90 mm"
+
 # The exponent of the superellipse. At 4.5 the shape is hard to tell from a
 # rounded rectangle; at 3.2 the curve runs visibly into the flanks, which is
 # what makes a squircle one.
@@ -107,7 +131,10 @@ faint = "#8d7c6c"
 accent = "#f0a85c"
 accent_ink = "#2b1806"
 accent_dim = "#6b4415"
-line = "#3d3128"
+# A hairline between two rows of a list. Three tenths of the way from the
+# surface towards the ink, because a line that parts two entries is doing its
+# work when one notices the parting rather than the line.
+line = "#2b221a"
 
 # What lies over a dimmed screen. One step lighter than `raised`, because the
 # layer beneath pushes everything back and a dialog in the same colour would go

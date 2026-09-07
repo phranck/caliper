@@ -31,7 +31,7 @@ constexpr int findings(const Element &element)
 /// An element that holds every rule: inside the margins, inside the bands, on
 /// the grid, large enough for a finger, its text fitting, its corner concentric.
 constexpr Element sound{.name = "sound",
-                        .left = Point{24},
+                        .left = Point{16},
                         .top = Point{100},
                         .width = Point{240},
                         .height = Point{68},
@@ -44,19 +44,21 @@ constexpr Element sound{.name = "sound",
 
 static_assert(findings(sound) == 0);
 
-// A touch target under a fingertip, which is 66 points on this panel.
+// A touch target under the floor a control has to reach, which is 48 points on
+// this panel. A fingertip is 66 and decides a key of a keyboard, where targets
+// sit side by side; a button in a bar is wide and stands alone.
 constexpr Element small_target = [] {
     Element element = sound;
     element.name = "Fertig";
-    element.height = Point{48};
+    element.height = Point{40};
     return element;
 }();
 static_assert(findings(small_target) == 1);
 
-// Against the edge of the panel, where the margin is 24.
+// Against the edge of the panel, where the margin is 16.
 constexpr Element at_the_edge = [] {
     Element element = sound;
-    element.left = Point{8};
+    element.left = Point{6};
     return element;
 }();
 static_assert(findings(at_the_edge) == 1);
@@ -78,6 +80,17 @@ constexpr Element pinched = [] {
     return element;
 }();
 static_assert(findings(pinched) == 1);
+
+// Content is exempt from the grid: a symbol centred in a row lands where the
+// alignment puts it.
+constexpr Element centred_symbol = [] {
+    Element element = sound;
+    element.name = "symbol";
+    element.left = Point{25};
+    element.is_content = true;
+    return element;
+}();
+static_assert(findings(centred_symbol) == 0);
 
 // An edge between two points of the grid.
 constexpr Element off_grid = [] {
@@ -102,7 +115,7 @@ static_assert(findings(under_the_band) == 1);
 constexpr Element hopeless = [] {
     Element element = sound;
     element.left = Point{7};
-    element.height = Point{47};
+    element.height = Point{41};
     element.text_width = Point{500};
     return element;
 }();

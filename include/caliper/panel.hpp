@@ -87,6 +87,27 @@ struct Panel {
     }
 
     /**
+     * How far a line of text has to move up to look centred.
+     *
+     * A text box is taller than the letters in it: it reaches from the top of
+     * the ascenders to the bottom of the descenders, and a word without a
+     * descender therefore sits above the middle of its own box whilst a word
+     * with one sits below. Centring the box centres neither.
+     *
+     * What the eye reads as the middle is the middle of the capitals, so the
+     * line moves up by half the descender. On a button reading "Fertig" beside
+     * one reading "Zurück" the difference is plain, and it is the reason this
+     * exists.
+     *
+     * @param type_size The size the text is set in.
+     * @returns How many points to raise it by.
+     */
+    constexpr Point optical_offset(Point type_size) const
+    {
+        return Point{rounded(type_size.value * token::descender_ratio / 2.0f)};
+    }
+
+    /**
      * A corner inside another, in pixels.
      *
      * The rule itself lives with the values in `tokens.hpp`; this is the same
@@ -122,7 +143,7 @@ static_assert(jc8048w500.type_size(token::body) == 26_pt);
 static_assert(jc8048w500.type_size(token::small) == 22_pt);
 
 // The spacings, in the pixels the drawings are placed on.
-static_assert(jc8048w500(token::edge) == 24_pt);
+static_assert(jc8048w500(token::edge) == 16_pt);
 static_assert(jc8048w500(token::inset) == 20_pt);
 static_assert(jc8048w500(token::line_gap) == 12_pt);
 
