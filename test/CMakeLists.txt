@@ -8,14 +8,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(test_panel test_panel.cpp)
-
-target_include_directories(test_panel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-
 # The same settings the device is built with, so anything that would fail there
 # fails here first.
-target_compile_options(test_panel PRIVATE
-    -Wall -Wextra -Werror -fno-exceptions -fno-rtti)
+function(caliper_test name)
+    add_executable(${name} ${name}.cpp)
+    target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    target_compile_options(${name} PRIVATE
+        -Wall -Wextra -Werror -fno-exceptions -fno-rtti)
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
 
 enable_testing()
-add_test(NAME panel COMMAND test_panel)
+
+caliper_test(test_panel)
+caliper_test(test_checks)

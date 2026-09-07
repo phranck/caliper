@@ -47,6 +47,9 @@ constexpr Millimeter inner_radius(Millimeter outer, Millimeter gap = inset)
     return Millimeter{outer.value - gap.value};
 }
 
+// The grid every edge lands on, in whole pixels.
+inline constexpr Point grid{2};
+
 // The palette. A colour has no measurement, so these pass through as they
 // were written.
 inline constexpr std::uint32_t bg = 0x17120e;
