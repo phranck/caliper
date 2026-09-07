@@ -4,7 +4,9 @@
 # lets the tests run on a machine with no board. The sources here are the part
 # that touches the graphics library, so they only build where it exists.
 
-idf_component_register(SRCS "src/shapes.cc" "src/squircles.cc" "src/theme.cc" "src/components.cc" "src/inspect.cc"
+include("${CMAKE_CURRENT_LIST_DIR}/sources.cmake")
+
+idf_component_register(SRCS ${CALIPER_SOURCES}
                        INCLUDE_DIRS "include"
                        REQUIRES lvgl log)
 
