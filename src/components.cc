@@ -1094,6 +1094,23 @@ Object Screen::Content() {
    // screen that scrolls, and it does so vertically only: sideways movement
    // belongs to changing the screen, not to reading one.
    lv_obj_add_flag(content_, LV_OBJ_FLAG_SCROLLABLE);
+
+   // And it can be found by a finger, which is not the same thing. The library
+   // only begins a scroll from an object it found under the press, and it only
+   // finds what carries this flag: `lv_obj_hit_test` refuses everything else
+   // before it so much as looks at the point. `MakePlain` takes the flag off,
+   // rightly, because a container is scenery; the content area is the one
+   // container on a screen that is meant to be grabbed.
+   //
+   // Without it, a screen whose rows lead somewhere scrolls, because the finger
+   // lands on a row, and a screen of plain rows does not, because it lands on
+   // nothing. The two look and measure identically, which is what made it hard
+   // to see.
+   //
+   // Nothing listens here, so this is still not a control: the checks count
+   // something as touchable when it is one by type, or when it is clickable and
+   // something is listening.
+   lv_obj_add_flag(content_, LV_OBJ_FLAG_CLICKABLE);
    lv_obj_set_scroll_dir(content_, LV_DIR_VER);
    lv_obj_set_scrollbar_mode(content_, LV_SCROLLBAR_MODE_AUTO);
    return content_;
