@@ -1366,7 +1366,13 @@ Object Heading(Object parent, const Panel& panel, const char* words) {
    if (typography().heading != nullptr) {
       lv_obj_set_style_text_font(label, typography().heading, 0);
    }
-   (void)panel;
+
+   // Its height comes from the typeface, and a typeface is any number of
+   // points tall. Rounded up to the grid, because everything stacked beneath
+   // it would otherwise inherit whatever odd figure the font happens to give.
+   lv_obj_update_layout(label);
+   lv_obj_set_height(label, panel.RoundedUpToGrid(Point{lv_obj_get_height(label)}).value);
+
    return label;
 }
 
