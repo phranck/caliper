@@ -161,17 +161,15 @@ Object Screen::status_bar(const StatusBar& status) {
       return image;
    };
 
-   // Every reading in the bar is one weight. What separates the time from the
+   // Everything in the bar is one weight. What separates the time from the
    // rest is its colour, not a second cut: at 19 points a heavier face reads
-   // as a different typeface rather than as emphasis. The name of the screen is
-   // the exception, and it is an exception because it is not a reading.
-   const auto text = [&](const char* content, std::uint32_t colour, bool strong = false) -> Object {
+   // as a different typeface rather than as emphasis.
+   const auto text = [&](const char* content, std::uint32_t colour) -> Object {
       Object label = lv_label_create(band);
       lv_label_set_text(label, content);
       lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
 
-      const lv_font_t* plain = typography().status != nullptr ? typography().status : typography().small;
-      const lv_font_t* face = strong && typography().status_strong != nullptr ? typography().status_strong : plain;
+      const lv_font_t* face = typography().status != nullptr ? typography().status : typography().small;
       if (face != nullptr) {
          lv_obj_set_style_text_font(label, face, 0);
       }
@@ -184,16 +182,10 @@ Object Screen::status_bar(const StatusBar& status) {
       return label;
    };
 
-   // The name of the screen, in the full ink and the heavier cut. The readings
-   // at the other end are dimmer than it on purpose: they are there to be
-   // glanced at, and it is there to be read.
-   if (status.title != nullptr) {
-      text(status.title, token::kInk, true);
-
-      // A spacer that grows, so what follows sits at the right end whatever
-      // stands at the left.
-      Spacer(band);
-   }
+   // A spacer that grows, so everything the bar reports sits at the right end.
+   // Nothing stands at the left: this band reports the device, and what the
+   // screen is about is said by the header under it.
+   Spacer(band);
 
    // The battery and its figure first, then the radio. The two battery items
    // belong together and are read as one, so the radio stands beside the pair
@@ -219,7 +211,7 @@ Object Screen::status_bar(const StatusBar& status) {
    return band;
 }
 
-Object Screen::Header(const WayBack& back, const char* note) {
+Object Screen::Header(const char* title, const WayBack& back, const char* note) {
    // Beside the sidebar, not above it. The status bar reports the state of the
    // device and therefore spans everything; a header says what one is looking
    // at inside an area, and the area begins where the sidebar ends.
@@ -230,17 +222,29 @@ Object Screen::Header(const WayBack& back, const char* note) {
    MakePlain(band);
    lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandHeader).value);
    lv_obj_set_pos(band, aside, above);
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value, 0);
+   // The band's own edge, and half a corner on top of it. A line of type flush
+   // against a rounded edge reads as colliding with it, and what stands under
+   // this band is a tile whose corner has already pulled it that far in. Half
+   // the tile's radius, so it moves when the radius does.
+   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusTile).value / 2, 0);
    header_ = band;
+
+   // The name at the trailing end, directly over what it names. The way out of
+   // the screen has the leading end, where a hand holding the device reaches
+   // without moving, so a name yields the place a thumb wants.
+   Object heading = lv_label_create(band);
+   lv_label_set_text(heading, title);
+   lv_obj_set_style_text_color(heading, lv_color_hex(token::kInk), 0);
+   if (typography().heading != nullptr) {
+      lv_obj_set_style_text_font(heading, typography().heading, 0);
+   }
+   AlignOptically(heading, panel_, frame_ == Frame::kBare ? LV_ALIGN_CENTER : LV_ALIGN_RIGHT_MID,
+                  panel_.TypeSize(token::kHeading));
 
    // The way back is one thing that can be touched, holding the symbol and the
    // name of what it goes to. The two are one object rather than two beside
    // each other, because a finger aiming at either of them means the same
    // thing.
-   //
-   // At the leading edge, which is where a hand holding the device reaches
-   // without moving, and where every step of a stack of screens puts it, so
-   // that the way out is in one place however deep one has gone.
    if (back.text != nullptr) {
       Object way = lv_obj_create(band);
       MakePlain(way);
@@ -271,17 +275,22 @@ Object Screen::Header(const WayBack& back, const char* note) {
       back_ = way;
    }
 
-   // What the screen says about itself stands at the other end, as a label and
-   // nothing else. Nothing here leads anywhere, so nothing here carries a
-   // symbol.
+   // What the screen says about itself stands beside the way back, at the same
+   // end, because both are about where one is rather than about what one is
+   // looking at. It is a label and nothing else: nothing here leads anywhere.
    if (note != nullptr) {
-      Object right = lv_label_create(band);
-      lv_label_set_text(right, note);
-      lv_obj_set_style_text_color(right, lv_color_hex(token::kMuted), 0);
+      Object aside = lv_label_create(band);
+      lv_label_set_text(aside, note);
+      lv_obj_set_style_text_color(aside, lv_color_hex(token::kMuted), 0);
       if (typography().small != nullptr) {
-         lv_obj_set_style_text_font(right, typography().small, 0);
+         lv_obj_set_style_text_font(aside, typography().small, 0);
       }
-      AlignOptically(right, panel_, LV_ALIGN_RIGHT_MID, panel_.TypeSize(token::kSmall));
+
+      if (back_ == nullptr) {
+         AlignOptically(aside, panel_, LV_ALIGN_LEFT_MID, panel_.TypeSize(token::kSmall));
+      } else {
+         lv_obj_align_to(aside, back_, LV_ALIGN_OUT_RIGHT_MID, panel_(token::kGroup).value, 0);
+      }
    }
 
    return band;

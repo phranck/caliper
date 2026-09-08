@@ -18,14 +18,6 @@ using Object = lv_obj_t*;
  * out simply does not appear.
  */
 struct StatusBar {
-   /// What the screen is called, at the left end. The right end is for the
-   /// state of the device, so the left is where the screen itself speaks.
-   ///
-   /// Set in a heavier cut than the rest of the bar, which is what tells a name
-   /// from a reading. The bar is short, so weight does that work rather than
-   /// size.
-   const char* title = nullptr;
-
    /// The time, right aligned, which is where a person looks for it.
    const char* clock = nullptr;
 
@@ -217,19 +209,25 @@ class Screen {
    Object status_bar(const StatusBar& status = StatusBar{});
 
    /**
-    * The band under it, which carries the way out of the screen and one remark
-    * about it.
+    * The band under it, which says what one is looking at.
     *
-    * What the screen is called does not stand here. It stands at the left of
-    * the status bar, because that band already spans the width and a name read
-    * at the very top is read once rather than looked for.
+    * The name stands at the trailing end, directly over the content it names.
+    * The way out stands at the leading end, where a thumb reaches it and where
+    * every screen of a stack puts it, so the way back is in one place however
+    * deep one has gone.
     *
-    * @param back The way to the screen above, at the leading edge, where a
-    *             thumb reaches it. Empty on a screen with nothing above it.
-    * @param note What the screen wants to say about itself at the other end,
-    *             such as how many favourites there are, or nullptr for nothing.
+    * Both ends stand half a corner in, over and above the band's own edge. A
+    * line of type flush against a rounded edge reads as colliding with it, and
+    * what stands under this band is a tile whose corner has already pulled it
+    * away from the edge.
+    *
+    * @param title What is being looked at.
+    * @param back The way to the screen above. Empty on a screen with nothing
+    *             above it.
+    * @param note What the screen wants to say about itself, beside the way
+    *             back, such as how many favourites there are.
     */
-   Object Header(const WayBack& back = {}, const char* note = nullptr);
+   Object Header(const char* title, const WayBack& back = {}, const char* note = nullptr);
 
    /// The way back, where the header carries one, so a caller can say where it
    /// goes. This library changes screens for nobody.
