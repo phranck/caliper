@@ -3,6 +3,7 @@
 
 #include <initializer_list>
 
+#include "caliper/paging.h"
 #include "caliper/panel.h"
 #include "lvgl.h"
 
@@ -177,14 +178,6 @@ struct WayBack {
  * total, so a caller that never checks for more pages is not wrong until a
  * list actually grows past what one page holds.
  */
-struct Page {
-   /// The first row this page shows.
-   int first;
-
-   /// One past the last row this page shows. Equal to the list's own total
-   /// on the last page, and short of it on every other one.
-   int last;
-};
 
 /**
  * A screen, which is the frame the components compute from.

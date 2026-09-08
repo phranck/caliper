@@ -25,5 +25,6 @@ endfunction()
 enable_testing()
 
 caliper_test(test_panel)
+caliper_test(test_paging)
 caliper_test(test_checks)
 caliper_test(test_contrast ../src/contrast.cc)
