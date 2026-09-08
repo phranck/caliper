@@ -281,6 +281,15 @@ class Screen {
    /// to the right, so the one that ends the task sits where a step ends.
    Object card_footer() const { return card_footer_; }
 
+   /// Where a card puts what its message alone cannot say, such as a set of
+   /// answers to choose between.
+   ///
+   /// Between the message and the footer, so the buttons stay at the foot
+   /// whatever a caller adds. A card is a flex column, and anything put into
+   /// the card itself after it was built lands below everything already in it,
+   /// which is under the button that closes it.
+   Object card_content() const { return card_content_; }
+
    /// The card itself, where one stands.
    Object card() const { return card_; }
 
@@ -422,6 +431,7 @@ class Screen {
    Object signal_ = nullptr;
    Object card_ = nullptr;
    Object card_footer_ = nullptr;
+   Object card_content_ = nullptr;
    Object dimming_ = nullptr;
    Object header_ = nullptr;
    Object back_ = nullptr;

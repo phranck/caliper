@@ -1013,6 +1013,17 @@ Object Screen::card(const Card& what) {
       lv_obj_set_style_text_color(body, lv_color_hex(token::kMuted), 0);
    }
 
+   // Where a caller puts what the message alone cannot say. Before the footer,
+   // so the buttons are at the foot however much is put in here, and holding
+   // nothing where nobody puts anything: its height follows its contents, so an
+   // empty one takes no room and a card without content looks exactly as it did.
+   card_content_ = lv_obj_create(card_);
+   MakePlain(card_content_);
+   lv_obj_set_width(card_content_, lv_pct(100));
+   lv_obj_set_height(card_content_, LV_SIZE_CONTENT);
+   lv_obj_set_flex_flow(card_content_, LV_FLEX_FLOW_COLUMN);
+   lv_obj_set_style_pad_row(card_content_, panel_(token::kLineGap).value, 0);
+
    // The buttons, at the right end. That is where a step ends, and a row of
    // them starting at the left reads as a list of equal things rather than as
    // one action with a way out beside it.
