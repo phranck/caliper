@@ -154,6 +154,36 @@ struct Card {
 };
 
 /**
+ * What stands at the right of a header.
+ *
+ * Two different things share that place. On most screens it says something
+ * about what one is looking at, such as how many favourites there are. On a
+ * screen reached from another it names the one it was reached from, and there
+ * it is the way back.
+ *
+ * The difference is the symbol. Text that leads somewhere and text that reports
+ * something look alike, and a way back that cannot be seen is worse than none,
+ * because somebody stops looking for one.
+ *
+ * It converts from a plain string, so a header that merely says something is
+ * written as one and reads as one.
+ */
+struct HeaderTrailing {
+   /// What it says, or nullptr for nothing at all.
+   const char* text = nullptr;
+
+   /// The symbol before it, pointing the way it goes, or nullptr where it goes
+   /// nowhere. Which symbol that is belongs to the product.
+   const lv_image_dsc_t* back = nullptr;
+
+   /// A header that only says something is written as the string it says.
+   constexpr HeaderTrailing(const char* says = nullptr) : text(says) {}  // NOLINT(google-explicit-constructor)
+
+   /// One that leads back carries the symbol as well.
+   constexpr HeaderTrailing(const char* says, const lv_image_dsc_t* symbol) : text(says), back(symbol) {}
+};
+
+/**
  * A screen, which is the frame the components compute from.
  *
  * It carries the panel and the three bands, and it hands out the area that is
@@ -195,9 +225,15 @@ class Screen {
     * The header under it, which says what one is looking at.
     *
     * @param title What is being looked at.
-    * @param trailing What stands on the right, or nullptr for nothing.
+    * @param trailing What stands on the right. A string where it says
+    *                 something, and a string with a symbol where it is the way
+    *                 back to the screen it names.
     */
-   Object Header(const char* title, const char* trailing = nullptr);
+   Object Header(const char* title, const HeaderTrailing& trailing = {});
+
+   /// The way back, where the header carries one, so a caller can say where it
+   /// goes. This library changes screens for nobody.
+   Object back() const { return back_; }
 
    /**
     * The anchors along the left, one per area of the product.
@@ -390,6 +426,7 @@ class Screen {
    Object card_footer_ = nullptr;
    Object dimming_ = nullptr;
    Object header_ = nullptr;
+   Object back_ = nullptr;
    Object keyboard_ = nullptr;
 };
 
