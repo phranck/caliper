@@ -16,6 +16,14 @@ No exceptions, no RTTI, and no allocation after start-up. These are the settings
 
 The library builds twice: as an ESP-IDF component for the device, and for the host, where the tests run without a board attached. Both builds come from the same tree.
 
+## The values are generated, not written
+
+`tokens/caliper.toml` holds every design value once, and `tools/generate_tokens.py` writes `include/caliper/tokens.h` and `tools/caliper_tokens.py` from it. Neither output is edited, because the next run puts the old one back. A key under `[layout]` becomes `kBand<Name>` and one under `[spacing]` becomes `k<Name>`.
+
+## What the tests reach
+
+The two host tests work on `Check` and on `Panel`, which need no board and no graphics library. Everything else, so `Inspect`, `Screen` and every component, needs a live object tree, and it is verified by building the screens in LEVEL's simulator and reading what caliper reports there.
+
 ## Where the rest is
 
 `Papers/plan/plan.html`, identifier `PAP-CAL-001`, carries the design and is the source for the issues. It lives outside this repository and is synchronised separately, so it is not on GitHub.
