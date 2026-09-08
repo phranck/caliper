@@ -541,6 +541,26 @@ int Chosen(Object group);
 Object Heading(Object parent, const Panel& panel, const char* words);
 
 /**
+ * How much a button insists.
+ *
+ * Three, because a screen has three kinds of answer on it and colour is how a
+ * person tells them apart before reading a word. Anything finer belongs in what
+ * the button says rather than in how it is filled.
+ */
+enum class Emphasis {
+   /// One answer among several. Most buttons are this.
+   kPlain,
+
+   /// The one action the screen is about.
+   kAccent,
+
+   /// An action that deletes something. It carries the warning colour rather
+   /// than the accent, so that the one answer nobody can take back does not
+   /// look like the one they are being led towards.
+   kWarning,
+};
+
+/**
  * A button, which is never narrower than its label plus its padding and never
  * smaller than a finger needs.
  *
@@ -550,11 +570,10 @@ Object Heading(Object parent, const Panel& panel, const char* words);
  * @param parent What it goes into.
  * @param panel The panel, for the measurements.
  * @param label What it says.
- * @param accent Whether it carries the accent colour, which marks the one
- *               action a screen is about.
+ * @param emphasis How much it insists.
  * @returns The button.
  */
-Object Button(Object parent, const Panel& panel, const char* label, bool accent = false);
+Object Button(Object parent, const Panel& panel, const char* label, Emphasis emphasis = Emphasis::kPlain);
 
 /**
  * A button that carries a symbol and no words.

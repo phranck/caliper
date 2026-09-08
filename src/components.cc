@@ -903,7 +903,7 @@ Object Screen::keyboard(const Keyboard& keys) {
 
    std::int32_t right = panel_.width.value - edge;
    if (keys.confirm != nullptr) {
-      Object done = Button(keyboard_, panel_, keys.confirm, true);
+      Object done = Button(keyboard_, panel_, keys.confirm, Emphasis::kAccent);
       lv_obj_update_layout(done);
       const std::int32_t width = lv_obj_get_width(done);
       lv_obj_set_pos(done, right - width, fourth_top + (key_height - panel_(token::kBandButton).value) / 2);
@@ -1350,7 +1350,7 @@ Object Heading(Object parent, const Panel& panel, const char* words) {
    return label;
 }
 
-Object Button(Object parent, const Panel& panel, const char* label, bool accent) {
+Object Button(Object parent, const Panel& panel, const char* label, Emphasis emphasis) {
    Object control = lv_button_create(parent);
    lv_obj_set_style_radius(control, panel(token::kRadiusButton).value, 0);
    lv_obj_set_style_pad_hor(control, panel(token::kInset).value, 0);
@@ -1376,14 +1376,27 @@ Object Button(Object parent, const Panel& panel, const char* label, bool accent)
        beneath != nullptr && !lv_color_eq(lv_obj_get_style_bg_color(beneath, LV_PART_MAIN), lv_color_hex(token::kBg));
 
    const std::uint32_t ground = on_a_surface ? token::kSurface : token::kRaised;
-   lv_obj_set_style_bg_color(control, lv_color_hex(accent ? Accent() : ground), 0);
+
+   // The warning colour is a fixed one and the accent is whatever the device is
+   // set to. That is the point of it: a person changing the colour of their
+   // panel does not get to change what an irreversible answer looks like.
+   std::uint32_t fill = ground;
+   std::uint32_t ink = token::kInk;
+   if (emphasis == Emphasis::kAccent) {
+      fill = Accent();
+      ink = AccentInk();
+   } else if (emphasis == Emphasis::kWarning) {
+      fill = token::kDanger;
+      ink = token::kDangerInk;
+   }
+   lv_obj_set_style_bg_color(control, lv_color_hex(fill), 0);
 
    Object text = lv_label_create(control);
    lv_label_set_text(text, label);
    if (typography().strong != nullptr) {
       lv_obj_set_style_text_font(text, typography().strong, 0);
    }
-   lv_obj_set_style_text_color(text, lv_color_hex(accent ? AccentInk() : token::kInk), 0);
+   lv_obj_set_style_text_color(text, lv_color_hex(ink), 0);
 
    AlignOptically(text, panel, LV_ALIGN_CENTER, panel.TypeSize(token::kBody));
 
