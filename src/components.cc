@@ -123,15 +123,10 @@ int Screen::RowsVisible(Point row_height) const {
 }
 
 Page Screen::Paginate(Point row_height, int shown, int total) const {
-   const int visible = RowsVisible(row_height);
-
-   // A row is given up to the one that turns the page only where turning it
-   // is actually needed. A list that already fits keeps every row of it.
-   const int per_page = total > visible ? visible - 1 : visible;
-
-   const int first = shown * per_page;
-   const int last = first + per_page < total ? first + per_page : total;
-   return Page{first, last};
+   // The counting itself is Panel's, because it needs a row height and a
+   // panel to measure against and nothing that only a live screen carries.
+   // That is what makes it testable on a machine with no board.
+   return panel_.Paginate(RowsVisible(row_height), shown, total);
 }
 
 Object Screen::status_bar(const StatusBar& status) {

@@ -171,22 +171,6 @@ struct WayBack {
 };
 
 /**
- * The slice of a list one page of it shows.
- *
- * A list this size or smaller never produces one that stops short of the
- * total, so a caller that never checks for more pages is not wrong until a
- * list actually grows past what one page holds.
- */
-struct Page {
-   /// The first row this page shows.
-   int first;
-
-   /// One past the last row this page shows. Equal to the list's own total
-   /// on the last page, and short of it on every other one.
-   int last;
-};
-
-/**
  * A screen, which is the frame the components compute from.
  *
  * It carries the panel and what frames the content top and bottom, and it

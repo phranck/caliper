@@ -77,6 +77,31 @@ static_assert(seven_inch.MinimumWidth(20_pt) == 56_pt);
 static_assert(five_inch.RoundedUpToGrid(43_pt) == 44_pt);
 static_assert(five_inch.RoundedUpToGrid(88_pt) == 88_pt);
 
+// Which rows of a list belong on the page currently showing, given four rows
+// fit. A total that already fits keeps every row on the one page there is.
+static_assert(five_inch.Paginate(4, 0, 4) == Page{0, 4});
+
+// One more than fits gives up a row to the one that turns the page: three on
+// the first, the other two on the last, which reaches the total.
+static_assert(five_inch.Paginate(4, 0, 5) == Page{0, 3});
+static_assert(five_inch.Paginate(4, 1, 5) == Page{3, 5});
+
+// Exactly filling two pages of three leaves nothing for a third.
+static_assert(five_inch.Paginate(4, 0, 6) == Page{0, 3});
+static_assert(five_inch.Paginate(4, 1, 6) == Page{3, 6});
+
+// A first, a middle and a last page, the last reaching the total and the
+// other two stopping three short of it.
+static_assert(five_inch.Paginate(4, 0, 9) == Page{0, 3});
+static_assert(five_inch.Paginate(4, 1, 9) == Page{3, 6});
+static_assert(five_inch.Paginate(4, 2, 9) == Page{6, 9});
+
+// A page asked for beyond the last, the way a caller does after a list
+// shrinks, lands on the last page's own rows rather than an empty slice or a
+// first past the total. Asked for before the first, it lands on the first.
+static_assert(five_inch.Paginate(4, 5, 5) == Page{3, 5});
+static_assert(five_inch.Paginate(4, -1, 5) == Page{0, 3});
+
 // The units keep each other out. None of the following compiles, and that is
 // the deliverable:
 //   Point wrong = token::fingertip;      // a millimetre is not a pixel
