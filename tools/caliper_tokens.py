@@ -10,6 +10,7 @@ SPACING_MM = {
     "inset": 2.72,
     "line_gap": 1.63,
     "floating": 1.09,
+    "keyboard_gap": 1.09,
     "player_inset": 1.09,
     "status_edge": 1.09,
     "status_gap": 2.18,
@@ -20,6 +21,9 @@ LAYOUT_MM = {
     "header": 9.25,
     "footer": 10.88,
     "button": 6.53,
+    "keyboard_key": 8.98,
+    "keyboard_shift": 11.42,
+    "keyboard_switch": 13.6,
     "media_key": 6.8,
     "sidebar": 11.97,
     "sidebar_item": 10.88,
@@ -38,6 +42,7 @@ READING_MM = {
     "small": 345.0,
     "status": 265.0,
     "caption": 203.0,
+    "key_label": 468.0,
 }
 
 CAP_ANGLE_MRAD = 6.1
