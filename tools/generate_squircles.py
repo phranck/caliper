@@ -27,7 +27,7 @@ OUTPUT = ROOT / "src" / "squircles.cc"
 #: The sizes a squircle is drawn at. Stated rather than derived, because the
 #: places that use one are counted and a stencil for a size nobody asks for is
 #: bytes nobody gets back.
-SIZES = (44, 48, 50, 66)
+SIZES = (40, 44, 48, 50, 66)
 
 #: How many samples across one pixel, for the edge. Four by four is enough that
 #: the curve reads as smooth at this size and cheap enough to compute here.
