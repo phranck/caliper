@@ -34,6 +34,11 @@ player_inset = "1.09 mm"
 
 status_edge = "1.09 mm"
 
+# Between the label of a slider and the bar under it. Its own figure, because
+# what parts a name from the thing it names is a decision about that pair and
+# moves when either of them does.
+slider_label = "2.18 mm"
+
 # Between a line and the line explaining it, which is closer than two lines that
 # merely follow one another. The two are read as one thing, and what says so is
 # that the second sits nearer the first than the first does to whatever is above
@@ -160,6 +165,15 @@ keyboard_switch = "13.60 mm"
 # A key of the player. The pill takes its height from this and the air around
 # it, so the shape of its ends follows whenever either moves.
 media_key = "6.80 mm"
+
+# The bar a slider stands on and a progress fills. Narrow on purpose: what a
+# finger hits is the handle, and the bar only says where it stands. One as tall
+# as a key reads as though it were the control itself.
+track = "2.18 mm"
+
+# The handle on that bar. A fingertip less what it may overhang on either side,
+# so it is hit reliably whilst the bar under it stays narrow.
+slider_knob = "5.99 mm"
 
 # The sidebar and one item in it. It is as wide as the wordmark in the
 # status_bar plus eight points on either side, because the two stand one above

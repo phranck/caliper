@@ -13,6 +13,7 @@ SPACING_MM = {
     "keyboard_gap": 1.09,
     "player_inset": 1.09,
     "status_edge": 1.09,
+    "slider_label": 2.18,
     "sub_text_gap": 0.82,
     "status_gap": 2.18,
 }
@@ -29,6 +30,8 @@ LAYOUT_MM = {
     "keyboard_shift": 11.42,
     "keyboard_switch": 13.6,
     "media_key": 6.8,
+    "track": 2.18,
+    "slider_knob": 5.99,
     "sidebar": 11.97,
     "sidebar_item": 10.88,
 }
