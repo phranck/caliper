@@ -224,9 +224,9 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    lv_obj_set_pos(band, aside, above);
    // The band's own edge, and half a corner on top of it. A line of type flush
    // against a rounded edge reads as colliding with it, and what stands under
-   // this band is a tile whose corner has already pulled it that far in. Half
-   // the tile's radius, so it moves when the radius does.
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusTile).value / 2, 0);
+   // this band is the list, whose corner has already pulled it that far in.
+   // Half the list's radius, so it moves when the radius does.
+   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusPanel).value / 2, 0);
    header_ = band;
 
    // The name at the trailing end, directly over what it names. The way out of
@@ -965,9 +965,10 @@ Object Screen::card(const Card& what) {
    lv_obj_set_style_bg_opa(card_, LV_OPA_COVER, 0);
    lv_obj_set_style_pad_all(card_, inset, 0);
 
-   // The corner of the button inside it plus the inset between the two, so the
-   // two corners are concentric rather than two figures that have to agree.
-   lv_obj_set_style_radius(card_, panel_(token::kRadiusButton).value + inset, 0);
+   // The panel's own corner, which every large surface carries. The button's
+   // corner already follows this one, so deriving the card's corner from the
+   // button's would be the same rule read backwards.
+   lv_obj_set_style_radius(card_, panel_(token::kRadiusPanel).value, 0);
 
    lv_obj_set_flex_flow(card_, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_style_pad_row(card_, panel_(token::kGroup).value, 0);
@@ -1138,10 +1139,12 @@ Object List(Object parent, const Panel& panel, int across) {
    lv_obj_set_width(group, lv_pct(across));
    lv_obj_set_height(group, LV_SIZE_CONTENT);
 
-   // One surface for the whole group, with the corner around all of it.
+   // One surface for the whole group, with the corner around all of it. A
+   // list is one of the large surfaces, so it carries the panel's corner
+   // rather than a tile's.
    lv_obj_set_style_bg_color(group, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(group, LV_OPA_COVER, 0);
-   lv_obj_set_style_radius(group, panel(token::kRadiusTile).value, 0);
+   lv_obj_set_style_radius(group, panel(token::kRadiusPanel).value, 0);
    lv_obj_set_style_clip_corner(group, true, 0);
 
    // The rows sit directly on each other. What parts them is a line, not a gap.
