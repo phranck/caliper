@@ -972,7 +972,12 @@ Object Screen::card(const Card& what) {
    Object heading = lv_obj_create(card_);
    MakePlain(heading);
    lv_obj_set_width(heading, lv_pct(100));
-   lv_obj_set_height(heading, LV_SIZE_CONTENT);
+
+   // As tall as the symbol that stands in it, rather than as tall as whatever
+   // the typeface gives. A row of a stated height keeps the stack under it on
+   // the grid; one that takes its height from a line of text was 43 points on
+   // this panel, and every row below it then sat on a half point.
+   lv_obj_set_height(heading, symbol);
    lv_obj_set_flex_flow(heading, LV_FLEX_FLOW_ROW);
    lv_obj_set_flex_align(heading, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
    lv_obj_set_style_pad_column(heading, inset, 0);
