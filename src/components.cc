@@ -87,7 +87,16 @@ Point Screen::ContentBottom() const {
    // A bare screen keeps room at the bottom for the two answers every step of
    // a setup carries, one in each corner. They are not a band and draw no
    // surface, but the content stops above them all the same.
-   const std::int32_t below = frame_ == Frame::kBare ? BareEnd(panel_) : panel_(token::kBandFooter).value;
+   if (frame_ == Frame::kBare) {
+      return Point{panel_.height.value - BareEnd(panel_)};
+   }
+
+   // There is no footer in this design. The one band that ever stands down
+   // there is the player, and only whilst something is playing, so the room for
+   // it is kept where it is taken and nowhere else. Kept on every screen it was
+   // an empty strip the height of a row at the bottom of anything without a
+   // player, which is what a footer looks like when it holds nothing.
+   const std::int32_t below = player_ == nullptr ? panel_(token::kEdge).value : panel_(token::kBandFooter).value;
    return Point{panel_.height.value - below};
 }
 
@@ -414,6 +423,14 @@ Object Screen::player_controller(const PlayerController& player) {
    MakePlain(player_);
    lv_obj_set_size(player_, width, height);
    lv_obj_set_pos(player_, aside + clear, panel_.height.value - clear - height);
+
+   // The content had the whole screen because nothing stood at the bottom of
+   // it, and now something does. A screen asks for the player after it has
+   // filled the content, so the room is taken back here rather than being kept
+   // on every screen against the chance of one.
+   if (content_ != nullptr) {
+      lv_obj_set_height(content_, ContentBottom().value - ContentTop().value);
+   }
 
    // The ends are squircles like the keys inside them rather than half circles,
    // and being the height of the pill they are the key's own shape grown by the
@@ -1374,28 +1391,48 @@ Object CentredBlock(Object parent, const Panel& panel, int across) {
    return block;
 }
 
-Object Hero(Object parent, const Panel& panel, const lv_image_dsc_t* icon, const char* heading, const char* line) {
+Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_dsc_t* icon, const char* text,
+                              const char* sub_text) {
    Object block = CentredBlock(parent, panel);
 
+   // The three parts are not evenly spaced, so each says what stands above it
+   // rather than the block spacing them all alike. The sub-text sits closer to
+   // the text than the text does to the symbol, and that difference is what
+   // makes the two lines read as one thing instead of as two.
+   lv_obj_set_style_pad_row(block, 0, 0);
+
    if (icon != nullptr) {
+      const std::int32_t size = panel(token::kBandContentUnavailableSymbol).value;
       Object symbol = lv_image_create(block);
       lv_image_set_src(symbol, icon);
-      lv_obj_set_size(symbol, icon->header.w, icon->header.h);
+      lv_obj_set_size(symbol, size, size);
+
+      // The square is the size the design gives this arrangement, and the
+      // drawing inside it is whatever is left after the generator cuts the
+      // empty border off. Centred in the square, because the stack above and
+      // below is placed against the square: a drawing left in its corner sits
+      // visibly high and to one side of everything it is meant to be over.
+      lv_image_set_inner_align(symbol, LV_IMAGE_ALIGN_CENTER);
+
       lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::kAccent), 0);
       lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
    }
 
-   Object title = lv_label_create(block);
-   lv_label_set_text(title, heading);
-   lv_obj_set_style_text_color(title, lv_color_hex(token::kInk), 0);
+   Object saying = lv_label_create(block);
+   lv_label_set_text(saying, text);
+   lv_obj_set_style_text_color(saying, lv_color_hex(token::kInk), 0);
    if (typography().heading != nullptr) {
-      lv_obj_set_style_text_font(title, typography().heading, 0);
+      lv_obj_set_style_text_font(saying, typography().heading, 0);
+   }
+   if (icon != nullptr) {
+      lv_obj_set_style_margin_top(saying, panel(token::kInset).value, 0);
    }
 
-   if (line != nullptr) {
+   if (sub_text != nullptr) {
       Object under = lv_label_create(block);
-      lv_label_set_text(under, line);
-      lv_obj_set_style_text_color(under, lv_color_hex(token::kMuted), 0);
+      lv_label_set_text(under, sub_text);
+      lv_obj_set_style_text_color(under, lv_color_hex(token::kFaint), 0);
+      lv_obj_set_style_margin_top(under, panel(token::kSubTextGap).value, 0);
    }
 
    return block;

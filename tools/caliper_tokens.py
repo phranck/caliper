@@ -13,6 +13,7 @@ SPACING_MM = {
     "keyboard_gap": 1.09,
     "player_inset": 1.09,
     "status_edge": 1.09,
+    "sub_text_gap": 0.82,
     "status_gap": 2.18,
 }
 
@@ -23,6 +24,7 @@ LAYOUT_MM = {
     "button": 6.53,
     "card": 68.0,
     "card_symbol": 5.44,
+    "content_unavailable_symbol": 7.07,
     "keyboard_key": 8.98,
     "keyboard_shift": 11.42,
     "keyboard_switch": 13.6,

@@ -606,21 +606,33 @@ Object MediaButtons(Object parent, const Panel& panel, std::initializer_list<con
 Object CentredBlock(Object parent, const Panel& panel, int across = 100);
 
 /**
- * What a screen says when it has one thing to say.
+ * What a screen says when there is nothing on it to show.
  *
- * A symbol, a heading, a line under it and one control: the shape of a welcome,
- * an empty state or a question. Everything is optional except the heading,
- * because without that there is nothing being said.
+ * A symbol, a line saying what is going on, and a line saying the rest: an
+ * empty list, a place in the product that is not built yet, a welcome before
+ * anything has been set up. Named as SwiftUI names it, because it is the same
+ * thing and a second name for it would only have to be learnt.
+ *
+ * The symbol is drawn at the one size the design gives this arrangement, so it
+ * is not passed in and cannot be passed differently. The sub-text sits closer to
+ * the text than the text does to the symbol, which is what makes the two lines
+ * read as one thing.
+ *
+ * Anything that goes below the words is put into the block that comes back. A
+ * button and a progress bar both stand there on screens of this shape, and
+ * neither is a control of its own: it is the same button that stands elsewhere.
  *
  * @param parent What it goes into.
  * @param panel The panel, for the measurements.
- * @param icon The symbol above it, or nullptr.
- * @param heading What it says.
- * @param line The line under it, or nullptr.
+ * @param icon The symbol above it, or nullptr for none. It has to be supplied
+ *             at the size this arrangement draws, which is
+ *             `panel(token::kBandContentUnavailableSymbol)`.
+ * @param text What is going on.
+ * @param sub_text The line under it, or nullptr for none.
  * @returns The block, so a caller can put a control at the bottom of it.
  */
-Object Hero(Object parent, const Panel& panel, const lv_image_dsc_t* icon, const char* heading,
-            const char* line = nullptr);
+Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_dsc_t* icon, const char* text,
+                              const char* sub_text = nullptr);
 
 /**
  * Empty space between two things.

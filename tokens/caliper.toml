@@ -34,6 +34,12 @@ player_inset = "1.09 mm"
 
 status_edge = "1.09 mm"
 
+# Between a line and the line explaining it, which is closer than two lines that
+# merely follow one another. The two are read as one thing, and what says so is
+# that the second sits nearer the first than the first does to whatever is above
+# it.
+sub_text_gap = "0.82 mm"
+
 # Between two things in the status_bar. Wider than the bar's own edge, so that
 # each of them is read on its own rather than as one run of characters.
 status_gap = "2.18 mm"
@@ -108,6 +114,11 @@ key_label = "468 mm"
 # later, this is the figure it has to arrive at.
 status_bar = "4.35 mm"
 header = "9.25 mm"
+
+# There is no footer in this design, and this is not one. It is the room the
+# player takes at the bottom of a screen whilst something is playing, and it is
+# kept only on a screen that carries one: on every other it was an empty strip
+# the height of a row, which is what a footer looks like when it holds nothing.
 footer = "10.88 mm"
 
 # How tall a button is drawn. Less than a fingertip, because a bar of buttons at
@@ -126,6 +137,13 @@ card = "68.0 mm"
 # it says what kind of message this is before the words are read, and that is
 # the one thing on a card somebody sees first.
 card_symbol = "5.44 mm"
+
+# The symbol of a ContentUnavailableView, which stands alone over a screen with
+# nothing on it. Larger than any other symbol in the interface, because it is
+# the whole of what that screen shows before the words are read. The design
+# draws it at this size on every such screen without exception, so a caller does
+# not pass a size and cannot pass a different one.
+content_unavailable_symbol = "7.07 mm"
 
 # A key of the keyboard, and the wider one that shifts. Ten keys across the
 # measure give 66 points each, which is a fingertip at 9 mm, and that decides
