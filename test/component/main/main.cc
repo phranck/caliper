@@ -17,7 +17,7 @@ extern "C" void app_main(void) {
    cal::Object group = cal::List(screen.Content(), screen.panel());
    cal::Row(group, screen.panel(), "Nothing");
    cal::ChooseOne(group, 0);
-   cal::Button(screen.Footer(), screen.panel(), "Nothing", true);
+   cal::Button(screen.Content(), screen.panel(), "Nothing", true);
 
    cal::InspectAndLog(screen);
 }

@@ -54,23 +54,44 @@ void AlignOptically(Object label, const Panel& panel, lv_align_t alignment, Poin
 
 }  // namespace
 
-Screen::Screen(const Panel& panel) : panel_(panel) {
+Screen::Screen(const Panel& panel, Frame frame) : panel_(panel), frame_(frame) {
    root_ = lv_screen_active();
    MakePlain(root_);
    lv_obj_set_style_bg_color(root_, lv_color_hex(token::kBg), 0);
    lv_obj_set_style_bg_opa(root_, LV_OPA_COVER, 0);
 }
 
+/// What a bare screen keeps clear at each end: the room the two answers in the
+/// corners take, and the air around them.
+static std::int32_t BareEnd(const Panel& panel) {
+   return 2 * panel(token::kInset).value + panel(token::kBandButton).value;
+}
+
 Point Screen::ContentTop() const {
+   // The same at the top as at the bottom. Nothing stands up there, and the
+   // room is kept all the same, because that is what makes the middle of the
+   // content the middle of the screen: a block centred in it is then centred on
+   // the panel, which is where somebody setting a device up is looking.
+   if (frame_ == Frame::kBare) {
+      return Point{BareEnd(panel_)};
+   }
    return Point{panel_(token::kBandStatusBar).value + panel_(token::kBandHeader).value};
 }
 
-Point Screen::ContentBottom() const { return Point{panel_.height.value - panel_(token::kBandFooter).value}; }
+Point Screen::ContentBottom() const {
+   // A bare screen keeps room at the bottom for the two answers every step of
+   // a setup carries, one in each corner. They are not a band and draw no
+   // surface, but the content stops above them all the same.
+   const std::int32_t below = frame_ == Frame::kBare ? BareEnd(panel_) : panel_(token::kBandFooter).value;
+   return Point{panel_.height.value - below};
+}
 
 Point Screen::RowHeight() const { return panel_(token::kBandHeader); }
 
 int Screen::RowsVisible(Point row_height) const {
-   const std::int32_t room = ContentBottom().value - ContentTop().value;
+   // Less the distance the content holds at its bottom edge, because a row
+   // that reaches into it is a row somebody has to scroll for.
+   const std::int32_t room = ContentBottom().value - ContentTop().value - panel_(token::kEdge).value;
    const std::int32_t gap = panel_(token::kLineGap).value;
 
    if (row_height.value <= 0) {
@@ -113,7 +134,7 @@ Object Screen::status_bar(const StatusBar& status) {
    lv_obj_set_flex_align(band, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
    lv_obj_set_style_pad_column(band, panel_(token::kStatusGap).value, 0);
 
-   const auto symbol = [&](const lv_image_dsc_t* source) {
+   const auto symbol = [&](const lv_image_dsc_t* source) -> Object {
       Object image = lv_image_create(band);
       lv_image_set_src(image, source);
       lv_obj_set_style_image_recolor(image, lv_color_hex(token::kStatusInk), 0);
@@ -123,12 +144,13 @@ Object Screen::status_bar(const StatusBar& status) {
       // squeezed to whatever the row has left, and a symbol that is a point
       // narrower than it is tall reads as a mistake without looking like one.
       lv_obj_set_size(image, source->header.w, source->header.h);
+      return image;
    };
 
    // Everything in the bar is one weight. What separates the time from the
    // rest is its colour, not a second cut: at 19 points a heavier face reads
    // as a different typeface rather than as emphasis.
-   const auto text = [&](const char* content, std::uint32_t colour) {
+   const auto text = [&](const char* content, std::uint32_t colour) -> Object {
       Object label = lv_label_create(band);
       lv_label_set_text(label, content);
       lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
@@ -143,6 +165,7 @@ Object Screen::status_bar(const StatusBar& status) {
       // a row that also holds descenders. This band holds figures and capitals
       // beside symbols, and the symbols set the line: measured on the panel,
       // lifting the text put it two points above them.
+      return label;
    };
 
    if (status.leading != nullptr) {
@@ -169,11 +192,11 @@ Object Screen::status_bar(const StatusBar& status) {
    }
 
    if (status.network != nullptr) {
-      symbol(status.network);
+      signal_ = symbol(status.network);
    }
 
    if (status.clock != nullptr) {
-      text(status.clock, token::kStatusInk);
+      clock_ = text(status.clock, token::kStatusInk);
    }
 
    return band;
@@ -184,11 +207,12 @@ Object Screen::Header(const char* title, const char* trailing) {
    // device and therefore spans everything; a header says what one is looking
    // at inside an area, and the area begins where the sidebar ends.
    const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
+   const std::int32_t above = frame_ == Frame::kBare ? 0 : panel_(token::kBandStatusBar).value;
 
    Object band = lv_obj_create(root_);
    MakePlain(band);
    lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandHeader).value);
-   lv_obj_set_pos(band, aside, panel_(token::kBandStatusBar).value);
+   lv_obj_set_pos(band, aside, above);
    lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value, 0);
    header_ = band;
 
@@ -198,7 +222,12 @@ Object Screen::Header(const char* title, const char* trailing) {
    if (typography().heading != nullptr) {
       lv_obj_set_style_text_font(label, typography().heading, 0);
    }
-   AlignOptically(label, panel_, LV_ALIGN_LEFT_MID, panel_.TypeSize(token::kHeading));
+   // Where the heading stands follows the frame rather than being asked for.
+   // In the product it leads the row, with what belongs to the screen at the
+   // other end; whilst the device is being set up there is only the one
+   // question, and it stands over the middle of the answer.
+   const lv_align_t where = frame_ == Frame::kBare ? LV_ALIGN_CENTER : LV_ALIGN_LEFT_MID;
+   AlignOptically(label, panel_, where, panel_.TypeSize(token::kHeading));
 
    if (trailing != nullptr) {
       Object right = lv_label_create(band);
@@ -418,25 +447,13 @@ Object Screen::player_controller(const PlayerController& player) {
    return player_;
 }
 
-Object Screen::Footer() {
-   Object band = lv_obj_create(root_);
-   MakePlain(band);
-   lv_obj_set_size(band, panel_.width.value, panel_(token::kBandFooter).value);
-   lv_obj_set_pos(band, 0, ContentBottom().value);
-   lv_obj_set_style_bg_color(band, lv_color_hex(token::kSurface), 0);
-   lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value, 0);
-   footer_ = band;
-   return band;
-}
-
 void Screen::MarkAsBandPart(Object object) { lv_obj_add_flag(object, kBandPart); }
 
 bool Screen::IsABand(Object object) const {
    if (lv_obj_has_flag(object, kBandPart)) {
       return true;
    }
-   return object == status_ || object == header_ || object == footer_ || object == sidebar_ || object == player_;
+   return object == status_ || object == header_ || object == sidebar_ || object == player_ || object == keyboard_;
 }
 
 bool Screen::InABand(Object object) const {
@@ -446,6 +463,414 @@ bool Screen::InABand(Object object) const {
       }
    }
    return false;
+}
+
+namespace {
+
+/// The three layers, each of them three rows, and where the switch leads next.
+/// The third carries what a password needs and neither of the others had room
+/// for: a network whose word is "Haus|2026" cannot be entered without the bar,
+/// and that is noticed in front of the network and nowhere earlier.
+struct Layer {
+   const char* top;
+   const char* middle;
+   const char* bottom;
+   const char* next;
+};
+
+const Layer kLayers[] = {
+    {"qwertzuiop", "asdfghjkl", "yxcvbnm", "123"},
+    {"1234567890", "-/:;()\u20AC&@", ".,?!'\"%", "#+="},
+    {"[]{}<>\\|~^", "#$`*_+=\u00B0\u00A7", "\u00B1\u00AB\u00BB\u2026\u00B7\u00BF\u00A1", "abc"},
+};
+
+constexpr int kLayerCount = static_cast<int>(sizeof(kLayers) / sizeof(kLayers[0]));
+
+/// How many keys carry a character. Ten, nine and seven, and the same count on
+/// every layer, which is what lets a layer change relabel them rather than
+/// build them again.
+constexpr int kCharacterKeys = 26;
+
+/// A screen carries one keyboard, so what it is showing is one answer here
+/// rather than a field on every key.
+struct Showing {
+   Object labels[kCharacterKeys] = {};
+   Object band = nullptr;
+   Object field = nullptr;
+   Object switch_label = nullptr;
+   Object modifier = nullptr;
+   const lv_image_dsc_t* shift = nullptr;
+   const lv_image_dsc_t* back = nullptr;
+   int layer = 0;
+   bool capital = false;
+};
+
+Showing showing;
+
+/// How many bytes the character at this position takes. The layers carry
+/// characters the design wrote by hand, and several of them are not one byte.
+int CharacterBytes(const char* at) {
+   const unsigned char lead = static_cast<unsigned char>(*at);
+   if ((lead & 0x80U) == 0) {
+      return 1;
+   }
+   if ((lead & 0xE0U) == 0xC0U) {
+      return 2;
+   }
+   if ((lead & 0xF0U) == 0xE0U) {
+      return 3;
+   }
+   return 4;
+}
+
+/// Writes what each key says for the layer that is showing. Capitals only
+/// reach the letters, because the other two layers have no case.
+void Relabel() {
+   const Layer& layer = kLayers[showing.layer];
+   const char* rows[3] = {layer.top, layer.middle, layer.bottom};
+
+   int index = 0;
+   for (const char* row : rows) {
+      for (const char* at = row; *at != '\0';) {
+         const int bytes = CharacterBytes(at);
+         if (index >= kCharacterKeys || showing.labels[index] == nullptr) {
+            at += bytes;
+            index += 1;
+            continue;
+         }
+
+         char one[5] = {};
+         for (int byte = 0; byte < bytes && byte < 4; ++byte) {
+            one[byte] = at[byte];
+         }
+         if (showing.layer == 0 && showing.capital && bytes == 1) {
+            one[0] = static_cast<char>(one[0] - ('a' - 'A'));
+         }
+         lv_label_set_text(showing.labels[index], one);
+
+         at += bytes;
+         index += 1;
+      }
+   }
+
+   if (showing.switch_label != nullptr) {
+      lv_label_set_text(showing.switch_label, layer.next);
+   }
+
+   // On the letters the modifier shifts, and on the other two it steps back a
+   // layer, which is the same key doing the thing that is left to do.
+   if (showing.modifier != nullptr) {
+      const lv_image_dsc_t* symbol = showing.layer == 0 ? showing.shift : showing.back;
+      if (symbol != nullptr) {
+         lv_image_set_src(showing.modifier, symbol);
+      }
+   }
+}
+
+/// What a key does when it is touched.
+enum class Does {
+   kType,
+   kModify,
+   kSwitch,
+   kSpace,
+   kBackspace,
+   kForwardDelete,
+};
+
+void KeyTouched(lv_event_t* event) {
+   Object key = static_cast<Object>(lv_event_get_target(event));
+   const Does does = static_cast<Does>(reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event)));
+
+   switch (does) {
+      case Does::kType:
+         if (showing.field != nullptr && lv_obj_get_child_count(key) > 0) {
+            lv_textarea_add_text(showing.field, lv_label_get_text(lv_obj_get_child(key, 0)));
+         }
+         break;
+      case Does::kModify:
+         if (showing.layer == 0) {
+            showing.capital = !showing.capital;
+         } else {
+            showing.layer = 0;
+         }
+         Relabel();
+         break;
+      case Does::kSwitch:
+         showing.layer = (showing.layer + 1) % kLayerCount;
+         showing.capital = false;
+         Relabel();
+         break;
+      case Does::kSpace:
+         if (showing.field != nullptr) {
+            lv_textarea_add_text(showing.field, " ");
+         }
+         break;
+      case Does::kBackspace:
+         if (showing.field != nullptr) {
+            lv_textarea_delete_char(showing.field);
+         }
+         break;
+      case Does::kForwardDelete:
+         if (showing.field != nullptr) {
+            lv_textarea_delete_char_forward(showing.field);
+         }
+         break;
+   }
+}
+
+}  // namespace
+
+Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_dsc_t* reveal,
+                 const lv_image_dsc_t* conceal) {
+   Object field = lv_textarea_create(parent);
+   lv_textarea_set_one_line(field, true);
+   lv_textarea_set_password_mode(field, secret);
+
+   lv_obj_set_style_bg_color(field, lv_color_hex(token::kRaised), 0);
+   lv_obj_set_style_bg_opa(field, LV_OPA_COVER, 0);
+   lv_obj_set_style_border_width(field, 0, 0);
+   lv_obj_set_style_radius(field, panel(token::kRadiusTile).value, 0);
+   lv_obj_set_style_pad_hor(field, panel(token::kInset).value, 0);
+   lv_obj_set_style_text_color(field, lv_color_hex(token::kInk), 0);
+
+   // The caret carries the accent, because it is the one thing on the screen
+   // that says where the next character lands.
+   lv_obj_set_style_bg_color(field, lv_color_hex(token::kAccent), LV_PART_CURSOR);
+   lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
+
+   lv_obj_set_height(field, panel(token::kBandHeader).value);
+
+   // A grade below the heading over it, and in the plain cut.
+   const lv_font_t* face = typography().field != nullptr ? typography().field : typography().body;
+   if (face != nullptr) {
+      lv_obj_set_style_text_font(field, face, 0);
+
+      // A field of a stated height puts its one line at the top, and the caret
+      // with it. The same air above and below puts the line in the middle of
+      // the field, and it puts the middle of what the field holds on the middle
+      // of the field itself, which is what the key at the end aligns to.
+      const std::int32_t air = (panel(token::kBandHeader).value - lv_font_get_line_height(face)) / 2;
+      lv_obj_set_style_pad_ver(field, air, 0);
+   }
+
+   // A round bullet rather than the asterisk the library uses by default. An
+   // asterisk sits high in the line and is drawn small at any size, so a field
+   // of them reads as small type however large the face is.
+   lv_textarea_set_password_bullet(field, "\u2022");
+
+   // The key that shows the word and hides it again. It stands inside the
+   // field at its right end, and the text stops before it rather than running
+   // underneath.
+   if (secret && reveal != nullptr && conceal != nullptr) {
+      // As large as a key, so a finger hits it, and set in from the right edge
+      // by the same inset the text holds at the left. It is aligned inside the
+      // text's own box, so the room made for it has to be given back.
+      const std::int32_t size = panel(token::kBandButton).value;
+      const std::int32_t inset = panel(token::kInset).value;
+
+      Object looking = lv_obj_create(field);
+      MakePlain(looking);
+      lv_obj_set_size(looking, size, size);
+      lv_obj_align(looking, LV_ALIGN_RIGHT_MID, inset + size, 0);
+      lv_obj_add_flag(looking, LV_OBJ_FLAG_CLICKABLE);
+
+      Object mark = lv_image_create(looking);
+      lv_image_set_src(mark, conceal);
+      lv_obj_set_style_image_recolor(mark, lv_color_hex(token::kMuted), 0);
+      lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
+      lv_obj_center(mark);
+
+      lv_obj_set_style_pad_right(field, 2 * inset + size, 0);
+
+      // Which two symbols the key swaps between. Kept here rather than on the
+      // object, for the same reason the keyboard keeps its layer here: a screen
+      // carries one field being typed into.
+      static const lv_image_dsc_t* pair[2];
+      pair[0] = conceal;
+      pair[1] = reveal;
+      lv_obj_set_user_data(looking, field);
+
+      lv_obj_add_event_cb(
+          looking,
+          [](lv_event_t* event) {
+             Object key = static_cast<Object>(lv_event_get_target(event));
+             Object shown = static_cast<Object>(lv_obj_get_user_data(key));
+             const bool hidden = lv_textarea_get_password_mode(shown);
+
+             lv_textarea_set_password_mode(shown, !hidden);
+             lv_image_set_src(lv_obj_get_child(key, 0), pair[hidden ? 1 : 0]);
+          },
+          LV_EVENT_CLICKED, nullptr);
+   }
+
+   // The caret blinks, which is what says the field is the one being typed
+   // into. It blinks whilst the field has the focus, and this screen has one
+   // field and nothing else to give it to.
+   lv_obj_add_state(field, LV_STATE_FOCUSED);
+   return field;
+}
+
+Object Screen::keyboard(const Keyboard& keys) {
+   const std::int32_t key_width = panel_(token::kBandKeyboardKey).value;
+   const std::int32_t key_height = panel_(token::kBandButton).value;
+   const std::int32_t gap = panel_(token::kKeyboardGap).value;
+   const std::int32_t shift_width = panel_(token::kBandKeyboardShift).value;
+   const std::int32_t switch_width = panel_(token::kBandKeyboardSwitch).value;
+   const std::int32_t edge = panel_(token::kEdge).value;
+
+   // Set from the bottom up, so the last row holds the same margin as
+   // everything else on the screen. The rows are placed inside the band, which
+   // is why only the band knows this figure.
+   const std::int32_t top = panel_.height.value - edge - 4 * key_height - 3 * gap;
+   const std::int32_t first_row = 0;
+
+   keyboard_ = lv_obj_create(root_);
+   MakePlain(keyboard_);
+   showing = Showing{};
+   showing.band = keyboard_;
+   lv_obj_set_pos(keyboard_, 0, top);
+   lv_obj_set_size(keyboard_, panel_.width.value, panel_.height.value - top);
+
+   showing.field = keys.field;
+   showing.shift = keys.shift;
+   showing.back = keys.back;
+
+   // One cap. The face is lighter than the tray it sits in, the way a key on a
+   // physical keyboard catches more light than the board around it, and the
+   // hairline round it lifts it off without drawing a line anybody notices.
+   //
+   // A rounded rectangle and not a squircle: ten caps side by side are where a
+   // soft flank reads as restless rather than gentle, because the eye compares
+   // ten outlines at once.
+   const auto cap = [&](std::int32_t left, std::int32_t row_top, std::int32_t width, bool quiet, Does does) {
+      Object key = lv_obj_create(keyboard_);
+      MakePlain(key);
+      lv_obj_set_pos(key, left, row_top);
+      lv_obj_set_size(key, width, key_height);
+      lv_obj_set_style_radius(key, panel_(token::kRadiusButton).value, 0);
+      lv_obj_set_style_bg_color(key, lv_color_hex(quiet ? token::kSurface : token::kKey), 0);
+      lv_obj_set_style_bg_opa(key, LV_OPA_COVER, 0);
+      lv_obj_set_style_border_color(key, lv_color_hex(token::kKeyEdge), 0);
+      lv_obj_set_style_border_width(key, 1, 0);
+
+      // A held key stands in the accent and nothing else. A flag above it would
+      // have one character to show, namely the one already on the key, and what
+      // was typed stands in the field above anyway.
+      lv_obj_set_style_bg_color(key, lv_color_hex(token::kAccent), LV_STATE_PRESSED);
+
+      lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
+      lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED,
+                          reinterpret_cast<void*>(static_cast<std::uintptr_t>(does)));
+      return key;
+   };
+
+   const auto lettering = [&](Object key, const char* what, bool quiet) {
+      Object label = lv_label_create(key);
+      lv_label_set_text(label, what);
+      lv_obj_set_style_text_color(label, lv_color_hex(quiet ? token::kMuted : token::kInk), 0);
+      const lv_font_t* face = typography().key != nullptr ? typography().key : typography().heading;
+      if (face != nullptr) {
+         lv_obj_set_style_text_font(label, face, 0);
+      }
+      AlignOptically(label, panel_, LV_ALIGN_CENTER, panel_.TypeSize(token::kKeyLabel));
+      return label;
+   };
+
+   // The modifier stands as bright as a letter although its key is a quiet
+   // one: it changes how one writes and therefore belongs to writing. What
+   // rubs out stays muted.
+   const auto marking = [&](Object key, const lv_image_dsc_t* symbol, bool bright) {
+      Object mark = lv_image_create(key);
+      lv_image_set_src(mark, symbol);
+      lv_obj_set_style_image_recolor(mark, lv_color_hex(bright ? token::kInk : token::kMuted), 0);
+      lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
+      lv_obj_center(mark);
+      return mark;
+   };
+
+   const Layer& first = kLayers[0];
+   const std::int32_t row_width = 10 * key_width + 9 * gap;
+   const std::int32_t row_left = (panel_.width.value - row_width) / 2;
+
+   int index = 0;
+   const auto row_of = [&](const char* letters, std::int32_t left, std::int32_t row_top) {
+      for (const char* at = letters; *at != '\0';) {
+         const int bytes = CharacterBytes(at);
+         char one[5] = {};
+         for (int byte = 0; byte < bytes && byte < 4; ++byte) {
+            one[byte] = at[byte];
+         }
+
+         Object key = cap(left, row_top, key_width, false, Does::kType);
+         if (index < kCharacterKeys) {
+            showing.labels[index] = lettering(key, one, false);
+         }
+
+         left += key_width + gap;
+         at += bytes;
+         index += 1;
+      }
+   };
+
+   row_of(first.top, row_left, first_row);
+
+   // Inset by half a key against the row above. Snapped to the grid, because
+   // half of a key's width is not a whole number of points and two surfaces
+   // half a point apart is what the grid is there to prevent.
+   const std::int32_t second_width = 9 * key_width + 8 * gap;
+   const std::int32_t second_left = (panel_.width.value - second_width) / 2;
+   const std::int32_t step = token::kGrid.value;
+   row_of(first.middle, second_left - second_left % step, first_row + key_height + gap);
+
+   // A narrow modifier, seven letters, a wider one. The two widths differ on
+   // purpose, and that difference is what keeps these letters out of the
+   // columns of the row above.
+   const std::int32_t third_top = first_row + 2 * (key_height + gap);
+   const std::int32_t backspace_width = row_width - shift_width - 7 * key_width - 8 * gap;
+
+   Object modifier = cap(row_left, third_top, shift_width, true, Does::kModify);
+   if (keys.shift != nullptr) {
+      showing.modifier = marking(modifier, keys.shift, true);
+   }
+
+   row_of(first.bottom, row_left + shift_width + gap, third_top);
+
+   Object rubbing = cap(row_left + row_width - backspace_width, third_top, backspace_width, true, Does::kBackspace);
+   if (keys.backspace != nullptr) {
+      marking(rubbing, keys.backspace, false);
+   }
+
+   // The bottom row. The button that ends the task is placed first, because the
+   // space bar takes what is left: a longer word on the button makes the space
+   // bar narrower rather than pushing the row over the edge.
+   const std::int32_t fourth_top = first_row + 3 * (key_height + gap);
+
+   Object stepping = cap(edge, fourth_top, switch_width, true, Does::kSwitch);
+   showing.switch_label = lettering(stepping, first.next, true);
+
+   std::int32_t right = panel_.width.value - edge;
+   if (keys.confirm != nullptr) {
+      Object done = Button(keyboard_, panel_, keys.confirm, true);
+      lv_obj_update_layout(done);
+      const std::int32_t width = lv_obj_get_width(done);
+      lv_obj_set_pos(done, right - width, fourth_top + (key_height - panel_(token::kBandButton).value) / 2);
+      lv_obj_add_event_cb(
+          done, [](lv_event_t*) { lv_obj_send_event(showing.band, LV_EVENT_READY, nullptr); }, LV_EVENT_CLICKED,
+          nullptr);
+      right -= width + gap;
+   }
+
+   Object forward = cap(right - shift_width, fourth_top, shift_width, true, Does::kForwardDelete);
+   if (keys.forward_delete != nullptr) {
+      marking(forward, keys.forward_delete, false);
+   }
+   right -= shift_width + gap;
+
+   const std::int32_t space_left = edge + switch_width + gap;
+   cap(space_left, fourth_top, right - gap - space_left, true, Does::kSpace);
+
+   Relabel();
+   return keyboard_;
 }
 
 Object Screen::Content() {
@@ -471,6 +896,16 @@ Object Screen::Content() {
    lv_obj_set_flex_flow(content_, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_style_pad_row(content_, panel_(token::kLineGap).value, 0);
 
+   // Stacked from the top and centred across. Anything narrower than the
+   // content stands in the middle of it, because a block set to one side with
+   // nothing beside it reads as though something were missing there.
+   lv_obj_set_flex_align(content_, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+   // The same distance at the bottom that the content holds at its sides.
+   // Scrolled to the end, the last row would otherwise sit against whatever
+   // band is under it and read as cut off rather than as finished.
+   lv_obj_set_style_pad_bottom(content_, panel_(token::kEdge).value, 0);
+
    // A list scrolls. It costs frames, because a moving surface is the most
    // expensive thing this panel does, and it is what a person expects from a
    // list all the same. The content area is therefore the one container on a
@@ -482,10 +917,10 @@ Object Screen::Content() {
    return content_;
 }
 
-Object List(Object parent, const Panel& panel) {
+Object List(Object parent, const Panel& panel, int across) {
    Object group = lv_obj_create(parent);
    MakePlain(group);
-   lv_obj_set_width(group, lv_pct(100));
+   lv_obj_set_width(group, lv_pct(across));
    lv_obj_set_height(group, LV_SIZE_CONTENT);
 
    // One surface for the whole group, with the corner around all of it.
@@ -527,12 +962,19 @@ Object Row(Object parent, const Panel& panel, const char* name, const char* valu
       Object symbol = lv_image_create(line);
       lv_image_set_src(symbol, icon);
 
-      // Tinted rather than coloured in the file. The image carries an alpha
-      // channel and nothing else, so the same one serves a muted row and an
-      // accented one without a second copy.
-      lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::kMuted), 0);
-      lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
-      lv_obj_align(symbol, LV_ALIGN_LEFT_MID, 0, 0);
+      // A symbol is tinted rather than coloured in the file: it carries an
+      // alpha channel and nothing else, so one image serves a muted row and an
+      // accented one. A picture that brings its own colours is left alone,
+      // because tinting a flag paints over the thing it is.
+      if (icon->header.cf == LV_COLOR_FORMAT_A8) {
+         lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::kMuted), 0);
+         lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
+      }
+      // Lifted by the same amount the name beside it is. The nudge puts a line
+      // of type on the middle of the row by its capitals rather than by its
+      // box, and a symbol left on the true middle then sits visibly below the
+      // word it belongs to.
+      AlignOptically(symbol, panel, LV_ALIGN_LEFT_MID, panel.TypeSize(token::kBody));
 
       // The gap between a symbol and the word it belongs to is the same
       // everywhere on these screens, and it is the design's own inset.
@@ -700,6 +1142,17 @@ Object Card(Object parent, const Panel& panel, Point width, Point height) {
    return surface;
 }
 
+Object Heading(Object parent, const Panel& panel, const char* words) {
+   Object label = lv_label_create(parent);
+   lv_label_set_text(label, words);
+   lv_obj_set_style_text_color(label, lv_color_hex(token::kInk), 0);
+   if (typography().heading != nullptr) {
+      lv_obj_set_style_text_font(label, typography().heading, 0);
+   }
+   (void)panel;
+   return label;
+}
+
 Object Button(Object parent, const Panel& panel, const char* label, bool accent) {
    Object control = lv_button_create(parent);
    lv_obj_set_style_radius(control, panel(token::kRadiusButton).value, 0);
@@ -723,13 +1176,23 @@ Object Button(Object parent, const Panel& panel, const char* label, bool accent)
 
    AlignOptically(text, panel, LV_ALIGN_CENTER, panel.TypeSize(token::kBody));
 
+   // Its width comes out of the word inside it, and a word is any number of
+   // points wide. An odd one cannot be centred on the grid, and two surfaces
+   // half a point apart is exactly what the grid is there to prevent.
+   lv_obj_update_layout(control);
+   const std::int32_t step = token::kGrid.value;
+   const std::int32_t width = lv_obj_get_width(control);
+   if (width % step != 0) {
+      lv_obj_set_width(control, width + step - width % step);
+   }
+
    return control;
 }
 
-Object CentredBlock(Object parent, const Panel& panel) {
+Object CentredBlock(Object parent, const Panel& panel, int across) {
    Object block = lv_obj_create(parent);
    MakePlain(block);
-   lv_obj_set_width(block, lv_pct(100));
+   lv_obj_set_width(block, lv_pct(across));
 
    // As tall as what goes into it, which is what lets it be centred at all:
    // a block of a stated height would be centred as that height rather than
@@ -742,6 +1205,27 @@ Object CentredBlock(Object parent, const Panel& panel) {
    // thing that looks like a measurement being wrong.
    lv_obj_add_flag(block, LV_OBJ_FLAG_IGNORE_LAYOUT);
    lv_obj_center(block);
+
+   // Centred whilst it fits, and against the top once it does not. A block
+   // taller than the place it stands in is centred half above it, and what goes
+   // above is cut off: the heading first, which is the one thing that says what
+   // the screen is asking. It is decided again whenever the block changes size,
+   // because what goes into it arrives after it is made.
+   lv_obj_add_event_cb(
+       block,
+       [](lv_event_t* event) {
+          Object grown = static_cast<Object>(lv_event_get_target(event));
+          Object around = lv_obj_get_parent(grown);
+          if (around == nullptr) {
+             return;
+          }
+          if (lv_obj_get_height(grown) > lv_obj_get_content_height(around)) {
+             lv_obj_align(grown, LV_ALIGN_TOP_MID, 0, 0);
+          } else {
+             lv_obj_center(grown);
+          }
+       },
+       LV_EVENT_SIZE_CHANGED, nullptr);
 
    lv_obj_set_flex_flow(block, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_flex_align(block, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);

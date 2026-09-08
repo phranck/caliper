@@ -23,6 +23,11 @@ line_gap = "1.63 mm"  # two lines that belong together
 # is what makes it read as lying over the screen rather than fixed to it.
 floating = "1.09 mm"
 
+# Between two keys of the keyboard. Its own figure rather than a margin
+# borrowed from elsewhere: what parts two keys is a decision about a hand, and
+# it moves when the keys do.
+keyboard_gap = "1.09 mm"
+
 # The air inside the player pill, above and below what stands in it. It sets
 # the pill's height and therefore the curve of its ends as well.
 player_inset = "1.09 mm"
@@ -87,6 +92,11 @@ status = "265 mm"
 # "Einstellungen" needs 74.5 points at 14 and has 80 less its padding.
 caption = "203 mm"
 
+# What a key of the keyboard says. Larger than the body, because a key is read
+# at a glance whilst the finger is already moving towards it. Named for the
+# label rather than the key, because the key's own colour has the shorter name.
+key_label = "468 mm"
+
 [layout]
 # The heights of the three bands. They are in millimetres like every other
 # physical size, so a denser panel keeps a status bar of the same apparent
@@ -105,6 +115,18 @@ footer = "10.88 mm"
 # be hit in rather than the area that is painted. The two are set apart, so the
 # touch target stays 9 mm whilst the button looks like this.
 button = "6.53 mm"
+
+# A key of the keyboard, and the wider one that shifts. Ten keys across the
+# measure give 66 points each, which is a fingertip at 9 mm, and that decides
+# every other width on it. Shift is wider so that the letters of the bottom row
+# do not land in the same column as the row above: on a keyboard no two rows
+# line up, and the eye finds a key by its offset against the one over it.
+keyboard_key = "8.98 mm"
+keyboard_shift = "11.42 mm"
+
+# The key that walks through the layers, at the bottom left. Wider than a
+# letter because it carries a word rather than a character.
+keyboard_switch = "13.60 mm"
 
 # A key of the player. The pill takes its height from this and the air around
 # it, so the shape of its ends follows whenever either moves.

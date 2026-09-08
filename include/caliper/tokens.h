@@ -17,6 +17,7 @@ inline constexpr Millimeter kGroup{3.27f};
 inline constexpr Millimeter kInset{2.72f};
 inline constexpr Millimeter kLineGap{1.63f};
 inline constexpr Millimeter kFloating{1.09f};
+inline constexpr Millimeter kKeyboardGap{1.09f};
 inline constexpr Millimeter kPlayerInset{1.09f};
 inline constexpr Millimeter kStatusEdge{1.09f};
 inline constexpr Millimeter kStatusGap{2.18f};
@@ -26,6 +27,9 @@ inline constexpr Millimeter kBandStatusBar{4.35f};
 inline constexpr Millimeter kBandHeader{9.25f};
 inline constexpr Millimeter kBandFooter{10.88f};
 inline constexpr Millimeter kBandButton{6.53f};
+inline constexpr Millimeter kBandKeyboardKey{8.98f};
+inline constexpr Millimeter kBandKeyboardShift{11.42f};
+inline constexpr Millimeter kBandKeyboardSwitch{13.6f};
 inline constexpr Millimeter kBandMediaKey{6.8f};
 inline constexpr Millimeter kBandSidebar{11.97f};
 inline constexpr Millimeter kBandSidebarItem{10.88f};
@@ -47,6 +51,7 @@ inline constexpr Reading kBody{405.0f};
 inline constexpr Reading kSmall{345.0f};
 inline constexpr Reading kStatus{265.0f};
 inline constexpr Reading kCaption{203.0f};
+inline constexpr Reading kKeyLabel{468.0f};
 
 // Only the outer corners. Anything nested is computed by inner_radius
 // below, because two numbers drift into a pinched corner.

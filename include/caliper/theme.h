@@ -37,6 +37,16 @@ struct Typography {
    /// The smallest grade, which is what a sidebar item is labelled in. It falls
    /// back to the status face where none is given.
    const lv_font_t* caption = nullptr;
+
+   /// What is typed into a field. The grade a key of the keyboard is set in,
+   /// in the plain cut: it is read back rather than announced, and it stands
+   /// under the question it answers. Null falls back to `body`.
+   const lv_font_t* field = nullptr;
+
+   /// What a key of the keyboard says. Larger than the body, because a key is
+   /// read at a glance whilst the finger is already moving towards it. Null
+   /// falls back to `heading`.
+   const lv_font_t* key = nullptr;
 };
 
 /**

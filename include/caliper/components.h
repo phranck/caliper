@@ -96,6 +96,32 @@ struct PlayerController {
 };
 
 /**
+ * What the keyboard carries.
+ *
+ * The symbols are passed in rather than held here, because the collection they
+ * come from belongs to the product and not to the library.
+ */
+struct Keyboard {
+   /// The field it types into. It has to be there: a keyboard with nowhere to
+   /// put what is typed is a row of decorations.
+   Object field = nullptr;
+
+   /// What the key at the end says, or nullptr for none. It is a button rather
+   /// than a key, because it ends the task instead of adding a character.
+   const char* confirm = nullptr;
+
+   /// Between small and capital letters, on the letters.
+   const lv_image_dsc_t* shift = nullptr;
+
+   /// One layer back, which is what the same key does on the other two.
+   const lv_image_dsc_t* back = nullptr;
+
+   /// Rubs out what stands before the caret, and what stands after it.
+   const lv_image_dsc_t* backspace = nullptr;
+   const lv_image_dsc_t* forward_delete = nullptr;
+};
+
+/**
  * A screen, which is the frame the components compute from.
  *
  * It carries the panel and the three bands, and it hands out the area that is
@@ -104,12 +130,26 @@ struct PlayerController {
  */
 class Screen {
   public:
+   /// What frame a screen stands in.
+   enum class Frame {
+      /// The bands the finished product carries: a status bar across the top
+      /// and room at the bottom for what is playing.
+      kProduct,
+
+      /// Nothing but what the screen puts there, and everything on it centred.
+      /// The onboarding stands in this: a bar reporting the state of a device
+      /// that is still being set up has nothing to report, and a person setting
+      /// one up is answering one question at a time rather than watching it.
+      kBare,
+   };
+
    /**
     * Takes over the active screen of the display and prepares it.
     *
     * @param panel The panel being drawn on.
+    * @param frame Which of the two frames it stands in.
     */
-   explicit Screen(const Panel& panel);
+   explicit Screen(const Panel& panel, Frame frame = Frame::kProduct);
 
    /// The status bar along the very top, on every screen.
    ///
@@ -126,9 +166,6 @@ class Screen {
     * @param trailing What stands on the right, or nullptr for nothing.
     */
    Object Header(const char* title, const char* trailing = nullptr);
-
-   /// The footer along the bottom, for whatever the screen offers there.
-   Object Footer();
 
    /**
     * The anchors along the left, one per area of the product.
@@ -152,6 +189,16 @@ class Screen {
     * @returns The band, so a caller can attach events to its items.
     */
    Object sidebar(const Sidebar& areas);
+
+   /// What the status bar says the time is, so a caller can change it whilst
+   /// the screen stands. The bar is built once with the screen and the time
+   /// goes on running: setting it in place rather than building the screen
+   /// again matters here more than it would elsewhere, because this panel
+   /// redraws the whole frame for any change at all.
+   Object clock() const { return clock_; }
+
+   /// The symbol the status bar shows for the network, for the same reason.
+   Object signal() const { return signal_; }
 
    /// The wordmark, wherever the screen has put it, or nullptr where it carries
    /// none. A caller that sets its colours moving needs the object rather than
@@ -178,6 +225,33 @@ class Screen {
     * @returns The pill, so a caller can reach what stands in it.
     */
    Object player_controller(const PlayerController& player);
+
+   /**
+    * The keyboard along the bottom, in three layers.
+    *
+    * Row two is inset by half a key against row one, and row three carries a
+    * modifier at each end. The two modifiers are different widths on purpose,
+    * and that difference is what keeps the letters of row three out of row
+    * two's columns: on a keyboard no two rows line up, and the eye finds a key
+    * by its offset against the row above.
+    *
+    * The key at the bottom left walks through the layers in a ring, so letters,
+    * figures, symbols and back to letters. A ring rather than a pair, because
+    * that is how a telephone does it and the hand already knows the way.
+    *
+    * Built from placed keys rather than from the library's own button matrix.
+    * A matrix divides a row into equal parts and pads them alike, and this
+    * keyboard has three rows with different gap counts and two modifiers at
+    * stated widths, none of which a matrix can hold.
+    *
+    * A screen carries one keyboard, which is why the layer it is showing is
+    * kept here rather than on the object.
+    *
+    * @param keys What it types into and what its modifiers look like.
+    * @returns The band, which sends `LV_EVENT_READY` when the key at the end is
+    *          touched.
+    */
+   Object keyboard(const Keyboard& keys);
 
    /// The area between the bands, which is what everything else goes into.
    Object Content();
@@ -240,14 +314,17 @@ class Screen {
 
   private:
    Panel panel_;
+   Frame frame_ = Frame::kProduct;
    Object root_ = nullptr;
    Object content_ = nullptr;
    Object sidebar_ = nullptr;
    Object player_ = nullptr;
    Object status_ = nullptr;
    Object mark_ = nullptr;
+   Object clock_ = nullptr;
+   Object signal_ = nullptr;
    Object header_ = nullptr;
-   Object footer_ = nullptr;
+   Object keyboard_ = nullptr;
 };
 
 /**
@@ -263,9 +340,12 @@ class Screen {
  *
  * @param parent What it goes into, normally the content area.
  * @param panel The panel, for the measurements.
+ * @param across How much of the width it takes, as a percentage. A list of two
+ *               or three short answers looks lost across the whole measure, and
+ *               a narrower one is centred in the place it was given.
  * @returns The group, to put rows into.
  */
-Object List(Object parent, const Panel& panel);
+Object List(Object parent, const Panel& panel, int across = 100);
 
 /**
  * A row of a list: a name on the left, a value on the right.
@@ -343,6 +423,19 @@ int Chosen(Object group);
 Object Card(Object parent, const Panel& panel, Point width, Point height);
 
 /**
+ * A heading over whatever follows it.
+ *
+ * What the header band carries on a screen of the product, for a screen that
+ * has no bands and puts its heading in with the rest.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param words What it says.
+ * @returns The heading.
+ */
+Object Heading(Object parent, const Panel& panel, const char* words);
+
+/**
  * A button, which is never narrower than its label plus its padding and never
  * smaller than a finger needs.
  *
@@ -384,6 +477,25 @@ Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbo
  * @param second Where it is playing.
  * @returns The group.
  */
+/**
+ * The field a keyboard types into.
+ *
+ * A secret field carries a key at its right end that shows what was typed and
+ * hides it again. Somebody typing a long word into a panel on a wall has no
+ * other way of finding out which character went wrong, and the alternative is
+ * clearing the field and starting over.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param secret Whether what is typed is shown as dots. A network's word is,
+ *               and a name is not.
+ * @param reveal The symbol that shows what is hidden, or nullptr for no key.
+ * @param conceal The symbol that hides it again.
+ * @returns The field.
+ */
+Object TextField(Object parent, const Panel& panel, bool secret = false, const lv_image_dsc_t* reveal = nullptr,
+                 const lv_image_dsc_t* conceal = nullptr);
+
 Object PlayingInfo(Object parent, const Panel& panel, const lv_image_dsc_t* cover, const char* title,
                    const char* second);
 
@@ -418,9 +530,12 @@ Object MediaButtons(Object parent, const Panel& panel, std::initializer_list<con
  *
  * @param parent What it goes into, normally the content area.
  * @param panel The panel, for the measurements.
+ * @param across How much of the width it takes, as a percentage. What stands in
+ *               it takes the block's width, so this is what makes a heading, a
+ *               list and a row of buttons line up with each other.
  * @returns The block, to put things into. They stack downwards.
  */
-Object CentredBlock(Object parent, const Panel& panel);
+Object CentredBlock(Object parent, const Panel& panel, int across = 100);
 
 /**
  * What a screen says when it has one thing to say.
