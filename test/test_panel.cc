@@ -71,6 +71,12 @@ static_assert(five_inch.MinimumWidth(20_pt) == 60_pt);
 static_assert(five_inch.MinimumWidth(200_pt) == 240_pt);
 static_assert(seven_inch.MinimumWidth(20_pt) == 56_pt);
 
+// A typeface gives back whatever height a line happens to need, and 43 is
+// what a heading measures on the five inch panel. Rounded up to the grid, so
+// whatever is stacked beneath it lands on an even point instead of an odd one.
+static_assert(five_inch.RoundedUpToGrid(43_pt) == 44_pt);
+static_assert(five_inch.RoundedUpToGrid(88_pt) == 88_pt);
+
 // The units keep each other out. None of the following compiles, and that is
 // the deliverable:
 //   Point wrong = token::fingertip;      // a millimetre is not a pixel

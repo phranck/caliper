@@ -114,6 +114,22 @@ struct Panel {
    constexpr Point InnerRadius(Millimeter outer, Millimeter gap = token::kInset) const {
       return (*this)(token::InnerRadius(outer, gap));
    }
+
+   /**
+    * Rounds a measured length up to the grid.
+    *
+    * A typeface or a word gives back whatever height or width it happens to
+    * need, and that figure lands on the grid only by chance. Rounding it up
+    * keeps whatever is stacked or placed against it on the grid too, without
+    * ever giving the content itself less room than it measured.
+    *
+    * @param measured The length as the content actually came out, in pixels.
+    * @returns The same length, or the next grid step above it.
+    */
+   constexpr Point RoundedUpToGrid(Point measured) const {
+      const std::int32_t remainder = measured.value % token::kGrid.value;
+      return remainder == 0 ? measured : Point{measured.value + token::kGrid.value - remainder};
+   }
 };
 
 /// The panel this project measures, and the one every figure in its papers
