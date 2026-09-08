@@ -239,13 +239,20 @@ status_ink = "#f0f0f0"
 muted = "#939393"
 faint = "#757575"
 
-# The accent, and white on it. Measured against the ground it sits on it stands
-# at 6.25 to 1, and the label on a button at 3.03 to 1, which is the floor for
-# a word set this large. A lighter blue reads better on the ground and carries
+# The accent, which is the one colour a person picks. This is what a device
+# carries until they do. Measured against the ground it sits on it stands at
+# 6.23 to 1, and the label on a button at 3.03 to 1, which is the floor for a
+# word set this large. A lighter blue reads better on the ground and carries
 # white worse; this is the point where both still hold.
+#
+# The first of those two read 6.25 until the ground became this grey. Nothing
+# recomputed it, because nothing was checking it. `test_contrast` is.
+#
+# What stands on it and the dimmed version of it are not written down here.
+# They follow from whichever accent is in force, so they are rules rather than
+# numbers: `InkOn` and `DimmedAccent` beside `InnerRadius`. Written as values
+# they would be right for this one accent and wrong for the other fifteen.
 accent = "#009ce9"
-accent_ink = "#ffffff"
-accent_dim = "#0a5570"
 
 # A hairline between two rows of a list. Three tenths of the way from the
 # surface towards the ink, because a line that parts two entries is doing its

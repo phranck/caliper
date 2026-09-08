@@ -6,6 +6,7 @@
 set(CALIPER_ROOT "${CMAKE_CURRENT_LIST_DIR}")
 
 set(CALIPER_SOURCES
+    "${CALIPER_ROOT}/src/contrast.cc"
     "${CALIPER_ROOT}/src/shapes.cc"
     "${CALIPER_ROOT}/src/squircles.cc"
     "${CALIPER_ROOT}/src/theme.cc"

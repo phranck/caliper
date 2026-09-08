@@ -80,13 +80,59 @@ COLOURS = {
     "muted": "#939393",
     "faint": "#757575",
     "accent": "#009ce9",
-    "accent-ink": "#ffffff",
-    "accent-dim": "#0a5570",
     "line": "#353535",
     "overlay": "#323232",
     "danger": "#f85149",
     "danger-ink": "#ffffff",
 }
+
+
+def _linear(channel: int) -> float:
+    """One channel of a colour, on the scale light is actually measured in.
+
+    A colour as it is written is not proportional to the light coming off the
+    glass, and everything about contrast is. Caliper carries the same
+    arithmetic, because a drawing and a device that disagreed about which ink
+    stands on the accent would disagree about what the product looks like.
+    """
+    share = channel / 255
+    return share / 12.92 if share <= 0.04045 else ((share + 0.055) / 1.055) ** 2.4
+
+
+def luminance(colour: str) -> float:
+    """How much light a colour gives off, from 0 for black to 1 for white."""
+    value = int(colour.lstrip('#'), 16)
+    return (0.2126 * _linear((value >> 16) & 0xFF)
+            + 0.7152 * _linear((value >> 8) & 0xFF)
+            + 0.0722 * _linear(value & 0xFF))
+
+
+def ink_on(colour: str) -> str:
+    """What a large word is set in when it stands on a colour.
+
+    White whilst it still reaches three to one, which is the floor a word set
+    this large holds, and the ground's own colour once it does not. The
+    design's accent lands at 3.03, which is why white stands on it.
+    """
+    return "#ffffff" if 1.05 / (luminance(colour) + 0.05) >= 3.0 else COLOURS["bg"]
+
+
+def dimmed_accent(colour: str) -> str:
+    """A colour taken most of the way to the ground, for what is not now."""
+    value = int(colour.lstrip('#'), 16)
+    ground = int(COLOURS['bg'].lstrip('#'), 16)
+    mixed = 0
+    for shift in (16, 8, 0):
+        here = (value >> shift) & 0xFF
+        there = (ground >> shift) & 0xFF
+        mixed |= int(here + (there - here) * 0.55 + 0.5) << shift
+    return '#%06x' % mixed
+
+
+# The two that follow from the accent rather than standing beside it. Written
+# into the palette so a drawing asks for them the way it asks for any colour.
+COLOURS["accent-ink"] = ink_on(COLOURS["accent"])
+COLOURS["accent-dim"] = dimmed_accent(COLOURS["accent"])
 
 
 def _rounded(value: float) -> int:
