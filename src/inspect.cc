@@ -111,7 +111,8 @@ Walk walk;
  * @param bands Where the content area begins and ends.
  * @param scrolled Whether an enclosing container scrolls. Inside one, content
  *                 below the fold is the point rather than a fault, so the band
- *                 check is left out for it and the other five still run.
+ *                 check is left out for it and the downward half of the margin
+ *                 with it. The other four still run, and so do the sides.
  */
 void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
    const Element element = describe(object);
@@ -136,6 +137,14 @@ void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
       measured.margin_vertical = false;
    } else {
       measured.margin = walk.screen->panel()(token::kEdge);
+
+      // Inside something that scrolls, only the sides hold a margin. A row
+      // below the fold is not against the case, because it is not on the glass
+      // at all, and what holds the distance there is the bottom edge of the
+      // scrolling area, which is measured in its own right. Without this, any
+      // list longer than the screen reports one finding per row of the part
+      // nobody can see.
+      measured.margin_vertical = !scrolled;
    }
 
    walk.findings += Check(measured, walk.screen->panel(), applicable, walk.report);

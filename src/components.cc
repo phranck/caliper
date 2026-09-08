@@ -1208,6 +1208,23 @@ void OnRowTouched(lv_event_t* event) {
    lv_obj_send_event(group, LV_EVENT_VALUE_CHANGED, nullptr);
 }
 
+/**
+ * Makes a row answer a finger.
+ *
+ * What the finger gets back before anything else happens. It is the same ground
+ * a marked row stands on, at half strength, so pressing a row looks like the
+ * beginning of choosing it rather than like a separate colour. Without one a
+ * finger gets no answer until the screen changes, and on a panel that redraws
+ * in tens of milliseconds that reads as a device that did not notice.
+ *
+ * @param row The row.
+ */
+void AnswerToTouch(Object row) {
+   lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE);
+   lv_obj_set_style_bg_color(row, lv_color_hex(token::kRaised), LV_STATE_PRESSED);
+   lv_obj_set_style_bg_opa(row, LV_OPA_50, LV_STATE_PRESSED);
+}
+
 }  // namespace
 
 void MarkCurrent(Object row, bool current) {
@@ -1230,18 +1247,14 @@ void MarkCurrent(Object row, bool current) {
    }
 }
 
+void LeadsAway(Object row) { AnswerToTouch(row); }
+
 void ChooseOne(Object group, int chosen_row) {
    for (std::uint32_t index = 0; index < lv_obj_get_child_count(group); ++index) {
       Object row = lv_obj_get_child(group, index);
 
-      lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE);
+      AnswerToTouch(row);
       lv_obj_add_event_cb(row, OnRowTouched, LV_EVENT_CLICKED, nullptr);
-
-      // What the finger gets back before anything else happens. It is the
-      // same ground the mark uses, at half strength, so pressing a row looks
-      // like the beginning of choosing it rather than like a separate colour.
-      lv_obj_set_style_bg_color(row, lv_color_hex(token::kRaised), LV_STATE_PRESSED);
-      lv_obj_set_style_bg_opa(row, LV_OPA_50, LV_STATE_PRESSED);
 
       MarkCurrent(row, static_cast<int>(index) == chosen_row);
    }

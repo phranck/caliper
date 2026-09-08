@@ -451,6 +451,20 @@ Object Row(Object parent, const Panel& panel, const char* name, const char* valu
 void MarkCurrent(Object row, bool current);
 
 /**
+ * Makes a row one that leads away, rather than one that is chosen.
+ *
+ * It becomes touchable and answers a finger with the same pressed ground a
+ * choosable row does, and that is all: nothing stays marked afterwards, because
+ * the screen it leads to is the answer. A settings list is the case for it,
+ * where every row goes somewhere and none of them is the current one.
+ *
+ * What happens next is the caller's, so the handler is theirs to attach.
+ *
+ * @param row The row.
+ */
+void LeadsAway(Object row);
+
+/**
  * Turns a group of rows into a list where touching one chooses it.
  *
  * Exactly one row is marked at any time, and touching another moves the mark.
