@@ -216,7 +216,7 @@ Object Screen::status_bar(const StatusBar& status) {
    return band;
 }
 
-Object Screen::Header(const char* title, const char* trailing) {
+Object Screen::Header(const char* title, const HeaderTrailing& trailing) {
    // Beside the sidebar, not above it. The status bar reports the state of the
    // device and therefore spans everything; a header says what one is looking
    // at inside an area, and the area begins where the sidebar ends.
@@ -243,16 +243,51 @@ Object Screen::Header(const char* title, const char* trailing) {
    const lv_align_t where = frame_ == Frame::kBare ? LV_ALIGN_CENTER : LV_ALIGN_LEFT_MID;
    AlignOptically(label, panel_, where, panel_.TypeSize(token::kHeading));
 
-   if (trailing != nullptr) {
+   if (trailing.text == nullptr) {
+      return band;
+   }
+
+   // Where it merely says something it is a label and nothing else, which is
+   // what most screens want at that end.
+   if (trailing.back == nullptr) {
       Object right = lv_label_create(band);
-      lv_label_set_text(right, trailing);
+      lv_label_set_text(right, trailing.text);
       lv_obj_set_style_text_color(right, lv_color_hex(token::kMuted), 0);
       if (typography().small != nullptr) {
          lv_obj_set_style_text_font(right, typography().small, 0);
       }
       AlignOptically(right, panel_, LV_ALIGN_RIGHT_MID, panel_.TypeSize(token::kSmall));
+      return band;
    }
 
+   // Where it is the way back it is one thing that can be touched, holding the
+   // symbol and the name of what it goes to. The two are one object rather than
+   // two beside each other, because a finger aiming at either of them means the
+   // same thing.
+   Object way = lv_obj_create(band);
+   MakePlain(way);
+   lv_obj_set_height(way, panel_(token::kMinimum).value);
+   lv_obj_set_width(way, LV_SIZE_CONTENT);
+   lv_obj_set_flex_flow(way, LV_FLEX_FLOW_ROW);
+   lv_obj_set_flex_align(way, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+   lv_obj_set_style_pad_column(way, panel_(token::kLineGap).value / 2, 0);
+   lv_obj_align(way, LV_ALIGN_RIGHT_MID, 0, 0);
+   lv_obj_add_flag(way, LV_OBJ_FLAG_CLICKABLE);
+   MarkAsBandPart(way);
+
+   Object arrow = lv_image_create(way);
+   lv_image_set_src(arrow, trailing.back);
+   lv_obj_set_style_image_recolor(arrow, lv_color_hex(token::kMuted), 0);
+   lv_obj_set_style_image_recolor_opa(arrow, LV_OPA_COVER, 0);
+
+   Object right = lv_label_create(way);
+   lv_label_set_text(right, trailing.text);
+   lv_obj_set_style_text_color(right, lv_color_hex(token::kMuted), 0);
+   if (typography().small != nullptr) {
+      lv_obj_set_style_text_font(right, typography().small, 0);
+   }
+
+   back_ = way;
    return band;
 }
 
