@@ -31,6 +31,21 @@ int Inspect(Screen& screen, Report report);
  */
 int InspectAndLog(Screen& screen);
 
+/**
+ * How many findings have been reported since the tally was last cleared.
+ *
+ * A walk over every screen needs one figure at the end, and it cannot get it
+ * from the screens themselves: a screen is built by a function returning
+ * nothing, because that is what changing the screen takes, so whatever
+ * `InspectAndLog` gave back is gone by the time the walk sees it again.
+ *
+ * @returns The running total.
+ */
+int FindingsSoFar();
+
+/// Sets the tally back to nought, so one walk does not count another's.
+void ClearFindings();
+
 }  // namespace cal
 
 #endif  // CALIPER_INSPECT_H_
