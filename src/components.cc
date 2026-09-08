@@ -389,12 +389,12 @@ Object Screen::sidebar(const Sidebar& areas) {
 
       Object symbol_mark = lv_image_create(anchor);
       lv_image_set_src(symbol_mark, symbol);
-      lv_obj_set_style_image_recolor(symbol_mark, lv_color_hex(chosen ? token::kAccent : token::kMuted), 0);
+      lv_obj_set_style_image_recolor(symbol_mark, lv_color_hex(chosen ? Accent() : token::kMuted), 0);
       lv_obj_set_style_image_recolor_opa(symbol_mark, LV_OPA_COVER, 0);
       if (labelled) {
          Object name = lv_label_create(anchor);
          lv_label_set_text(name, areas.names.begin()[index]);
-         lv_obj_set_style_text_color(name, lv_color_hex(chosen ? token::kAccent : token::kMuted), 0);
+         lv_obj_set_style_text_color(name, lv_color_hex(chosen ? Accent() : token::kMuted), 0);
          const lv_font_t* face = typography().caption != nullptr ? typography().caption : typography().status;
          if (face != nullptr) {
             lv_obj_set_style_text_font(name, face, 0);
@@ -657,7 +657,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
 
    // The caret carries the accent, because it is the one thing on the screen
    // that says where the next character lands.
-   lv_obj_set_style_bg_color(field, lv_color_hex(token::kAccent), LV_PART_CURSOR);
+   lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
 
    lv_obj_set_height(field, panel(token::kBandHeader).value);
@@ -778,7 +778,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       // A held key stands in the accent and nothing else. A flag above it would
       // have one character to show, namely the one already on the key, and what
       // was typed stands in the field above anyway.
-      lv_obj_set_style_bg_color(key, lv_color_hex(token::kAccent), LV_STATE_PRESSED);
+      lv_obj_set_style_bg_color(key, lv_color_hex(Accent()), LV_STATE_PRESSED);
 
       lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
       lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED,
@@ -946,8 +946,8 @@ Object Screen::card(const Card& what) {
       Object mark = lv_image_create(heading);
       lv_image_set_src(mark, what.symbol);
       lv_obj_set_size(mark, symbol, symbol);
-      lv_obj_set_style_image_recolor(
-          mark, lv_color_hex(what.kind == Card::Kind::kTrouble ? token::kDanger : token::kAccent), 0);
+      lv_obj_set_style_image_recolor(mark, lv_color_hex(what.kind == Card::Kind::kTrouble ? token::kDanger : Accent()),
+                                     0);
       lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
    }
 
@@ -1260,7 +1260,7 @@ void MarkCurrent(Object row, bool current) {
 
    Object name = NameOf(row);
    if (name != nullptr) {
-      lv_obj_set_style_text_color(name, lv_color_hex(current ? token::kAccent : token::kInk), 0);
+      lv_obj_set_style_text_color(name, lv_color_hex(current ? Accent() : token::kInk), 0);
    }
 }
 
@@ -1323,14 +1323,14 @@ Object Button(Object parent, const Panel& panel, const char* label, bool accent)
        beneath != nullptr && !lv_color_eq(lv_obj_get_style_bg_color(beneath, LV_PART_MAIN), lv_color_hex(token::kBg));
 
    const std::uint32_t ground = on_a_surface ? token::kSurface : token::kRaised;
-   lv_obj_set_style_bg_color(control, lv_color_hex(accent ? token::kAccent : ground), 0);
+   lv_obj_set_style_bg_color(control, lv_color_hex(accent ? Accent() : ground), 0);
 
    Object text = lv_label_create(control);
    lv_label_set_text(text, label);
    if (typography().strong != nullptr) {
       lv_obj_set_style_text_font(text, typography().strong, 0);
    }
-   lv_obj_set_style_text_color(text, lv_color_hex(accent ? token::kAccentInk : token::kInk), 0);
+   lv_obj_set_style_text_color(text, lv_color_hex(accent ? AccentInk() : token::kInk), 0);
 
    AlignOptically(text, panel, LV_ALIGN_CENTER, panel.TypeSize(token::kBody));
 
@@ -1414,7 +1414,7 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
       // visibly high and to one side of everything it is meant to be over.
       lv_image_set_inner_align(symbol, LV_IMAGE_ALIGN_CENTER);
 
-      lv_obj_set_style_image_recolor(symbol, lv_color_hex(token::kAccent), 0);
+      lv_obj_set_style_image_recolor(symbol, lv_color_hex(Accent()), 0);
       lv_obj_set_style_image_recolor_opa(symbol, LV_OPA_COVER, 0);
    }
 
@@ -1439,12 +1439,12 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
 }
 
 Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbol, Point size, bool accent) {
-   Object key = Squircle(parent, size.value, accent ? token::kAccent : token::kKey);
+   Object key = Squircle(parent, size.value, accent ? Accent() : token::kKey);
    lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
 
    Object mark = lv_image_create(key);
    lv_image_set_src(mark, symbol);
-   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? token::kAccentInk : token::kInk), 0);
+   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? AccentInk() : token::kInk), 0);
    lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
    lv_obj_center(mark);
    return key;
@@ -1535,7 +1535,7 @@ Object Bar(Object parent, const Panel& panel, float filled) {
    Object full = lv_obj_create(track);
    MakePlain(full);
    lv_obj_set_height(full, height);
-   lv_obj_set_style_bg_color(full, lv_color_hex(token::kAccent), 0);
+   lv_obj_set_style_bg_color(full, lv_color_hex(Accent()), 0);
    lv_obj_set_style_bg_opa(full, LV_OPA_COVER, 0);
    lv_obj_set_style_radius(full, height / 2, 0);
    lv_obj_align(full, LV_ALIGN_LEFT_MID, 0, 0);
@@ -1586,7 +1586,7 @@ Object Slider(Object parent, const Panel& panel, const char* label, const char* 
    lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_MAIN);
    lv_obj_set_style_radius(control, height / 2, LV_PART_MAIN);
 
-   lv_obj_set_style_bg_color(control, lv_color_hex(token::kAccent), LV_PART_INDICATOR);
+   lv_obj_set_style_bg_color(control, lv_color_hex(Accent()), LV_PART_INDICATOR);
    lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_INDICATOR);
    lv_obj_set_style_radius(control, height / 2, LV_PART_INDICATOR);
 

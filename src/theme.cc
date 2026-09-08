@@ -1,5 +1,6 @@
 #include "caliper/theme.h"
 
+#include "caliper/contrast.h"
 #include "caliper/tokens.h"
 #include "lvgl.h"
 
@@ -18,6 +19,12 @@ Typography fonts;
 
 /// Turns a colour from the generated values into what the library expects.
 lv_color_t colour(std::uint32_t value) { return lv_color_hex(value); }
+
+/// The accent in force, and the two that follow from it. They are worked out
+/// once, when one is set, rather than at every drawing.
+std::uint32_t accent = token::kAccent;
+std::uint32_t accent_ink = 0;
+std::uint32_t accent_dim = 0;
 
 /**
  * Fills in the styles once, for the panel in question.
@@ -91,6 +98,28 @@ void apply(lv_theme_t* theme, lv_obj_t* object) {
 }
 
 }  // namespace
+
+std::uint32_t Accent() { return accent; }
+
+std::uint32_t AccentInk() {
+   if (accent_ink == 0) {
+      accent_ink = InkOn(accent);
+   }
+   return accent_ink;
+}
+
+std::uint32_t AccentDim() {
+   if (accent_dim == 0) {
+      accent_dim = DimmedAccent(accent);
+   }
+   return accent_dim;
+}
+
+void SetAccent(std::uint32_t colour) {
+   accent = colour;
+   accent_ink = InkOn(colour);
+   accent_dim = DimmedAccent(colour);
+}
 
 void InstallTheme(lv_display_t* display, const Panel& panel, const Typography& typefaces) {
    fonts = typefaces;

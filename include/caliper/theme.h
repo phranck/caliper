@@ -1,6 +1,8 @@
 #ifndef CALIPER_THEME_H_
 #define CALIPER_THEME_H_
 
+#include <cstdint>
+
 #include "caliper/panel.h"
 #include "lvgl.h"
 
@@ -64,6 +66,38 @@ struct Typography {
  *              points.
  * @param fonts The typefaces to set text in.
  */
+/**
+ * The accent in force.
+ *
+ * One colour on a screen of greys, and the one a person picks, so it is not
+ * known until they have. It is read at the moment a thing is built rather than
+ * at the moment it is drawn, which means a change reaches a screen that is
+ * built again afterwards. That is how the language already works, and for the
+ * same reason: what changes with it is not only a colour but which screen
+ * somebody is looking at.
+ *
+ * @returns The accent, as the design's own until somebody sets another.
+ */
+std::uint32_t Accent();
+
+/// What stands on the accent, which is white until the accent is light enough
+/// that white stops being readable on it.
+std::uint32_t AccentInk();
+
+/// The accent dimmed towards the ground, for what is present but not now.
+std::uint32_t AccentDim();
+
+/**
+ * Sets the accent, and with it the two that follow from it.
+ *
+ * The ink and the dimmed version are worked out here rather than at every
+ * drawing, because they follow from one colour that changes rarely and the
+ * arithmetic behind the ink is not cheap.
+ *
+ * @param colour The accent from now on.
+ */
+void SetAccent(std::uint32_t colour);
+
 void InstallTheme(lv_display_t* display, const Panel& panel, const Typography& fonts);
 
 /// The typefaces the theme was installed with, for a component that sets text.

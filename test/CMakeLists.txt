@@ -10,8 +10,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # The same settings the device is built with, so anything that would fail there
 # fails here first.
+# Most of these are arithmetic in a header and need nothing beside them. The
+# contrast is not: its curve is in a source file, because the transfer function
+# it uses is not something a constant expression can compute.
 function(caliper_test name)
-    add_executable(${name} ${name}.cc)
+    set(sources ${name}.cc ${ARGN})
+    add_executable(${name} ${sources})
     target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
     target_compile_options(${name} PRIVATE
         -Wall -Wextra -Werror -fno-exceptions -fno-rtti)
@@ -22,3 +26,4 @@ enable_testing()
 
 caliper_test(test_panel)
 caliper_test(test_checks)
+caliper_test(test_contrast ../src/contrast.cc)
