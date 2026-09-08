@@ -205,6 +205,15 @@ void log_finding(const Finding& finding) {
 
 }  // namespace
 
+/// What every `InspectAndLog` has found since the tally was cleared. Held here
+/// rather than handed back, because the screens are built by functions that
+/// return nothing and the figure would be lost on the way out.
+int found_so_far = 0;
+
+int FindingsSoFar() { return found_so_far; }
+
+void ClearFindings() { found_so_far = 0; }
+
 int Inspect(Screen& screen, Report report) {
    // The layout has to have run, or every coordinate read below is the one
    // from before it did.
@@ -228,6 +237,7 @@ int Inspect(Screen& screen, Report report) {
 
 int InspectAndLog(Screen& screen) {
    const int findings = Inspect(screen, log_finding);
+   found_so_far += findings;
 
    if (findings == 0) {
       CAL_REPORT_INFO("screen holds");
