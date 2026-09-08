@@ -34,6 +34,8 @@ enum class Rule {
    Grid,
    /// Content reaching under a band.
    Band,
+   /// Something that takes a touch and does nothing with it.
+   Deaf,
 };
 
 /**
@@ -103,6 +105,19 @@ struct Element {
    /// container holding others or a spacer, cannot be seen to sit half a point
    /// beside its neighbour, and the grid is there to prevent exactly that.
    bool draws = true;
+
+   /// Whether the element can be pressed, holds nothing, and has nothing
+   /// listening to it.
+   ///
+   /// It is a hole in the screen: the library hit-tests front to back and stops
+   /// at the first thing that can be pressed, so such an element swallows the
+   /// touch meant for whatever lies under it. Nothing about it looks wrong, and
+   /// the screen it stands on measures perfectly.
+   ///
+   /// Holding nothing is what makes it safe to assert. A container with content
+   /// in it may be scrolling, which is a thing to do with a press, so it is
+   /// left alone.
+   bool swallows_touches = false;
 };
 
 /**
@@ -146,7 +161,7 @@ struct Bands {
 };
 
 /**
- * Runs all six checks over one element and reports what does not hold.
+ * Runs all seven checks over one element and reports what does not hold.
  *
  * @param element The element to check.
  * @param panel The panel it is built for, which decides what a finger needs.
@@ -167,6 +182,14 @@ constexpr int Check(const Element& element, const Panel& panel, const Bands& ban
 
    const std::int32_t right = element.left.value + element.width.value;
    const std::int32_t bottom = element.top.value + element.height.value;
+
+   // Something that can be pressed and answers nothing. It reads as scenery and
+   // behaves as a lid: the press stops there instead of reaching the control
+   // underneath, and neither the drawing nor any other measurement shows it.
+   // A slider whose own handle could not be grabbed is what this is here for.
+   if (element.swallows_touches) {
+      found(Rule::Deaf, 1, 0);
+   }
 
    // A touch target smaller than a fingertip is one the finger misses, and it
    // looks perfectly reasonable on a screen at four times the size. What counts
@@ -267,6 +290,8 @@ constexpr const char* NameOf(Rule rule) {
          return "grid";
       case Rule::Band:
          return "band";
+      case Rule::Deaf:
+         return "swallows a touch";
    }
    return "unknown";
 }
