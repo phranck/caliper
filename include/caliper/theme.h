@@ -36,15 +36,6 @@ struct Typography {
    /// glance. Null falls back to `small`.
    const lv_font_t* status = nullptr;
 
-   /// The status bar's own grade in a heavier cut, which is what the name of
-   /// the screen is set in. It stands to `status` as `strong` stands to `body`.
-   ///
-   /// Weight rather than size, because the bar is not tall enough for a second
-   /// grade, and the name has to be told from the readings beside it all the
-   /// same. Null falls back to `status`, so a bar without this cut still works
-   /// and merely reads as one run of items.
-   const lv_font_t* status_strong = nullptr;
-
    /// The smallest grade, which is what a sidebar item is labelled in. It falls
    /// back to the status face where none is given.
    const lv_font_t* caption = nullptr;
