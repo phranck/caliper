@@ -1430,11 +1430,7 @@ Object Button(Object parent, const Panel& panel, const char* label, Emphasis emp
    // points wide. An odd one cannot be centred on the grid, and two surfaces
    // half a point apart is exactly what the grid is there to prevent.
    lv_obj_update_layout(control);
-   const std::int32_t step = token::kGrid.value;
-   const std::int32_t width = lv_obj_get_width(control);
-   if (width % step != 0) {
-      lv_obj_set_width(control, width + step - width % step);
-   }
+   lv_obj_set_width(control, panel.RoundedUpToGrid(Point{lv_obj_get_width(control)}).value);
 
    return control;
 }
