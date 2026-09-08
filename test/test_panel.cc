@@ -62,8 +62,8 @@ static_assert(seven_inch.TypeSize(token::kTitle) == 54_pt);
 static_assert(five_inch_hd.TypeSize(token::kTitle) == 94_pt);
 
 // A corner inside another, computed from the one around it.
-static_assert(five_inch.InnerRadius(token::kRadiusPanel) == 8_pt);
-static_assert(seven_inch.InnerRadius(token::kRadiusPanel) == 7_pt);
+static_assert(five_inch.InnerRadius(token::kRadiusCard) == 8_pt);
+static_assert(seven_inch.InnerRadius(token::kRadiusCard) == 7_pt);
 
 // A control carrying text is its label plus its padding, and never under the
 // floor a control has to reach. A short label is therefore held up by it.

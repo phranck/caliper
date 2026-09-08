@@ -226,7 +226,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    // against a rounded edge reads as colliding with it, and what stands under
    // this band is the list, whose corner has already pulled it that far in.
    // Half the list's radius, so it moves when the radius does.
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusPanel).value / 2, 0);
+   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusCard).value / 2, 0);
    header_ = band;
 
    // The name at the trailing end, directly over what it names. The way out of
@@ -297,7 +297,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
 }
 
 Object Screen::sidebar(const Sidebar& areas) {
-   const std::int32_t corner = panel_(token::kRadiusTile).value;
+   const std::int32_t corner = panel_(token::kRadiusButton).value;
    const std::int32_t width = panel_(token::kBandSidebar).value;
    const std::int32_t item = panel_(token::kBandSidebarItem).value;
    const std::int32_t gap = panel_(token::kEdge).value;
@@ -691,7 +691,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(token::kRaised), 0);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, 0);
    lv_obj_set_style_border_width(field, 0, 0);
-   lv_obj_set_style_radius(field, panel(token::kRadiusTile).value, 0);
+   lv_obj_set_style_radius(field, panel(token::kRadiusButton).value, 0);
    lv_obj_set_style_pad_hor(field, panel(token::kInset).value, 0);
    lv_obj_set_style_text_color(field, lv_color_hex(token::kInk), 0);
 
@@ -965,10 +965,10 @@ Object Screen::card(const Card& what) {
    lv_obj_set_style_bg_opa(card_, LV_OPA_COVER, 0);
    lv_obj_set_style_pad_all(card_, inset, 0);
 
-   // The panel's own corner, which every large surface carries. The button's
+   // The card's own corner, which every large surface carries. The button's
    // corner already follows this one, so deriving the card's corner from the
    // button's would be the same rule read backwards.
-   lv_obj_set_style_radius(card_, panel_(token::kRadiusPanel).value, 0);
+   lv_obj_set_style_radius(card_, panel_(token::kRadiusCard).value, 0);
 
    lv_obj_set_flex_flow(card_, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_style_pad_row(card_, panel_(token::kGroup).value, 0);
@@ -1140,11 +1140,10 @@ Object List(Object parent, const Panel& panel, int across) {
    lv_obj_set_height(group, LV_SIZE_CONTENT);
 
    // One surface for the whole group, with the corner around all of it. A
-   // list is one of the large surfaces, so it carries the panel's corner
-   // rather than a tile's.
+   // list is one of the large surfaces, so it carries the card's corner.
    lv_obj_set_style_bg_color(group, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(group, LV_OPA_COVER, 0);
-   lv_obj_set_style_radius(group, panel(token::kRadiusPanel).value, 0);
+   lv_obj_set_style_radius(group, panel(token::kRadiusCard).value, 0);
    lv_obj_set_style_clip_corner(group, true, 0);
 
    // The rows sit directly on each other. What parts them is a line, not a gap.
@@ -1171,7 +1170,7 @@ Object Row(Object parent, const Panel& panel, const char* name, const char* valu
    if (!grouped) {
       lv_obj_set_style_bg_color(line, lv_color_hex(token::kSurface), 0);
       lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
-      lv_obj_set_style_radius(line, panel(token::kRadiusTile).value, 0);
+      lv_obj_set_style_radius(line, panel(token::kRadiusButton).value, 0);
    }
 
    std::int32_t text_left = 0;

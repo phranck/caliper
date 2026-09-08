@@ -194,13 +194,12 @@ unit = 2
 # Only the outer corners are stated. A corner inside another is computed from
 # the one around it, because writing the two as separate numbers produces a
 # pinched corner the first time either moves.
-panel = "3.81 mm"    # the largest surface, such as a dialog or a card
-tile = "2.18 mm"     # a tile, a button, a key
+card = "3.81 mm"     # the largest surface, such as a dialog or a card
 artwork = "1.63 mm"  # a cover, which brings a corner of its own
 
-# A button's own corner is not stated here. It is the panel's corner less the
+# A button's own corner is not stated here. It is the card's corner less the
 # inset, the same rule `InnerRadius` gives every other nested surface, so it
-# moves with the panel's corner instead of drifting from it.
+# moves with the card's corner instead of drifting from it.
 
 # The exponent of the superellipse. At 4.5 the shape is hard to tell from a
 # rounded rectangle; at 3.2 the curve runs visibly into the flanks, which is

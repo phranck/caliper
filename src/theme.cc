@@ -44,7 +44,7 @@ void prepare(const Panel& panel) {
    lv_style_set_bg_color(&style_surface, colour(token::kSurface));
    lv_style_set_bg_opa(&style_surface, LV_OPA_COVER);
    lv_style_set_border_width(&style_surface, 0);
-   lv_style_set_radius(&style_surface, panel(token::kRadiusTile).value);
+   lv_style_set_radius(&style_surface, panel(token::kRadiusButton).value);
    lv_style_set_pad_all(&style_surface, panel(token::kInset).value);
 
    lv_style_init(&style_text);

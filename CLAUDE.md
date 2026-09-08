@@ -20,6 +20,8 @@ The library builds twice: as an ESP-IDF component for the device, and for the ho
 
 `tokens/caliper.toml` holds every design value once, and `tools/generate_tokens.py` writes `include/caliper/tokens.h` and `tools/caliper_tokens.py` from it. Neither output is edited, because the next run puts the old one back. A key under `[layout]` becomes `kBand<Name>` and one under `[spacing]` becomes `k<Name>`.
 
+`tools/caliper_tokens.py` has a reader outside this repository: `Papers/level/sources/build_screens.py` imports it directly. Before removing or renaming a key, check what that generator does with it, because nothing here would notice a broken import on its own.
+
 ## What the tests reach
 
 The two host tests work on `Check` and on `Panel`, which need no board and no graphics library. Everything else, so `Inspect`, `Screen` and every component, needs a live object tree, and it is verified by building the screens in LEVEL's simulator and reading what caliper reports there.
