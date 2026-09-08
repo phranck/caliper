@@ -58,10 +58,9 @@ X_HEIGHT_RATIO = 0.506
 DESCENDER_RATIO = 0.2
 
 RADIUS_MM = {
-    "panel": 4.35,
+    "panel": 3.81,
     "tile": 2.18,
     "artwork": 1.63,
-    "button": 1.63,
 }
 
 SQUIRCLE = 3.2
