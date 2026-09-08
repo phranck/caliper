@@ -18,9 +18,13 @@ using Object = lv_obj_t*;
  * out simply does not appear.
  */
 struct StatusBar {
-   /// What stands at the left end. The right end is for the state of the device, so
-   /// this is where anything about the screen itself goes.
-   const char* leading = nullptr;
+   /// What the screen is called, at the left end. The right end is for the
+   /// state of the device, so the left is where the screen itself speaks.
+   ///
+   /// Set in a heavier cut than the rest of the bar, which is what tells a name
+   /// from a reading. The bar is short, so weight does that work rather than
+   /// size.
+   const char* title = nullptr;
 
    /// The time, right aligned, which is where a person looks for it.
    const char* clock = nullptr;
@@ -154,33 +158,24 @@ struct Card {
 };
 
 /**
- * What stands at the right of a header.
+ * The way back, at the leading edge of a header.
  *
- * Two different things share that place. On most screens it says something
- * about what one is looking at, such as how many favourites there are. On a
- * screen reached from another it names the one it was reached from, and there
- * it is the way back.
+ * It names the screen it goes to rather than saying "back", because a person
+ * two levels down wants to know where the step lands. The symbol before it is
+ * what makes it a way back at all: text that leads somewhere and text that
+ * reports something look alike, and a way back nobody recognises is worse than
+ * none, because they stop looking for one.
  *
- * The difference is the symbol. Text that leads somewhere and text that reports
- * something look alike, and a way back that cannot be seen is worse than none,
- * because somebody stops looking for one.
- *
- * It converts from a plain string, so a header that merely says something is
- * written as one and reads as one.
+ * A screen with nothing above it leaves it empty, and the header then carries
+ * only what stands at the other end.
  */
-struct HeaderTrailing {
-   /// What it says, or nullptr for nothing at all.
+struct WayBack {
+   /// What the screen above is called.
    const char* text = nullptr;
 
-   /// The symbol before it, pointing the way it goes, or nullptr where it goes
-   /// nowhere. Which symbol that is belongs to the product.
-   const lv_image_dsc_t* back = nullptr;
-
-   /// A header that only says something is written as the string it says.
-   constexpr HeaderTrailing(const char* says = nullptr) : text(says) {}  // NOLINT(google-explicit-constructor)
-
-   /// One that leads back carries the symbol as well.
-   constexpr HeaderTrailing(const char* says, const lv_image_dsc_t* symbol) : text(says), back(symbol) {}
+   /// The symbol before it, pointing the way it goes. Which symbol that is
+   /// belongs to the product.
+   const lv_image_dsc_t* symbol = nullptr;
 };
 
 /**
@@ -222,14 +217,19 @@ class Screen {
    Object status_bar(const StatusBar& status = StatusBar{});
 
    /**
-    * The header under it, which says what one is looking at.
+    * The band under it, which carries the way out of the screen and one remark
+    * about it.
     *
-    * @param title What is being looked at.
-    * @param trailing What stands on the right. A string where it says
-    *                 something, and a string with a symbol where it is the way
-    *                 back to the screen it names.
+    * What the screen is called does not stand here. It stands at the left of
+    * the status bar, because that band already spans the width and a name read
+    * at the very top is read once rather than looked for.
+    *
+    * @param back The way to the screen above, at the leading edge, where a
+    *             thumb reaches it. Empty on a screen with nothing above it.
+    * @param note What the screen wants to say about itself at the other end,
+    *             such as how many favourites there are, or nullptr for nothing.
     */
-   Object Header(const char* title, const HeaderTrailing& trailing = {});
+   Object Header(const WayBack& back = {}, const char* note = nullptr);
 
    /// The way back, where the header carries one, so a caller can say where it
    /// goes. This library changes screens for nobody.
