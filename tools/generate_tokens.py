@@ -143,7 +143,8 @@ def write_header(tokens: dict) -> None:
         lines.append(f"inline constexpr Millimeter {cpp_identifier(name)}{{{cpp_float(value)}}};")
 
     lines += ["",
-              "// The heights of the three bands, from which the content area follows."]
+              "// The heights that decide where the content area begins and ends:",
+              "// StatusBar and Header above it, and the room reserved below it."]
     for name, value in tokens["layout"].items():
         lines.append(
             f"inline constexpr Millimeter {cpp_identifier('band_' + name)}{{{cpp_float(value)}}};")
@@ -186,9 +187,9 @@ def write_header(tokens: dict) -> None:
         "   return Millimeter{outer.value - gap.value};",
         "}",
         "",
-        "// The corner inside the panel's own, so a button matches whatever surface",
+        "// The corner inside the card's own, so a button matches whatever surface",
         "// it stands on rather than carrying a second figure that can drift from it.",
-        "inline constexpr Millimeter kRadiusButton = InnerRadius(kRadiusPanel, kInset);",
+        "inline constexpr Millimeter kRadiusButton = InnerRadius(kRadiusCard, kInset);",
         "",
         "// The grid every edge lands on, in whole pixels.",
         f"inline constexpr Point kGrid{{{tokens['grid']['unit']}}};",
@@ -213,6 +214,9 @@ def write_module(tokens: dict) -> None:
 
     It carries the same values in millimetres and the arithmetic that turns them
     into points, because a document is drawn for a panel just as a device is.
+    `Papers/level/sources/build_screens.py` imports this module directly, so a
+    key removed or renamed here breaks a build outside this repository, with
+    nothing in it to say so.
     """
     lines = [
         '"""The design values, generated from tokens/caliper.toml.',

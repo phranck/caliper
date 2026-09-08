@@ -24,7 +24,8 @@ inline constexpr Millimeter kSliderLabel{2.18f};
 inline constexpr Millimeter kSubTextGap{0.82f};
 inline constexpr Millimeter kStatusGap{2.18f};
 
-// The heights of the three bands, from which the content area follows.
+// The heights that decide where the content area begins and ends:
+// StatusBar and Header above it, and the room reserved below it.
 inline constexpr Millimeter kBandStatusBar{4.35f};
 inline constexpr Millimeter kBandHeader{9.25f};
 inline constexpr Millimeter kBandFooter{10.88f};
@@ -62,8 +63,7 @@ inline constexpr Reading kKeyLabel{468.0f};
 
 // Only the outer corners. Anything nested is computed by inner_radius
 // below, because two numbers drift into a pinched corner.
-inline constexpr Millimeter kRadiusPanel{3.81f};
-inline constexpr Millimeter kRadiusTile{2.18f};
+inline constexpr Millimeter kRadiusCard{3.81f};
 inline constexpr Millimeter kRadiusArtwork{1.63f};
 inline constexpr float kSquircle = 3.2f;
 inline constexpr float kSquircleArtwork = 8.0f;
@@ -75,9 +75,9 @@ constexpr Millimeter InnerRadius(Millimeter outer, Millimeter gap = kInset) {
    return Millimeter{outer.value - gap.value};
 }
 
-// The corner inside the panel's own, so a button matches whatever surface
+// The corner inside the card's own, so a button matches whatever surface
 // it stands on rather than carrying a second figure that can drift from it.
-inline constexpr Millimeter kRadiusButton = InnerRadius(kRadiusPanel, kInset);
+inline constexpr Millimeter kRadiusButton = InnerRadius(kRadiusCard, kInset);
 
 // The grid every edge lands on, in whole pixels.
 inline constexpr Point kGrid{2};

@@ -91,7 +91,7 @@ Point Screen::ContentBottom() const {
       return Point{panel_.height.value - BareEnd(panel_)};
    }
 
-   // There is no footer in this design. The one band that ever stands down
+   // There is no footer in this design. The one thing that ever stands down
    // there is the player, and only whilst something is playing, so the room for
    // it is kept where it is taken and nowhere else. Kept on every screen it was
    // an empty strip the height of a row at the bottom of anything without a
@@ -124,8 +124,8 @@ int Screen::RowsVisible(Point row_height) const {
 
 Object Screen::status_bar(const StatusBar& status) {
    // Beside the sidebar rather than above it. The sidebar runs the whole height
-   // because it belongs to the device, and this band says what the device is
-   // doing about what stands beside it.
+   // because it belongs to the device, and the status bar says what the device
+   // is doing about what stands beside it.
    const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
 
    Object band = lv_obj_create(root_);
@@ -176,15 +176,15 @@ Object Screen::status_bar(const StatusBar& status) {
 
       // No optical nudge here, and that is the exception rather than an
       // oversight. The nudge lifts a line so its capitals sit on the middle of
-      // a row that also holds descenders. This band holds figures and capitals
-      // beside symbols, and the symbols set the line: measured on the panel,
+      // a row that also holds descenders. The status bar holds figures and
+      // capitals beside symbols, and the symbols set the line: measured on the panel,
       // lifting the text put it two points above them.
       return label;
    };
 
    // A spacer that grows, so everything the bar reports sits at the right end.
-   // Nothing stands at the left: this band reports the device, and what the
-   // screen is about is said by the header under it.
+   // Nothing stands at the left: the status bar reports the device, and what
+   // the screen is about is said by the header under it.
    Spacer(band);
 
    // The battery and its figure first, then the radio. The two battery items
@@ -222,11 +222,11 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    MakePlain(band);
    lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandHeader).value);
    lv_obj_set_pos(band, aside, above);
-   // The band's own edge, and half a corner on top of it. A line of type flush
-   // against a rounded edge reads as colliding with it, and what stands under
-   // this band is the list, whose corner has already pulled it that far in.
-   // Half the list's radius, so it moves when the radius does.
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusPanel).value / 2, 0);
+   // The header's own edge, and half a corner on top of it. A line of type
+   // flush against a rounded edge reads as colliding with it, and what stands
+   // under the header is the list, whose corner has already pulled it that
+   // far in. Half the list's radius, so it moves when the radius does.
+   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusCard).value / 2, 0);
    header_ = band;
 
    // The name at the trailing end, directly over what it names. The way out of
@@ -297,7 +297,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
 }
 
 Object Screen::sidebar(const Sidebar& areas) {
-   const std::int32_t corner = panel_(token::kRadiusTile).value;
+   const std::int32_t corner = panel_(token::kRadiusButton).value;
    const std::int32_t width = panel_(token::kBandSidebar).value;
    const std::int32_t item = panel_(token::kBandSidebarItem).value;
    const std::int32_t gap = panel_(token::kEdge).value;
@@ -691,7 +691,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(token::kRaised), 0);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, 0);
    lv_obj_set_style_border_width(field, 0, 0);
-   lv_obj_set_style_radius(field, panel(token::kRadiusTile).value, 0);
+   lv_obj_set_style_radius(field, panel(token::kRadiusButton).value, 0);
    lv_obj_set_style_pad_hor(field, panel(token::kInset).value, 0);
    lv_obj_set_style_text_color(field, lv_color_hex(token::kInk), 0);
 
@@ -781,8 +781,8 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t edge = panel_(token::kEdge).value;
 
    // Set from the bottom up, so the last row holds the same margin as
-   // everything else on the screen. The rows are placed inside the band, which
-   // is why only the band knows this figure.
+   // everything else on the screen. The rows are placed inside the keyboard,
+   // which is why only the keyboard knows this figure.
    const std::int32_t top = panel_.height.value - edge - 4 * key_height - 3 * gap;
    const std::int32_t first_row = 0;
 
@@ -965,10 +965,10 @@ Object Screen::card(const Card& what) {
    lv_obj_set_style_bg_opa(card_, LV_OPA_COVER, 0);
    lv_obj_set_style_pad_all(card_, inset, 0);
 
-   // The panel's own corner, which every large surface carries. The button's
+   // The card's own corner, which every large surface carries. The button's
    // corner already follows this one, so deriving the card's corner from the
    // button's would be the same rule read backwards.
-   lv_obj_set_style_radius(card_, panel_(token::kRadiusPanel).value, 0);
+   lv_obj_set_style_radius(card_, panel_(token::kRadiusCard).value, 0);
 
    lv_obj_set_flex_flow(card_, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_style_pad_row(card_, panel_(token::kGroup).value, 0);
@@ -1102,7 +1102,7 @@ Object Screen::Content() {
 
    // The same distance at the bottom that the content holds at its sides.
    // Scrolled to the end, the last row would otherwise sit against whatever
-   // band is under it and read as cut off rather than as finished.
+   // stands under it and read as cut off rather than as finished.
    lv_obj_set_style_pad_bottom(content_, panel_(token::kEdge).value, 0);
 
    // A list scrolls. It costs frames, because a moving surface is the most
@@ -1140,11 +1140,10 @@ Object List(Object parent, const Panel& panel, int across) {
    lv_obj_set_height(group, LV_SIZE_CONTENT);
 
    // One surface for the whole group, with the corner around all of it. A
-   // list is one of the large surfaces, so it carries the panel's corner
-   // rather than a tile's.
+   // list is one of the large surfaces, so it carries the card's corner.
    lv_obj_set_style_bg_color(group, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(group, LV_OPA_COVER, 0);
-   lv_obj_set_style_radius(group, panel(token::kRadiusPanel).value, 0);
+   lv_obj_set_style_radius(group, panel(token::kRadiusCard).value, 0);
    lv_obj_set_style_clip_corner(group, true, 0);
 
    // The rows sit directly on each other. What parts them is a line, not a gap.
@@ -1171,7 +1170,7 @@ Object Row(Object parent, const Panel& panel, const char* name, const char* valu
    if (!grouped) {
       lv_obj_set_style_bg_color(line, lv_color_hex(token::kSurface), 0);
       lv_obj_set_style_bg_opa(line, LV_OPA_COVER, 0);
-      lv_obj_set_style_radius(line, panel(token::kRadiusTile).value, 0);
+      lv_obj_set_style_radius(line, panel(token::kRadiusButton).value, 0);
    }
 
    std::int32_t text_left = 0;

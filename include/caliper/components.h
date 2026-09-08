@@ -173,16 +173,16 @@ struct WayBack {
 /**
  * A screen, which is the frame the components compute from.
  *
- * It carries the panel and the three bands, and it hands out the area that is
- * left between them. Nothing built on it states a coordinate: what a screen
- * says is what stands on it and in what order.
+ * It carries the panel and what frames the content top and bottom, and it
+ * hands out the area that is left between them. Nothing built on it states a
+ * coordinate: what a screen says is what stands on it and in what order.
  */
 class Screen {
   public:
    /// What frame a screen stands in.
    enum class Frame {
-      /// The bands the finished product carries: a status bar across the top
-      /// and room at the bottom for what is playing.
+      /// What the finished product carries: a status bar across the top and
+      /// room at the bottom for what is playing.
       kProduct,
 
       /// Nothing but what the screen puts there, and everything on it centred.
@@ -209,17 +209,17 @@ class Screen {
    Object status_bar(const StatusBar& status = StatusBar{});
 
    /**
-    * The band under it, which says what one is looking at.
+    * The header under it, which says what one is looking at.
     *
     * The name stands at the trailing end, directly over the content it names.
     * The way out stands at the leading end, where a thumb reaches it and where
     * every screen of a stack puts it, so the way back is in one place however
     * deep one has gone.
     *
-    * Both ends stand half a corner in, over and above the band's own edge. A
+    * Both ends stand half a corner in, over and above the header's own edge. A
     * line of type flush against a rounded edge reads as colliding with it, and
-    * what stands under this band is a tile whose corner has already pulled it
-    * away from the edge.
+    * what stands under the header is the list, whose corner has already
+    * pulled it away from the edge.
     *
     * @param title What is being looked at.
     * @param back The way to the screen above. Empty on a screen with nothing
@@ -252,7 +252,7 @@ class Screen {
     * caller reads to find out which one was touched.
     *
     * @param areas What it carries.
-    * @returns The band, so a caller can attach events to its items.
+    * @returns The sidebar, so a caller can attach events to its items.
     */
    Object sidebar(const Sidebar& areas);
 
@@ -308,7 +308,7 @@ class Screen {
 
    /// The wordmark, wherever the screen has put it, or nullptr where it carries
    /// none. A caller that sets its colours moving needs the object rather than
-   /// the band around it.
+   /// the status bar around it.
    Object mark() const { return mark_; }
 
    /**
@@ -354,12 +354,13 @@ class Screen {
     * kept here rather than on the object.
     *
     * @param keys What it types into and what its modifiers look like.
-    * @returns The band, which sends `LV_EVENT_READY` when the key at the end is
-    *          touched.
+    * @returns The keyboard, which sends `LV_EVENT_READY` when the key at the
+    *          end is touched.
     */
    Object keyboard(const Keyboard& keys);
 
-   /// The area between the bands, which is what everything else goes into.
+   /// The area between what frames the screen top and bottom, which is what
+   /// everything else goes into.
    Object Content();
 
    /// The panel this screen is built for.
@@ -538,8 +539,8 @@ int Chosen(Object group);
 /**
  * A heading over whatever follows it.
  *
- * What the header band carries on a screen of the product, for a screen that
- * has no bands and puts its heading in with the rest.
+ * What the header carries on a screen of the product, for a screen that has
+ * no header and puts its heading in with the rest.
  *
  * @param parent What it goes into.
  * @param panel The panel, for the measurements.

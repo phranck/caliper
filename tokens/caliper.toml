@@ -109,14 +109,15 @@ caption = "203 mm"
 key_label = "468 mm"
 
 [layout]
-# The heights of the three bands. They are in millimetres like every other
-# physical size, so a denser panel keeps a status bar of the same apparent
-# height rather than one half as tall.
+# The heights that decide where the content area begins and ends: StatusBar
+# and Header above it, and the room reserved below it. They are in
+# millimetres like every other physical size, so a denser panel keeps a
+# status bar of the same apparent height rather than one half as tall.
 #
-# A band is meant to take its height from what it holds. These are what the
-# design draws today, and they are here so that a screen built from components
-# lands on the drawing rather than near it. Where a band computes its own height
-# later, this is the figure it has to arrive at.
+# A component here is meant to take its height from what it holds. These are
+# what the design draws today, and they are here so that a screen built from
+# components lands on the drawing rather than near it. Where a component
+# computes its own height later, this is the figure it has to arrive at.
 status_bar = "4.35 mm"
 header = "9.25 mm"
 
@@ -194,13 +195,12 @@ unit = 2
 # Only the outer corners are stated. A corner inside another is computed from
 # the one around it, because writing the two as separate numbers produces a
 # pinched corner the first time either moves.
-panel = "3.81 mm"    # the largest surface, such as a dialog or a card
-tile = "2.18 mm"     # a tile, a button, a key
+card = "3.81 mm"     # the largest surface, such as a dialog or a card
 artwork = "1.63 mm"  # a cover, which brings a corner of its own
 
-# A button's own corner is not stated here. It is the panel's corner less the
+# A button's own corner is not stated here. It is the card's corner less the
 # inset, the same rule `InnerRadius` gives every other nested surface, so it
-# moves with the panel's corner instead of drifting from it.
+# moves with the card's corner instead of drifting from it.
 
 # The exponent of the superellipse. At 4.5 the shape is hard to tell from a
 # rounded rectangle; at 3.2 the curve runs visibly into the flanks, which is
