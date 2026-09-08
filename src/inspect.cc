@@ -61,6 +61,19 @@ Element describe(lv_obj_t* object) {
    element.touchable =
        a_control || (lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE) && lv_obj_get_event_count(object) > 0);
 
+   // What a finger can hit is not always what is drawn. A control may carry an
+   // area reaching beyond its own edges, and a slider is the case that needs
+   // it: its bar is deliberately narrow, because what is dragged is the handle
+   // and a bar as tall as a key reads as the control itself. Measured against
+   // the drawn box, every such control fails a check that is asking the right
+   // question about the wrong rectangle.
+   if (element.touchable) {
+      lv_area_t reachable;
+      lv_obj_get_click_area(object, &reachable);
+      element.touch_width = Point{lv_area_get_width(&reachable)};
+      element.touch_height = Point{lv_area_get_height(&reachable)};
+   }
+
    element.radius = Point{static_cast<std::int32_t>(lv_obj_get_style_radius(object, LV_PART_MAIN))};
 
    element.draws = lv_obj_get_style_bg_opa(object, LV_PART_MAIN) != LV_OPA_TRANSP ||

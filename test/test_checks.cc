@@ -53,6 +53,27 @@ constexpr Element small_target = [] {
 }();
 static_assert(findings(small_target) == 1);
 
+// The same box, with an area a finger can reach that is larger than it. A
+// slider is drawn this way on purpose: its bar is sixteen points tall, because
+// what is dragged is the handle and a bar as tall as a key reads as the control
+// itself. What has to hold is what can be hit.
+constexpr Element reaching_further = [] {
+   Element element = small_target;
+   element.touch_width = Point{240};
+   element.touch_height = Point{66};
+   return element;
+}();
+static_assert(findings(reaching_further) == 0);
+
+// And it is the reachable area that is measured rather than the larger of the
+// two, so a control that draws wide and answers narrowly is still reported.
+constexpr Element reaching_less = [] {
+   Element element = sound;
+   element.touch_height = Point{40};
+   return element;
+}();
+static_assert(findings(reaching_less) == 1);
+
 // Against the edge of the panel, where the margin is 16.
 constexpr Element at_the_edge = [] {
    Element element = sound;

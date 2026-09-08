@@ -55,6 +55,13 @@ struct Element {
    /// Whether a finger is meant to land on it.
    bool touchable = false;
 
+   /// How large the area a finger can hit is, where that differs from the box
+   /// the element is drawn in. Zero means the two are the same, which is the
+   /// ordinary case. A slider is the one that differs: its bar is narrow on
+   /// purpose, and what may be hit reaches well beyond it.
+   Point touch_width{0};
+   Point touch_height{0};
+
    /// How wide its text came out, measured in the typeface it is set in, or
    /// zero where it carries none.
    Point text_width{0};
@@ -162,14 +169,18 @@ constexpr int Check(const Element& element, const Panel& panel, const Bands& ban
    const std::int32_t bottom = element.top.value + element.height.value;
 
    // A touch target smaller than a fingertip is one the finger misses, and it
-   // looks perfectly reasonable on a screen at four times the size.
+   // looks perfectly reasonable on a screen at four times the size. What counts
+   // is what can be hit rather than what is drawn, and the two differ wherever
+   // a control carries an area reaching past its own edges.
    if (element.touchable) {
       const std::int32_t needed = panel(token::kMinimum).value;
-      if (element.width.value < needed) {
-         found(Rule::TouchTarget, element.width.value, needed);
+      const std::int32_t across = element.touch_width.value > 0 ? element.touch_width.value : element.width.value;
+      const std::int32_t down = element.touch_height.value > 0 ? element.touch_height.value : element.height.value;
+      if (across < needed) {
+         found(Rule::TouchTarget, across, needed);
       }
-      if (element.height.value < needed) {
-         found(Rule::TouchTarget, element.height.value, needed);
+      if (down < needed) {
+         found(Rule::TouchTarget, down, needed);
       }
    }
 

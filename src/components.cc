@@ -1503,6 +1503,143 @@ Object MediaButtons(Object parent, const Panel& panel, std::initializer_list<con
    return group;
 }
 
+namespace {
+
+/// Where a slider keeps the label that carries its value, so it can be written
+/// afresh without the slider being built again.
+constexpr std::uint32_t kSliderValueIndex = 1;
+
+/// The whole of a share, as the graphics library counts a slider's range. It
+/// works in whole numbers, so a share from 0 to 1 is carried as thousandths:
+/// on a bar 700 points long, a percent is seven points and a reader sees the
+/// step.
+constexpr std::int32_t kShareSteps = 1000;
+
+}  // namespace
+
+Object Bar(Object parent, const Panel& panel, float filled) {
+   const std::int32_t height = panel(token::kBandTrack).value;
+
+   Object track = lv_obj_create(parent);
+   MakePlain(track);
+   lv_obj_set_width(track, lv_pct(100));
+   lv_obj_set_height(track, height);
+
+   // The empty part stands in the raised ink rather than in the surface or the
+   // line. A bar lies on two different grounds, the screen itself and the
+   // lighter ground of a card, and only this one is told apart from both.
+   lv_obj_set_style_bg_color(track, lv_color_hex(token::kRaised), 0);
+   lv_obj_set_style_bg_opa(track, LV_OPA_COVER, 0);
+   lv_obj_set_style_radius(track, height / 2, 0);
+
+   Object full = lv_obj_create(track);
+   MakePlain(full);
+   lv_obj_set_height(full, height);
+   lv_obj_set_style_bg_color(full, lv_color_hex(token::kAccent), 0);
+   lv_obj_set_style_bg_opa(full, LV_OPA_COVER, 0);
+   lv_obj_set_style_radius(full, height / 2, 0);
+   lv_obj_align(full, LV_ALIGN_LEFT_MID, 0, 0);
+
+   const float held = filled < 0.0f ? 0.0f : (filled > 1.0f ? 1.0f : filled);
+   lv_obj_set_width(full, lv_pct(static_cast<std::int32_t>(held * 100)));
+
+   // The two are one shape rather than two surfaces beside each other, so the
+   // inner corner is the outer one and the check that compares them agrees.
+   Screen::MarkAsBandPart(full);
+   return track;
+}
+
+Object Slider(Object parent, const Panel& panel, const char* label, const char* value, float filled) {
+   const std::int32_t knob = panel(token::kBandSliderKnob).value;
+   const std::int32_t height = panel(token::kBandTrack).value;
+
+   Object group = lv_obj_create(parent);
+   MakePlain(group);
+   lv_obj_set_width(group, lv_pct(100));
+   lv_obj_set_height(group, LV_SIZE_CONTENT);
+
+   Object name = lv_label_create(group);
+   lv_label_set_text(name, label);
+   lv_obj_set_style_text_color(name, lv_color_hex(token::kMuted), 0);
+   lv_obj_align(name, LV_ALIGN_TOP_LEFT, 0, 0);
+
+   Object says = lv_label_create(group);
+   lv_label_set_text(says, value == nullptr ? "" : value);
+   lv_obj_set_style_text_color(says, lv_color_hex(token::kInk), 0);
+   if (typography().strong != nullptr) {
+      lv_obj_set_style_text_font(says, typography().strong, 0);
+   }
+   lv_obj_align(says, LV_ALIGN_TOP_RIGHT, 0, 0);
+
+   // The library's own slider, because what makes one is following a finger
+   // across the glass and that is the part it already does. What Caliper
+   // decides is how it looks and how large the handle is.
+   Object control = lv_slider_create(group);
+   lv_obj_set_width(control, lv_pct(100));
+   lv_obj_set_height(control, height);
+   lv_obj_align(control, LV_ALIGN_TOP_LEFT, 0, panel.TypeSize(token::kBody).value + panel(token::kSliderLabel).value);
+
+   lv_slider_set_range(control, 0, kShareSteps);
+   lv_slider_set_value(control, static_cast<std::int32_t>(filled * kShareSteps), LV_ANIM_OFF);
+
+   lv_obj_set_style_bg_color(control, lv_color_hex(token::kRaised), LV_PART_MAIN);
+   lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_MAIN);
+   lv_obj_set_style_radius(control, height / 2, LV_PART_MAIN);
+
+   lv_obj_set_style_bg_color(control, lv_color_hex(token::kAccent), LV_PART_INDICATOR);
+   lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_INDICATOR);
+   lv_obj_set_style_radius(control, height / 2, LV_PART_INDICATOR);
+
+   // The handle is what the finger lands on, so it is the size a finger needs
+   // whilst the bar under it stays narrow. It is a squircle like every other
+   // shape of this design, drawn through the same stencil.
+   lv_obj_set_style_bg_color(control, lv_color_hex(token::kInk), LV_PART_KNOB);
+   lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_KNOB);
+   lv_obj_set_style_pad_all(control, (knob - height) / 2, LV_PART_KNOB);
+
+   const lv_image_dsc_t* stencil = SquircleMask(knob);
+   if (stencil != nullptr) {
+      lv_obj_set_style_bitmap_mask_src(control, stencil, LV_PART_KNOB);
+   } else {
+      lv_obj_set_style_radius(control, LV_RADIUS_CIRCLE, LV_PART_KNOB);
+   }
+
+   // What may be hit reaches a fingertip in height, whilst the bar stays as
+   // narrow as the design draws it. Without this the control is sixteen points
+   // tall to a finger as well as to the eye, which is a third of what a hand
+   // needs.
+   lv_obj_set_ext_click_area(control, (panel(token::kFingertip).value - height) / 2);
+
+   // The group reports what the slider does, so a caller listens to the one
+   // object it was given rather than reaching inside for the control.
+   lv_obj_add_event_cb(
+       control,
+       [](lv_event_t* event) {
+          Object touched = static_cast<Object>(lv_event_get_target(event));
+          lv_obj_send_event(lv_obj_get_parent(touched), LV_EVENT_VALUE_CHANGED, nullptr);
+       },
+       LV_EVENT_VALUE_CHANGED, nullptr);
+
+   return group;
+}
+
+float SliderAt(Object slider) {
+   for (std::uint32_t index = 0; index < lv_obj_get_child_count(slider); ++index) {
+      Object child = lv_obj_get_child(slider, index);
+      if (lv_obj_check_type(child, &lv_slider_class)) {
+         return static_cast<float>(lv_slider_get_value(child)) / kShareSteps;
+      }
+   }
+   return 0.0f;
+}
+
+void SetSliderValue(Object slider, const char* value) {
+   Object says = lv_obj_get_child(slider, kSliderValueIndex);
+   if (says != nullptr && lv_obj_check_type(says, &lv_label_class)) {
+      lv_label_set_text(says, value);
+   }
+}
+
 Object Spacer(Object parent, Point size) {
    Object gap = lv_obj_create(parent);
    MakePlain(gap);

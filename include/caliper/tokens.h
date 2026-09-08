@@ -20,6 +20,7 @@ inline constexpr Millimeter kFloating{1.09f};
 inline constexpr Millimeter kKeyboardGap{1.09f};
 inline constexpr Millimeter kPlayerInset{1.09f};
 inline constexpr Millimeter kStatusEdge{1.09f};
+inline constexpr Millimeter kSliderLabel{2.18f};
 inline constexpr Millimeter kSubTextGap{0.82f};
 inline constexpr Millimeter kStatusGap{2.18f};
 
@@ -35,6 +36,8 @@ inline constexpr Millimeter kBandKeyboardKey{8.98f};
 inline constexpr Millimeter kBandKeyboardShift{11.42f};
 inline constexpr Millimeter kBandKeyboardSwitch{13.6f};
 inline constexpr Millimeter kBandMediaKey{6.8f};
+inline constexpr Millimeter kBandTrack{2.18f};
+inline constexpr Millimeter kBandSliderKnob{5.99f};
 inline constexpr Millimeter kBandSidebar{11.97f};
 inline constexpr Millimeter kBandSidebarItem{10.88f};
 

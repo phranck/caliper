@@ -635,6 +635,65 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
                               const char* sub_text = nullptr);
 
 /**
+ * The filled bar every indicator of a share is drawn from.
+ *
+ * Narrow on purpose. Where a bar carries a handle, what a finger hits is the
+ * handle and the bar only says where it stands; one as tall as a key reads as
+ * though it were the control itself. Where it carries none, it reports a share
+ * nobody moves, and the same shape says the same thing.
+ *
+ * It takes the width of whatever it is put into.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param filled How much of it is full, from 0 to 1. Anything outside that is
+ *               clamped, because a share cannot be more than all of it.
+ * @returns The bar, so a caller can reach the part that is full.
+ */
+Object Bar(Object parent, const Panel& panel, float filled);
+
+/**
+ * A labelled slider: its name at the left, its value at the right, the bar
+ * under both.
+ *
+ * The handle is what answers a finger and is therefore the size a finger needs,
+ * whilst the bar under it stays narrow. Dragging it sends
+ * `LV_EVENT_VALUE_CHANGED` from the slider, and `SliderAt` says where it now
+ * stands.
+ *
+ * The value is written by the caller rather than computed here. What a share
+ * means is the product's business: the same half way along is 50 percent on one
+ * screen and minus five on another.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param label What the slider stands for.
+ * @param value What it says now, or nullptr for nothing.
+ * @param filled Where the handle starts, from 0 to 1.
+ * @returns The slider, so a caller can listen to it.
+ */
+Object Slider(Object parent, const Panel& panel, const char* label, const char* value, float filled);
+
+/**
+ * Where a slider's handle stands.
+ *
+ * @param slider A slider that came from `Slider`.
+ * @returns Its position, from 0 to 1.
+ */
+float SliderAt(Object slider);
+
+/**
+ * Writes a slider's value afresh, without building it again.
+ *
+ * Dragging one changes the figure beside it at every step, and rebuilding the
+ * screen for that would redraw the whole panel for a number.
+ *
+ * @param slider A slider that came from `Slider`.
+ * @param value What it says now.
+ */
+void SetSliderValue(Object slider, const char* value);
+
+/**
  * Empty space between two things.
  *
  * With a size it is exactly that large. Without one it grows and pushes
