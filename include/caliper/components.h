@@ -171,6 +171,22 @@ struct WayBack {
 };
 
 /**
+ * The slice of a list one page of it shows.
+ *
+ * A list this size or smaller never produces one that stops short of the
+ * total, so a caller that never checks for more pages is not wrong until a
+ * list actually grows past what one page holds.
+ */
+struct Page {
+   /// The first row this page shows.
+   int first;
+
+   /// One past the last row this page shows. Equal to the list's own total
+   /// on the last page, and short of it on every other one.
+   int last;
+};
+
+/**
  * A screen, which is the frame the components compute from.
  *
  * It carries the panel and what frames the content top and bottom, and it
@@ -371,16 +387,32 @@ class Screen {
    Point ContentBottom() const;
 
    /**
-    * How many rows of a given height are visible at once.
+    * How many rows of a given height fit on one page.
     *
-    * A list scrolls, so this is not a limit on what may be put into it. It
-    * says what somebody sees without moving anything, which is what decides
-    * whether the important row is one of them.
+    * A list pages rather than scrolling once there are more rows than this,
+    * so the number is a hard limit rather than a hint: whatever does not fit
+    * is reached by turning to another page instead of moving this one.
     *
     * @param row_height How tall one row is.
-    * @returns How many are visible, gaps between them included.
+    * @returns How many fit, gaps between them included.
     */
    int RowsVisible(Point row_height) const;
+
+   /**
+    * Which rows of a list belong on the page currently showing.
+    *
+    * A page holds one row fewer than fit whenever there is a next one to
+    * turn to, because the row that turns the page stands in the list with
+    * the rest rather than floating outside it. The last page carries every
+    * row that is left instead, since nothing follows it.
+    *
+    * @param row_height How tall one row is.
+    * @param shown Which page is showing, counted from nought.
+    * @param total How many rows there are in all.
+    * @returns The slice of them `shown` covers. `last` reaches `total` on
+    *          the last page and stops one short of it everywhere else.
+    */
+   Page Paginate(Point row_height, int shown, int total) const;
 
    /// The height a row of a list takes, which is the height of the header.
    Point RowHeight() const;

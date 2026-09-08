@@ -103,8 +103,8 @@ Point Screen::ContentBottom() const {
 Point Screen::RowHeight() const { return panel_(token::kBandHeader); }
 
 int Screen::RowsVisible(Point row_height) const {
-   // Less the distance the content holds at its bottom edge, because a row
-   // that reaches into it is a row somebody has to scroll for.
+   // Less the distance the content holds at its own bottom edge, the same
+   // margin every side of it keeps, so the last row does not crowd it.
    const std::int32_t room = ContentBottom().value - ContentTop().value - panel_(token::kEdge).value;
    const std::int32_t gap = panel_(token::kLineGap).value;
 
@@ -120,6 +120,18 @@ int Screen::RowsVisible(Point row_height) const {
       count += 1;
    }
    return count;
+}
+
+Page Screen::Paginate(Point row_height, int shown, int total) const {
+   const int visible = RowsVisible(row_height);
+
+   // A row is given up to the one that turns the page only where turning it
+   // is actually needed. A list that already fits keeps every row of it.
+   const int per_page = total > visible ? visible - 1 : visible;
+
+   const int first = shown * per_page;
+   const int last = first + per_page < total ? first + per_page : total;
+   return Page{first, last};
 }
 
 Object Screen::status_bar(const StatusBar& status) {
