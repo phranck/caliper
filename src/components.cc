@@ -1509,6 +1509,37 @@ namespace {
 /// afresh without the slider being built again.
 constexpr std::uint32_t kSliderValueIndex = 1;
 
+/**
+ * Puts a slider's handle where its value now stands.
+ *
+ * The handle is a shape of this design laid over the library's own control
+ * rather than a property of it, so nothing moves it unless it is told to. It
+ * follows the value rather than the finger, which is also what puts it in the
+ * right place when a value is set from somewhere other than a drag.
+ */
+void PlaceHandle(lv_event_t* event) {
+   Object control = static_cast<Object>(lv_event_get_target(event));
+   Object handle = static_cast<Object>(lv_event_get_user_data(event));
+
+   const std::int32_t across = lv_obj_get_width(control) - lv_obj_get_width(handle);
+   if (across <= 0) {
+      return;
+   }
+
+   // The handle stands inside the bar at both ends rather than hanging over
+   // them, so the whole of it is on the glass wherever the value is.
+   const std::int32_t range = lv_slider_get_max_value(control) - lv_slider_get_min_value(control);
+   const std::int32_t along = range == 0 ? 0 : (lv_slider_get_value(control) - lv_slider_get_min_value(control));
+   std::int32_t at = range == 0 ? 0 : along * across / range;
+
+   // On the grid, like every other edge. A handle that landed between two
+   // points of it would sit half a point beside the bar it stands on, which is
+   // exactly what the grid is there to prevent.
+   at -= at % token::kGrid.value;
+
+   lv_obj_align_to(handle, control, LV_ALIGN_LEFT_MID, at, 0);
+}
+
 /// The whole of a share, as the graphics library counts a slider's range. It
 /// works in whole numbers, so a share from 0 to 1 is carried as thousandths:
 /// on a bar 700 points long, a percent is seven points and a reader sees the
@@ -1590,19 +1621,22 @@ Object Slider(Object parent, const Panel& panel, const char* label, const char* 
    lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_INDICATOR);
    lv_obj_set_style_radius(control, height / 2, LV_PART_INDICATOR);
 
-   // The handle is what the finger lands on, so it is the size a finger needs
-   // whilst the bar under it stays narrow. It is a squircle like every other
-   // shape of this design, drawn through the same stencil.
-   lv_obj_set_style_bg_color(control, lv_color_hex(token::kInk), LV_PART_KNOB);
-   lv_obj_set_style_bg_opa(control, LV_OPA_COVER, LV_PART_KNOB);
-   lv_obj_set_style_pad_all(control, (knob - height) / 2, LV_PART_KNOB);
+   // The library's own handle is taken away and one of this design's shapes is
+   // put in its place. A stencil set on the knob part is not used for it, so
+   // the handle came out as a plain rectangle: what draws a squircle here is
+   // the same `Squircle` every other shape of this design goes through.
+   lv_obj_set_style_bg_opa(control, LV_OPA_TRANSP, LV_PART_KNOB);
 
-   const lv_image_dsc_t* stencil = SquircleMask(knob);
-   if (stencil != nullptr) {
-      lv_obj_set_style_bitmap_mask_src(control, stencil, LV_PART_KNOB);
-   } else {
-      lv_obj_set_style_radius(control, LV_RADIUS_CIRCLE, LV_PART_KNOB);
-   }
+   Object handle = Squircle(group, knob, token::kInk);
+
+   // It follows the value rather than the finger. The library moves the value
+   // whilst a finger drags, and this is put where that value now is, which also
+   // puts it in the right place when a value is set from somewhere else.
+   lv_obj_add_flag(handle, LV_OBJ_FLAG_IGNORE_LAYOUT);
+   lv_obj_add_event_cb(control, PlaceHandle, LV_EVENT_VALUE_CHANGED, handle);
+   lv_obj_add_event_cb(control, PlaceHandle, LV_EVENT_SIZE_CHANGED, handle);
+
+   // What may be hit reaches a fingertip in height, whilst the bar stays as
 
    // What may be hit reaches a fingertip in height, whilst the bar stays as
    // narrow as the design draws it. Without this the control is sixteen points
