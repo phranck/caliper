@@ -7,6 +7,24 @@
 namespace cal {
 
 /**
+ * The slice of a list one page of it shows.
+ *
+ * A list this size or smaller never produces one that stops short of the
+ * total, so a caller that never checks for more pages is not wrong until a
+ * list actually grows past what one page holds.
+ */
+struct Page {
+   /// The first row this page shows.
+   int first;
+
+   /// One past the last row this page shows. Equal to the list's own total
+   /// on the last page, and short of it on every other one.
+   int last;
+
+   friend constexpr bool operator==(Page, Page) = default;
+};
+
+/**
  * The panel everything is computed for.
  *
  * Two things come out of it and they do not scale alike. How wide a column is
@@ -129,6 +147,41 @@ struct Panel {
    constexpr Point RoundedUpToGrid(Point measured) const {
       const std::int32_t remainder = measured.value % token::kGrid.value;
       return remainder == 0 ? measured : Point{measured.value + token::kGrid.value - remainder};
+   }
+
+   /**
+    * Which rows of a list belong on the page currently showing.
+    *
+    * A page holds one row fewer than fit whenever there is a next one to
+    * turn to, because the row that turns the page stands in the list with
+    * the rest rather than floating outside it. The last page carries every
+    * row that is left instead, since nothing follows it.
+    *
+    * A page asked for beyond the last is clamped to the last one rather than
+    * left to run `first` past `total`, so a caller holding a stale page
+    * number across a list that shrank still lands on real rows.
+    *
+    * @param visible How many rows fit on one page, from `Screen::RowsVisible`.
+    * @param shown Which page is showing, counted from nought.
+    * @param total How many rows there are in all.
+    * @returns The slice `shown` covers, or the last page's slice where
+    *          `shown` reaches past it. `last` reaches `total` on the last
+    *          page and stops one short of it everywhere else.
+    */
+   constexpr Page Paginate(int visible, int shown, int total) const {
+      const int per_page = total > visible ? visible - 1 : visible;
+
+      int page = shown < 0 ? 0 : shown;
+      if (per_page > 0) {
+         const int last_page = (total - 1) / per_page;
+         if (page > last_page) {
+            page = last_page;
+         }
+      }
+
+      const int first = page * per_page;
+      const int last = first + per_page < total ? first + per_page : total;
+      return Page{first, last};
    }
 };
 
