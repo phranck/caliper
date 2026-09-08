@@ -3,8 +3,27 @@
 #include <cinttypes>
 
 #include "caliper/tokens.h"
-#include "esp_log.h"
 #include "lvgl.h"
+
+// The findings go wherever the build has a log. On a board that is the serial
+// line the device already writes to, and on a desk it is the terminal the
+// window was started from. Asked of the compiler rather than switched by a
+// build flag, because the answer is simply whether the header is there.
+#if __has_include("esp_log.h")
+#include "esp_log.h"
+#define CAL_REPORT_ERROR(...) ESP_LOGE(kTag, __VA_ARGS__)
+#define CAL_REPORT_INFO(...) ESP_LOGI(kTag, __VA_ARGS__)
+#else
+#include <cstdio>
+#define CAL_REPORT_ERROR(...)    \
+   do {                          \
+      std::printf("%s: ", kTag); \
+      std::printf(__VA_ARGS__);  \
+      std::printf("\n");         \
+      std::fflush(stdout);       \
+   } while (false)
+#define CAL_REPORT_INFO(...) CAL_REPORT_ERROR(__VA_ARGS__)
+#endif
 
 namespace cal {
 namespace {
@@ -131,8 +150,9 @@ void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
 
 /// Writes a finding the way somebody reading a serial log wants it.
 void log_finding(const Finding& finding) {
-   ESP_LOGE(kTag, "%s: \"%s\" is %" PRId32 ", needs %" PRId32, NameOf(finding.rule), finding.name, finding.actual,
-            finding.required);
+   CAL_REPORT_ERROR("%s: \"%s\" is %" PRId32 ", needs %" PRId32 " (%" PRId32 ",%" PRId32 " %" PRId32 "x%" PRId32 ")",
+                    NameOf(finding.rule), finding.name, finding.actual, finding.required, finding.left.value,
+                    finding.top.value, finding.width.value, finding.height.value);
 }
 
 }  // namespace
@@ -162,9 +182,9 @@ int InspectAndLog(Screen& screen) {
    const int findings = Inspect(screen, log_finding);
 
    if (findings == 0) {
-      ESP_LOGI(kTag, "screen holds");
+      CAL_REPORT_INFO("screen holds");
    } else {
-      ESP_LOGE(kTag, "%d finding%s on this screen", findings, findings == 1 ? "" : "s");
+      CAL_REPORT_ERROR("%d finding%s on this screen", findings, findings == 1 ? "" : "s");
    }
 
    return findings;

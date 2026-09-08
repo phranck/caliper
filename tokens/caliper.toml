@@ -18,7 +18,20 @@ line_gap = "1.63 mm"  # two lines that belong together
 # The status bar keeps its own, smaller margin. It is 32 points tall where the
 # screen is 480, so the screen's own margin would be coarse there and pull the
 # bar apart. A menu bar behaves the same way for the same reason.
+# How far a floating thing stands off whatever is around it. The player pill
+# holds it against the sidebar, the right edge and the bottom edge alike, which
+# is what makes it read as lying over the screen rather than fixed to it.
+floating = "1.09 mm"
+
+# The air inside the player pill, above and below what stands in it. It sets
+# the pill's height and therefore the curve of its ends as well.
+player_inset = "1.09 mm"
+
 status_edge = "1.09 mm"
+
+# Between two things in the status_bar. Wider than the bar's own edge, so that
+# each of them is read on its own rather than as one run of characters.
+status_gap = "2.18 mm"
 
 [touch]
 # What a hand needs, and the floor the checks measure against. These are the
@@ -67,7 +80,12 @@ small = "345 mm"
 # is read at a glance from further back than a line of body text, and it is the
 # one place on the screen where a grade may sit outside the reading scale
 # because nothing there is read line by line.
-status = "295 mm"
+status = "265 mm"
+
+# The name under a sidebar symbol, which is the smallest grade of the scale. It
+# is this small because the longest of the four words has to sit inside an item:
+# "Einstellungen" needs 74.5 points at 14 and has 80 less its padding.
+caption = "203 mm"
 
 [layout]
 # The heights of the three bands. They are in millimetres like every other
@@ -88,6 +106,18 @@ footer = "10.88 mm"
 # touch target stays 9 mm whilst the button looks like this.
 button = "6.53 mm"
 
+# A key of the player. The pill takes its height from this and the air around
+# it, so the shape of its ends follows whenever either moves.
+media_key = "6.80 mm"
+
+# The sidebar and one item in it. It is as wide as the wordmark in the
+# status_bar plus eight points on either side, because the two stand one above
+# the other and an edge a few points out is seen at once. An item is square and
+# holds a symbol with its name beneath, so it is as tall as it is wide less the
+# eight points the sidebar keeps at its own edges.
+sidebar = "11.97 mm"
+sidebar_item = "10.88 mm"
+
 [grid]
 # Nothing lands between two of these. Half a point is invisible on its own and
 # plainly visible the moment two surfaces sit side by side, which is why this is
@@ -100,7 +130,7 @@ unit = 2
 # the one around it, because writing the two as separate numbers produces a
 # pinched corner the first time either moves.
 panel = "4.35 mm"    # the largest surface, such as a dialog or a card
-tile = "2.72 mm"     # a tile, a button, a key
+tile = "2.18 mm"     # a tile, a button, a key
 artwork = "1.63 mm"  # a cover, which brings a corner of its own
 
 # A button's own corner. It is not the tile's: a tile is 68 points tall and a
@@ -135,6 +165,12 @@ raised = "#262626"
 key = "#3d3d3d"          # a key cap, lighter than the surface beneath it
 key_edge = "#4b4b4b"     # its edge, half a step lighter again
 ink = "#ececec"
+
+# What stands in the status_bar is lighter than the text below it. The bar is
+# small and read in passing, so a difference of rank inside it reads as
+# unevenness rather than as order. Everything in it carries one tone, and only
+# the bars the signal does not reach stand back.
+status_ink = "#f0f0f0"
 muted = "#939393"
 faint = "#757575"
 

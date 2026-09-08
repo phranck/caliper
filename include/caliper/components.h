@@ -1,6 +1,8 @@
 #ifndef CALIPER_COMPONENTS_H_
 #define CALIPER_COMPONENTS_H_
 
+#include <initializer_list>
+
 #include "caliper/panel.h"
 #include "lvgl.h"
 
@@ -16,8 +18,8 @@ using Object = lv_obj_t*;
  * out simply does not appear.
  */
 struct StatusBar {
-   /// What stands at the left end. The right end is for the state of the
-   /// device, so this is where anything about the screen itself goes.
+   /// What stands at the left end. The right end is for the state of the device, so
+   /// this is where anything about the screen itself goes.
    const char* leading = nullptr;
 
    /// The time, right aligned, which is where a person looks for it.
@@ -32,6 +34,65 @@ struct StatusBar {
    /// How full it is, shown beside the symbol. Negative leaves the figure out
    /// and shows the symbol alone, which is what the design makes switchable.
    int charge = -1;
+};
+
+/**
+ * What the sidebar carries.
+ *
+ * The lists are held rather than copied, so this is written where it is passed
+ * and never kept. That is what it is for: it names the parts of the sidebar at
+ * the one place the sidebar is built.
+ */
+struct Sidebar {
+   /// One symbol per area, in the order they stand.
+   std::initializer_list<const lv_image_dsc_t*> icons;
+
+   /// One name per area, under its symbol, in the same order. An empty list
+   /// leaves the symbols standing alone.
+   std::initializer_list<const char*> names = {};
+
+   /// Which area is open, counted from nought.
+   int active = 0;
+
+   /// The wordmark in the header at the top, or nullptr for none. It belongs to
+   /// the device rather than to what the device is showing, and the sidebar is
+   /// the part of the screen that is the device.
+   const lv_image_dsc_t* mark = nullptr;
+
+   /// What the mark is filled with, or nullptr for the surface's own ink. Where
+   /// it is given, the mark is taken as a stencil and this is shown through it,
+   /// which is how the same spectrum reaches the mark here that it has on the
+   /// splash.
+   const lv_grad_dsc_t* mark_fill = nullptr;
+};
+
+/**
+ * What the player controller carries.
+ *
+ * The keys are named rather than counted out of a list, because which symbol
+ * belongs where is a fact about this component and a position in a list says it
+ * less clearly than the name does.
+ */
+struct PlayerController {
+   /// The artwork of what is playing, or nullptr for none. It is what a person
+   /// recognises first, so it stands at the leading edge and the words follow.
+   const lv_image_dsc_t* cover = nullptr;
+
+   /// What is playing.
+   const char* title = nullptr;
+
+   /// Where it is playing.
+   const char* second = nullptr;
+
+   /// Whether it is running, which decides which of the two middle symbols the
+   /// middle key carries.
+   bool playing = false;
+
+   const lv_image_dsc_t* back = nullptr;
+   const lv_image_dsc_t* pause = nullptr;
+   const lv_image_dsc_t* play = nullptr;
+   const lv_image_dsc_t* forward = nullptr;
+   const lv_image_dsc_t* volume = nullptr;
 };
 
 /**
@@ -68,6 +129,55 @@ class Screen {
 
    /// The footer along the bottom, for whatever the screen offers there.
    Object Footer();
+
+   /**
+    * The anchors along the left, one per area of the product.
+    *
+    * Always there once the device is set up, so that any area is one touch
+    * away. On the left rather than along the bottom because this panel is short
+    * and wide: the content has 300 points of height and 768 of width, so a band
+    * at the bottom takes from what is scarce and one at the side does not.
+    *
+    * It runs the whole height of the panel and moves both the left edge of the
+    * content area and the left end of the status bar. Because no screen states
+    * a coordinate, every screen follows without being touched.
+    *
+    * Named like a variable rather than in the style of a function, for the same
+    * reason `status_bar` is: `Sidebar` is taken by what it is given.
+    *
+    * Each item carries the number of its area as its user data, which is what a
+    * caller reads to find out which one was touched.
+    *
+    * @param areas What it carries.
+    * @returns The band, so a caller can attach events to its items.
+    */
+   Object sidebar(const Sidebar& areas);
+
+   /// The wordmark, wherever the screen has put it, or nullptr where it carries
+   /// none. A caller that sets its colours moving needs the object rather than
+   /// the band around it.
+   Object mark() const { return mark_; }
+
+   /**
+    * The transport controls, floating over the bottom of the content.
+    *
+    * Only there when something is playing anywhere in the system. It has to
+    * stay put: one reaches for the pause key whilst music is playing, without
+    * looking, and something that scrolls away is no use for that. It is what is
+    * left of the footer, which this design does not otherwise have.
+    *
+    * It is drawn as a pill standing clear of the sidebar, the right edge and
+    * the bottom edge by the same distance, so it reads as lying over the screen
+    * rather than as another band fixed to it.
+    *
+    * Named like a variable rather than in the style of a function, for the same
+    * reason `status_bar` and `sidebar` are: `PlayerController` is taken by what
+    * it is given.
+    *
+    * @param player What is playing and which keys it offers.
+    * @returns The pill, so a caller can reach what stands in it.
+    */
+   Object player_controller(const PlayerController& player);
 
    /// The area between the bands, which is what everything else goes into.
    Object Content();
@@ -113,11 +223,29 @@ class Screen {
    /// therefore holds no margin.
    bool IsABand(Object object) const;
 
+   /**
+    * Says that an object is a piece a band is drawn from rather than something
+    * standing in one.
+    *
+    * A band is sometimes laid in parts: the sidebar's surface is two pieces
+    * with a gap for the open item, and the player's pill is two ends and a
+    * middle. Each piece reaches the edge of what it belongs to and holds no
+    * margin of its own, which is what a band does and what a thing inside one
+    * may not. Marked on the object rather than kept in a list, so a band may be
+    * laid in as many pieces as its shape needs.
+    *
+    * @param object The piece.
+    */
+   static void MarkAsBandPart(Object object);
+
   private:
    Panel panel_;
    Object root_ = nullptr;
    Object content_ = nullptr;
+   Object sidebar_ = nullptr;
+   Object player_ = nullptr;
    Object status_ = nullptr;
+   Object mark_ = nullptr;
    Object header_ = nullptr;
    Object footer_ = nullptr;
 };
@@ -154,10 +282,15 @@ Object List(Object parent, const Panel& panel);
  * @param icon A symbol at the left end, or nullptr for none. It carries an
  *             alpha channel only and is tinted here, so one file serves every
  *             colour it is ever drawn in.
+ * @param marks Symbols at the right end, in the order they are written, left
+ *              to right. They say something about the row rather than naming
+ *              it: whether it is locked, how strong a signal is, that it leads
+ *              somewhere. They stand outside the value, which is text, and the
+ *              value gives way to them.
  * @returns The row, so a caller can attach an event to it.
  */
 Object Row(Object parent, const Panel& panel, const char* name, const char* value = nullptr,
-           const lv_image_dsc_t* icon = nullptr);
+           const lv_image_dsc_t* icon = nullptr, std::initializer_list<const lv_image_dsc_t*> marks = {});
 
 /**
  * Marks a row as the one that is chosen, or takes the mark away again.
@@ -224,6 +357,52 @@ Object Card(Object parent, const Panel& panel, Point width, Point height);
  * @returns The button.
  */
 Object Button(Object parent, const Panel& panel, const char* label, bool accent = false);
+
+/**
+ * A button that carries a symbol and no words.
+ *
+ * Drawn as a squircle, so its size is one a stencil was made for. A size
+ * without one falls back to a fully rounded rectangle, and beside a real
+ * squircle that is visible.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param symbol What it carries, centred.
+ * @param size How wide and tall, which are the same.
+ * @param accent Whether it carries the accent colour.
+ * @returns The key, so a caller can attach an event to it.
+ */
+Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbol, Point size, bool accent = false);
+
+/**
+ * What is playing, as artwork with two lines beside it.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param cover The artwork, or nullptr for none.
+ * @param title What is playing.
+ * @param second Where it is playing.
+ * @returns The group.
+ */
+Object PlayingInfo(Object parent, const Panel& panel, const lv_image_dsc_t* cover, const char* title,
+                   const char* second);
+
+/**
+ * A row of keys that belong to one another, evenly spaced.
+ *
+ * All of them are the same size. One larger key would say that the middle one
+ * matters more, and it does not: skipping and volume are reached for just as
+ * often as pausing.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param symbols One per key, in the order they stand.
+ * @param accent Which of them carries the accent colour, counted from nought,
+ *               or negative for none.
+ * @returns The group, so a caller can reach its keys.
+ */
+Object MediaButtons(Object parent, const Panel& panel, std::initializer_list<const lv_image_dsc_t*> symbols,
+                    int accent = -1);
 
 /**
  * A stack of things standing in the middle of what is left of a screen.

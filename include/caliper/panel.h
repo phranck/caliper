@@ -140,7 +140,7 @@ static_assert(kJc8048w500(token::kLineGap) == 12_pt);
 
 // The corners, outer and nested.
 static_assert(kJc8048w500(token::kRadiusPanel) == 32_pt);
-static_assert(kJc8048w500(token::kRadiusTile) == 20_pt);
+static_assert(kJc8048w500(token::kRadiusTile) == 16_pt);
 static_assert(kJc8048w500.InnerRadius(token::kRadiusPanel) == 12_pt);
 
 }  // namespace cal

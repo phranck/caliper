@@ -16,13 +16,19 @@ inline constexpr Millimeter kEdge{2.18f};
 inline constexpr Millimeter kGroup{3.27f};
 inline constexpr Millimeter kInset{2.72f};
 inline constexpr Millimeter kLineGap{1.63f};
+inline constexpr Millimeter kFloating{1.09f};
+inline constexpr Millimeter kPlayerInset{1.09f};
 inline constexpr Millimeter kStatusEdge{1.09f};
+inline constexpr Millimeter kStatusGap{2.18f};
 
 // The heights of the three bands, from which the content area follows.
 inline constexpr Millimeter kBandStatusBar{4.35f};
 inline constexpr Millimeter kBandHeader{9.25f};
 inline constexpr Millimeter kBandFooter{10.88f};
 inline constexpr Millimeter kBandButton{6.53f};
+inline constexpr Millimeter kBandMediaKey{6.8f};
+inline constexpr Millimeter kBandSidebar{11.97f};
+inline constexpr Millimeter kBandSidebarItem{10.88f};
 
 // What a hand needs. The floor every touch target is measured against.
 inline constexpr Millimeter kFingertip{9.0f};
@@ -39,12 +45,13 @@ inline constexpr Reading kTitle{935.0f};
 inline constexpr Reading kHeading{560.0f};
 inline constexpr Reading kBody{405.0f};
 inline constexpr Reading kSmall{345.0f};
-inline constexpr Reading kStatus{295.0f};
+inline constexpr Reading kStatus{265.0f};
+inline constexpr Reading kCaption{203.0f};
 
 // Only the outer corners. Anything nested is computed by inner_radius
 // below, because two numbers drift into a pinched corner.
 inline constexpr Millimeter kRadiusPanel{4.35f};
-inline constexpr Millimeter kRadiusTile{2.72f};
+inline constexpr Millimeter kRadiusTile{2.18f};
 inline constexpr Millimeter kRadiusArtwork{1.63f};
 inline constexpr Millimeter kRadiusButton{1.63f};
 inline constexpr float kSquircle = 3.2f;
@@ -68,6 +75,7 @@ inline constexpr std::uint32_t kRaised = 0x262626;
 inline constexpr std::uint32_t kKey = 0x3d3d3d;
 inline constexpr std::uint32_t kKeyEdge = 0x4b4b4b;
 inline constexpr std::uint32_t kInk = 0xececec;
+inline constexpr std::uint32_t kStatusInk = 0xf0f0f0;
 inline constexpr std::uint32_t kMuted = 0x939393;
 inline constexpr std::uint32_t kFaint = 0x757575;
 inline constexpr std::uint32_t kAccent = 0x009ce9;
