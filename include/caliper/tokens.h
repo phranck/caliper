@@ -20,6 +20,7 @@ inline constexpr Millimeter kFloating{1.09f};
 inline constexpr Millimeter kKeyboardGap{1.09f};
 inline constexpr Millimeter kPlayerInset{1.09f};
 inline constexpr Millimeter kStatusEdge{1.09f};
+inline constexpr Millimeter kSubTextGap{0.82f};
 inline constexpr Millimeter kStatusGap{2.18f};
 
 // The heights of the three bands, from which the content area follows.
@@ -29,6 +30,7 @@ inline constexpr Millimeter kBandFooter{10.88f};
 inline constexpr Millimeter kBandButton{6.53f};
 inline constexpr Millimeter kBandCard{68.0f};
 inline constexpr Millimeter kBandCardSymbol{5.44f};
+inline constexpr Millimeter kBandContentUnavailableSymbol{7.07f};
 inline constexpr Millimeter kBandKeyboardKey{8.98f};
 inline constexpr Millimeter kBandKeyboardShift{11.42f};
 inline constexpr Millimeter kBandKeyboardSwitch{13.6f};
