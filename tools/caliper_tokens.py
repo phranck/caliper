@@ -21,6 +21,8 @@ LAYOUT_MM = {
     "header": 9.25,
     "footer": 10.88,
     "button": 6.53,
+    "card": 68.0,
+    "card_symbol": 5.44,
     "keyboard_key": 8.98,
     "keyboard_shift": 11.42,
     "keyboard_switch": 13.6,
