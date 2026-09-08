@@ -61,6 +61,22 @@ Element describe(lv_obj_t* object) {
    element.touchable =
        a_control || (lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE) && lv_obj_get_event_count(object) > 0);
 
+   // Pressable, empty, and nothing listening. The library stops at the first
+   // thing under the finger that can be pressed, so this one takes the touch
+   // meant for whatever lies beneath and drops it.
+   //
+   // Empty is what makes this safe to assert. The scrollable flag cannot tell a
+   // container apart from a decoration, because `lv_obj_create` sets that flag
+   // and the clickable one on everything it makes, so a test against it exempts
+   // the whole screen. Something holding nothing and with nothing listening has
+   // no way of doing anything with a press; a container holding content might
+   // be scrolling, and is left alone.
+   //
+   // A control by type is let through as well, because it answers before
+   // anybody attaches a handler to it.
+   element.swallows_touches = !a_control && lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE) &&
+                              lv_obj_get_event_count(object) == 0 && lv_obj_get_child_count(object) == 0;
+
    // What a finger can hit is not always what is drawn. A control may carry an
    // area reaching beyond its own edges, and a slider is the case that needs
    // it: its bar is deliberately narrow, because what is dragged is the handle
@@ -172,6 +188,16 @@ void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
 
 /// Writes a finding the way somebody reading a serial log wants it.
 void log_finding(const Finding& finding) {
+   // One rule has nothing to compare. Where a thing swallows a touch there is
+   // no figure that should have been larger, only a thing that should not be
+   // there, so printing "is 1, needs 0" would be noise dressed as a
+   // measurement.
+   if (finding.rule == Rule::Deaf) {
+      CAL_REPORT_ERROR("%s: \"%s\" (%" PRId32 ",%" PRId32 " %" PRId32 "x%" PRId32 ")", NameOf(finding.rule),
+                       finding.name, finding.left.value, finding.top.value, finding.width.value, finding.height.value);
+      return;
+   }
+
    CAL_REPORT_ERROR("%s: \"%s\" is %" PRId32 ", needs %" PRId32 " (%" PRId32 ",%" PRId32 " %" PRId32 "x%" PRId32 ")",
                     NameOf(finding.rule), finding.name, finding.actual, finding.required, finding.left.value,
                     finding.top.value, finding.width.value, finding.height.value);
