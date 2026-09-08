@@ -91,7 +91,7 @@ Point Screen::ContentBottom() const {
       return Point{panel_.height.value - BareEnd(panel_)};
    }
 
-   // There is no footer in this design. The one band that ever stands down
+   // There is no footer in this design. The one thing that ever stands down
    // there is the player, and only whilst something is playing, so the room for
    // it is kept where it is taken and nowhere else. Kept on every screen it was
    // an empty strip the height of a row at the bottom of anything without a
@@ -124,8 +124,8 @@ int Screen::RowsVisible(Point row_height) const {
 
 Object Screen::status_bar(const StatusBar& status) {
    // Beside the sidebar rather than above it. The sidebar runs the whole height
-   // because it belongs to the device, and this band says what the device is
-   // doing about what stands beside it.
+   // because it belongs to the device, and the status bar says what the device
+   // is doing about what stands beside it.
    const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
 
    Object band = lv_obj_create(root_);
@@ -176,15 +176,15 @@ Object Screen::status_bar(const StatusBar& status) {
 
       // No optical nudge here, and that is the exception rather than an
       // oversight. The nudge lifts a line so its capitals sit on the middle of
-      // a row that also holds descenders. This band holds figures and capitals
-      // beside symbols, and the symbols set the line: measured on the panel,
+      // a row that also holds descenders. The status bar holds figures and
+      // capitals beside symbols, and the symbols set the line: measured on the panel,
       // lifting the text put it two points above them.
       return label;
    };
 
    // A spacer that grows, so everything the bar reports sits at the right end.
-   // Nothing stands at the left: this band reports the device, and what the
-   // screen is about is said by the header under it.
+   // Nothing stands at the left: the status bar reports the device, and what
+   // the screen is about is said by the header under it.
    Spacer(band);
 
    // The battery and its figure first, then the radio. The two battery items
@@ -222,10 +222,10 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    MakePlain(band);
    lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandHeader).value);
    lv_obj_set_pos(band, aside, above);
-   // The band's own edge, and half a corner on top of it. A line of type flush
-   // against a rounded edge reads as colliding with it, and what stands under
-   // this band is the list, whose corner has already pulled it that far in.
-   // Half the list's radius, so it moves when the radius does.
+   // The header's own edge, and half a corner on top of it. A line of type
+   // flush against a rounded edge reads as colliding with it, and what stands
+   // under the header is the list, whose corner has already pulled it that
+   // far in. Half the list's radius, so it moves when the radius does.
    lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusCard).value / 2, 0);
    header_ = band;
 
@@ -781,8 +781,8 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t edge = panel_(token::kEdge).value;
 
    // Set from the bottom up, so the last row holds the same margin as
-   // everything else on the screen. The rows are placed inside the band, which
-   // is why only the band knows this figure.
+   // everything else on the screen. The rows are placed inside the keyboard,
+   // which is why only the keyboard knows this figure.
    const std::int32_t top = panel_.height.value - edge - 4 * key_height - 3 * gap;
    const std::int32_t first_row = 0;
 
@@ -1102,7 +1102,7 @@ Object Screen::Content() {
 
    // The same distance at the bottom that the content holds at its sides.
    // Scrolled to the end, the last row would otherwise sit against whatever
-   // band is under it and read as cut off rather than as finished.
+   // stands under it and read as cut off rather than as finished.
    lv_obj_set_style_pad_bottom(content_, panel_(token::kEdge).value, 0);
 
    // A list scrolls. It costs frames, because a moving surface is the most

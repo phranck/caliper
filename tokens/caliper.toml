@@ -109,14 +109,15 @@ caption = "203 mm"
 key_label = "468 mm"
 
 [layout]
-# The heights of the three bands. They are in millimetres like every other
-# physical size, so a denser panel keeps a status bar of the same apparent
-# height rather than one half as tall.
+# The heights that decide where the content area begins and ends: StatusBar
+# and Header above it, and the room reserved below it. They are in
+# millimetres like every other physical size, so a denser panel keeps a
+# status bar of the same apparent height rather than one half as tall.
 #
-# A band is meant to take its height from what it holds. These are what the
-# design draws today, and they are here so that a screen built from components
-# lands on the drawing rather than near it. Where a band computes its own height
-# later, this is the figure it has to arrive at.
+# A component here is meant to take its height from what it holds. These are
+# what the design draws today, and they are here so that a screen built from
+# components lands on the drawing rather than near it. Where a component
+# computes its own height later, this is the figure it has to arrive at.
 status_bar = "4.35 mm"
 header = "9.25 mm"
 

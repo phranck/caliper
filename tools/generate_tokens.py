@@ -143,7 +143,8 @@ def write_header(tokens: dict) -> None:
         lines.append(f"inline constexpr Millimeter {cpp_identifier(name)}{{{cpp_float(value)}}};")
 
     lines += ["",
-              "// The heights of the three bands, from which the content area follows."]
+              "// The heights that decide where the content area begins and ends:",
+              "// StatusBar and Header above it, and the room reserved below it."]
     for name, value in tokens["layout"].items():
         lines.append(
             f"inline constexpr Millimeter {cpp_identifier('band_' + name)}{{{cpp_float(value)}}};")

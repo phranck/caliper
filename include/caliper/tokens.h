@@ -24,7 +24,8 @@ inline constexpr Millimeter kSliderLabel{2.18f};
 inline constexpr Millimeter kSubTextGap{0.82f};
 inline constexpr Millimeter kStatusGap{2.18f};
 
-// The heights of the three bands, from which the content area follows.
+// The heights that decide where the content area begins and ends:
+// StatusBar and Header above it, and the room reserved below it.
 inline constexpr Millimeter kBandStatusBar{4.35f};
 inline constexpr Millimeter kBandHeader{9.25f};
 inline constexpr Millimeter kBandFooter{10.88f};
