@@ -122,6 +122,38 @@ struct Keyboard {
 };
 
 /**
+ * What a card says.
+ *
+ * A message stands over the screen it belongs to rather than in place of it.
+ * Where it asks something, the answer is on the screen underneath, and taking
+ * that away to ask about it leaves somebody answering from memory.
+ */
+struct Card {
+   /// What kind of message this is. It decides the colour of the symbol beside
+   /// the title, and nothing else: a person should know which kind they are
+   /// looking at before reading the sentence.
+   enum class Kind {
+      /// Something worth knowing, in the accent.
+      kInfo,
+      /// Something went wrong, in the colour of a warning.
+      kTrouble,
+   };
+
+   /// The title, which says what happened in as few words as it takes.
+   const char* title = nullptr;
+
+   /// The message under it, which says the rest.
+   const char* message = nullptr;
+
+   /// The symbol beside the title, or nullptr for none. Which symbol belongs to
+   /// which kind is the product's business, so it is passed in.
+   const lv_image_dsc_t* symbol = nullptr;
+
+   /// Which kind it is.
+   Kind kind = Kind::kInfo;
+};
+
+/**
  * A screen, which is the frame the components compute from.
  *
  * It carries the panel and the three bands, and it hands out the area that is
@@ -189,6 +221,37 @@ class Screen {
     * @returns The band, so a caller can attach events to its items.
     */
    Object sidebar(const Sidebar& areas);
+
+   /**
+    * A card laid over the screen, with what is behind it dimmed.
+    *
+    * It is built in three parts, which is how it is spoken about: the title
+    * with the symbol for its kind, the message, and the row of buttons at the
+    * foot. Its height follows what it holds rather than being stated, because
+    * a stated height gives the air inside it away to whatever happens to be
+    * put in.
+    *
+    * It fades in. The screen behind it stays where it is and is dimmed, so
+    * whatever the message is about is still there to be looked at.
+    *
+    * Named like a variable rather than in the style of a function, for the same
+    * reason `status_bar` and `sidebar` are: `Card` is taken by what it is
+    * given.
+    *
+    * @param what The message.
+    * @returns The card, so a caller may reach it.
+    */
+   Object card(const Card& what);
+
+   /// The row at the foot of the card, where its buttons go. They are aligned
+   /// to the right, so the one that ends the task sits where a step ends.
+   Object card_footer() const { return card_footer_; }
+
+   /// The card itself, where one stands.
+   Object card() const { return card_; }
+
+   /// Takes the card away again, and the dimming with it.
+   void DismissCard();
 
    /// What the status bar says the time is, so a caller can change it whilst
    /// the screen stands. The bar is built once with the screen and the time
@@ -323,6 +386,9 @@ class Screen {
    Object mark_ = nullptr;
    Object clock_ = nullptr;
    Object signal_ = nullptr;
+   Object card_ = nullptr;
+   Object card_footer_ = nullptr;
+   Object dimming_ = nullptr;
    Object header_ = nullptr;
    Object keyboard_ = nullptr;
 };
@@ -409,18 +475,6 @@ void ChooseOne(Object group, int chosen = 0);
  * @returns The row's place in the group, counted from nought, or -1 for none.
  */
 int Chosen(Object group);
-
-/**
- * A card: a surface with its own corner, holding whatever is put into it.
- *
- * @param parent What it goes into.
- * @param panel The panel, for the measurements.
- * @param width How wide, in points, because a card is placed by a layout rather
- *              than filling its parent.
- * @param height How tall.
- * @returns The card.
- */
-Object Card(Object parent, const Panel& panel, Point width, Point height);
 
 /**
  * A heading over whatever follows it.

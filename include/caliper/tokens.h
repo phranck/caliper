@@ -27,6 +27,8 @@ inline constexpr Millimeter kBandStatusBar{4.35f};
 inline constexpr Millimeter kBandHeader{9.25f};
 inline constexpr Millimeter kBandFooter{10.88f};
 inline constexpr Millimeter kBandButton{6.53f};
+inline constexpr Millimeter kBandCard{68.0f};
+inline constexpr Millimeter kBandCardSymbol{5.44f};
 inline constexpr Millimeter kBandKeyboardKey{8.98f};
 inline constexpr Millimeter kBandKeyboardShift{11.42f};
 inline constexpr Millimeter kBandKeyboardSwitch{13.6f};

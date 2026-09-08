@@ -17,6 +17,11 @@ namespace {
  * A container is a place to put things, and every one of those defaults draws
  * something the design did not ask for.
  */
+/// How long a card takes to appear. Long enough to be seen arriving, which is
+/// what says it belongs to the screen it is over rather than replacing it, and
+/// short enough that nobody waits for it.
+constexpr std::uint32_t kCardFadeMs = 180;
+
 /// The flag that says an object is a piece of a band. One of the four the
 /// library leaves to whoever is using it.
 constexpr lv_obj_flag_t kBandPart = LV_OBJ_FLAG_USER_1;
@@ -873,6 +878,126 @@ Object Screen::keyboard(const Keyboard& keys) {
    return keyboard_;
 }
 
+Object Screen::card(const Card& what) {
+   const std::int32_t inset = panel_(token::kInset).value;
+   const std::int32_t symbol = panel_(token::kBandCardSymbol).value;
+
+   // What is behind it stays where it is and is dimmed. A message about a
+   // screen with that screen taken away is a message somebody has to answer
+   // from memory.
+   dimming_ = lv_obj_create(root_);
+   MakePlain(dimming_);
+   lv_obj_set_size(dimming_, panel_.width.value, panel_.height.value);
+   lv_obj_set_pos(dimming_, 0, 0);
+   lv_obj_set_style_bg_color(dimming_, lv_color_hex(token::kBg), 0);
+   lv_obj_set_style_bg_opa(dimming_, LV_OPA_70, 0);
+
+   // It catches what is touched, so nothing behind it answers whilst it stands.
+   lv_obj_add_flag(dimming_, LV_OBJ_FLAG_CLICKABLE);
+   MarkAsBandPart(dimming_);
+
+   card_ = lv_obj_create(dimming_);
+   MakePlain(card_);
+   lv_obj_set_width(card_, panel_(token::kBandCard).value);
+
+   // Its height follows what it holds. A stated one gives the air inside it
+   // away to whatever happens to be put in.
+   lv_obj_set_height(card_, LV_SIZE_CONTENT);
+   lv_obj_center(card_);
+   lv_obj_set_style_bg_color(card_, lv_color_hex(token::kOverlay), 0);
+   lv_obj_set_style_bg_opa(card_, LV_OPA_COVER, 0);
+   lv_obj_set_style_pad_all(card_, inset, 0);
+
+   // The corner of the button inside it plus the inset between the two, so the
+   // two corners are concentric rather than two figures that have to agree.
+   lv_obj_set_style_radius(card_, panel_(token::kRadiusButton).value + inset, 0);
+
+   lv_obj_set_flex_flow(card_, LV_FLEX_FLOW_COLUMN);
+   lv_obj_set_style_pad_row(card_, panel_(token::kGroup).value, 0);
+   MarkAsBandPart(card_);
+
+   // The title, with the symbol for its kind before it.
+   Object heading = lv_obj_create(card_);
+   MakePlain(heading);
+   lv_obj_set_width(heading, lv_pct(100));
+   lv_obj_set_height(heading, LV_SIZE_CONTENT);
+   lv_obj_set_flex_flow(heading, LV_FLEX_FLOW_ROW);
+   lv_obj_set_flex_align(heading, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+   lv_obj_set_style_pad_column(heading, inset, 0);
+
+   if (what.symbol != nullptr) {
+      Object mark = lv_image_create(heading);
+      lv_image_set_src(mark, what.symbol);
+      lv_obj_set_size(mark, symbol, symbol);
+      lv_obj_set_style_image_recolor(
+          mark, lv_color_hex(what.kind == Card::Kind::kTrouble ? token::kDanger : token::kAccent), 0);
+      lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
+   }
+
+   if (what.title != nullptr) {
+      Object words = lv_label_create(heading);
+      lv_label_set_text(words, what.title);
+      lv_obj_set_style_text_color(words, lv_color_hex(token::kInk), 0);
+      if (typography().heading != nullptr) {
+         lv_obj_set_style_text_font(words, typography().heading, 0);
+      }
+   }
+
+   if (what.message != nullptr) {
+      Object body = lv_label_create(card_);
+      lv_label_set_text(body, what.message);
+      lv_label_set_long_mode(body, LV_LABEL_LONG_WRAP);
+      lv_obj_set_width(body, lv_pct(100));
+      lv_obj_set_style_text_color(body, lv_color_hex(token::kMuted), 0);
+   }
+
+   // The buttons, at the right end. That is where a step ends, and a row of
+   // them starting at the left reads as a list of equal things rather than as
+   // one action with a way out beside it.
+   card_footer_ = lv_obj_create(card_);
+   MakePlain(card_footer_);
+   lv_obj_set_width(card_footer_, lv_pct(100));
+   lv_obj_set_height(card_footer_, LV_SIZE_CONTENT);
+   lv_obj_set_flex_flow(card_footer_, LV_FLEX_FLOW_ROW);
+   lv_obj_set_flex_align(card_footer_, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+   lv_obj_set_style_pad_column(card_footer_, panel_(token::kLineGap).value, 0);
+
+   // Faded in rather than put there. It arrives over something somebody was
+   // already reading, and a surface that appears between two frames is read as
+   // the screen having changed rather than as something being said about it.
+   lv_obj_set_style_opa(dimming_, LV_OPA_TRANSP, 0);
+   lv_anim_t appearing;
+   lv_anim_init(&appearing);
+   lv_anim_set_var(&appearing, dimming_);
+   lv_anim_set_values(&appearing, LV_OPA_TRANSP, LV_OPA_COVER);
+   lv_anim_set_duration(&appearing, kCardFadeMs);
+   lv_anim_set_exec_cb(&appearing, [](void* object, int32_t value) {
+      lv_obj_set_style_opa(static_cast<Object>(object), static_cast<lv_opa_t>(value), 0);
+   });
+   lv_anim_start(&appearing);
+
+   // Its height comes out of what it holds, and what it holds is any number of
+   // points tall. Centred, half of that height decides where it starts, so an
+   // odd figure anywhere in it puts the whole card half a point off the grid
+   // and everything standing in it with it.
+   lv_obj_update_layout(card_);
+   const std::int32_t step = token::kGrid.value;
+   lv_obj_align(card_, LV_ALIGN_CENTER, -(lv_obj_get_x(card_) % step), -(lv_obj_get_y(card_) % step));
+
+   return card_;
+}
+
+void Screen::DismissCard() {
+   if (dimming_ == nullptr) {
+      return;
+   }
+
+   lv_obj_delete(dimming_);
+   dimming_ = nullptr;
+   card_ = nullptr;
+   card_footer_ = nullptr;
+}
+
 Object Screen::Content() {
    if (content_ != nullptr) {
       return content_;
@@ -1131,17 +1256,6 @@ int Chosen(Object group) {
    return -1;
 }
 
-Object Card(Object parent, const Panel& panel, Point width, Point height) {
-   Object surface = lv_obj_create(parent);
-   MakePlain(surface);
-   lv_obj_set_size(surface, width.value, height.value);
-   lv_obj_set_style_bg_color(surface, lv_color_hex(token::kSurface), 0);
-   lv_obj_set_style_bg_opa(surface, LV_OPA_COVER, 0);
-   lv_obj_set_style_radius(surface, panel(token::kRadiusPanel).value, 0);
-   lv_obj_set_style_pad_all(surface, panel(token::kInset).value, 0);
-   return surface;
-}
-
 Object Heading(Object parent, const Panel& panel, const char* words) {
    Object label = lv_label_create(parent);
    lv_label_set_text(label, words);
@@ -1165,7 +1279,21 @@ Object Button(Object parent, const Panel& panel, const char* label, bool accent)
 
    lv_obj_set_height(control, panel(token::kBandButton).value);
 
-   lv_obj_set_style_bg_color(control, lv_color_hex(accent ? token::kAccent : token::kRaised), 0);
+   // What it is filled with depends on what it stands on. The ordinary fill is
+   // the colour of a raised surface, and a button on one of those would be
+   // filled with the colour it sits on: only its word would show, and beside an
+   // accented button it reads as the smaller of the two. Asked of the surface
+   // rather than passed in, because a caller putting a button somewhere should
+   // not have to know what colour that place happens to be.
+   Object beneath = lv_obj_get_parent(control);
+   while (beneath != nullptr && lv_obj_get_style_bg_opa(beneath, LV_PART_MAIN) == LV_OPA_TRANSP) {
+      beneath = lv_obj_get_parent(beneath);
+   }
+   const bool on_a_surface =
+       beneath != nullptr && !lv_color_eq(lv_obj_get_style_bg_color(beneath, LV_PART_MAIN), lv_color_hex(token::kBg));
+
+   const std::uint32_t ground = on_a_surface ? token::kSurface : token::kRaised;
+   lv_obj_set_style_bg_color(control, lv_color_hex(accent ? token::kAccent : ground), 0);
 
    Object text = lv_label_create(control);
    lv_label_set_text(text, label);
