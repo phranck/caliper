@@ -687,6 +687,62 @@ enum class Does {
    kEscape,
 };
 
+/**
+ * How wide each of a row's keys is when the row fills the width it was given.
+ *
+ * A row is asked to reach both edges of the panel, so its keys share whatever
+ * is left once the gaps are taken out. That share is rarely a whole number of
+ * grid steps, and a key off the grid puts every key after it off the grid too,
+ * so the share is floored to a step and the remainder handed back one step at
+ * a time.
+ *
+ * The keys that receive a step are the outermost first, working inwards, which
+ * keeps the row symmetric: a remainder given out from one end would make a row
+ * that is visibly heavier on that side.
+ */
+struct Spread {
+   /// What every key is at least.
+   std::int32_t base;
+
+   /// How many of them carry one step more than that.
+   int wider;
+};
+
+/**
+ * Works out the widths for a row that has to fill a given span.
+ *
+ * @param span How wide the row must come out, edge to edge.
+ * @param count How many keys share it.
+ * @param gap Between two of them.
+ * @param step The grid every edge has to land on.
+ * @returns The base width and how many keys carry a step more.
+ */
+constexpr Spread SpreadAcross(std::int32_t span, int count, std::int32_t gap, std::int32_t step) {
+   if (count <= 0) {
+      return Spread{0, 0};
+   }
+   const std::int32_t room = span - (count - 1) * gap;
+   const std::int32_t base = (room / count) - (room / count) % step;
+   return Spread{base, static_cast<int>((room - count * base) / step)};
+}
+
+/**
+ * The width of one key in a spread row.
+ *
+ * @param which Its place in the row, counted from the leading edge.
+ * @param count How many keys the row has.
+ * @param spread What `SpreadAcross` worked out for it.
+ * @param step The grid.
+ * @returns That key's width.
+ */
+constexpr std::int32_t WidthAt(int which, int count, const Spread& spread, std::int32_t step) {
+   // How far from an edge this key is, counting the leading edge first, then
+   // the trailing one, then one in from each, and so on. The keys with the
+   // lowest ranks are the ones that take the remainder.
+   const int rank = which < count - 1 - which ? 2 * which : 2 * (count - 1 - which) + 1;
+   return spread.base + (rank < spread.wider ? step : 0);
+}
+
 /// `Does` packed with the layer a `kSwitch` key goes to, in the bits above
 /// it. Every other action ignores what it carries there.
 void* Touching(Does does, int layer = 0) {
@@ -891,8 +947,16 @@ Object Screen::keyboard(const Keyboard& keys) {
       // the keyboard rather than as keys that say less.
       lv_obj_set_style_bg_color(key, lv_color_hex(quiet ? token::kRaised : token::kKey), 0);
       lv_obj_set_style_bg_opa(key, LV_OPA_COVER, 0);
-      lv_obj_set_style_border_color(key, lv_color_hex(token::kKeyEdge), 0);
-      lv_obj_set_style_border_width(key, 1, 0);
+
+      // Only a letter carries the hairline. It lifts a light cap off the tray
+      // the way a physical key catches more light at its edge; on a quiet key,
+      // which is barely lighter than the tray to begin with, the same line is
+      // the brightest thing on the key and draws the eye to the ones that
+      // matter least.
+      if (!quiet) {
+         lv_obj_set_style_border_color(key, lv_color_hex(token::kKeyEdge), 0);
+         lv_obj_set_style_border_width(key, 1, 0);
+      }
 
       // A held key stands in the accent and nothing else. A flag above it would
       // have one character to show, namely the one already on the key, and what
@@ -928,108 +992,81 @@ Object Screen::keyboard(const Keyboard& keys) {
       return mark;
    };
 
+   // Every row reaches both edges of the panel. What differs between them is
+   // how wide a key comes out, because a row with fewer of them has wider
+   // ones, and that is what sets one row off against the next instead of
+   // stacking them into a grid.
+   const std::int32_t available = panel_.width.value - 2 * edge;
+   const std::int32_t step = token::kGrid.value;
+
    int index = 0;
-   const auto row_of = [&](const char* text, std::int32_t left, std::int32_t row_top, std::int32_t key_width) {
-      for (const char* at = text; *at != '\0';) {
+   const auto row_of = [&](const char* text, std::int32_t left, std::int32_t row_top, const Spread& spread, int count) {
+      int which = 0;
+      for (const char* at = text; *at != '\0'; ++which) {
          const int bytes = CharacterBytes(at);
          char one[5] = {};
          for (int byte = 0; byte < bytes && byte < 4; ++byte) {
             one[byte] = at[byte];
          }
 
-         Object key = cap(left, row_top, key_width, false, Does::kType);
+         const std::int32_t width = WidthAt(which, count, spread, step);
+         Object key = cap(left, row_top, width, false, Does::kType);
          if (index < kCharacterKeys) {
             showing.labels[index] = lettering(key, one, false);
          }
 
-         left += key_width + gap;
+         left += width + gap;
          at += bytes;
          index += 1;
       }
       return left;
    };
 
-   // The first row decides the width every other key on the keyboard shares:
-   // the more columns a language's letters need, the narrower each one has to
-   // be to still reach the trailing edge. German needs twelve for its eleven
-   // letters and the delete key that joins them here; every other language
-   // this device carries manages the same in eleven.
-   const std::int32_t available = panel_.width.value - 2 * edge;
-   const int row1_columns = Columns(letters.top) + 1;
-   const std::int32_t key_width = (available - (row1_columns - 1) * gap) / row1_columns;
-   const std::int32_t row_width = row1_columns * key_width + (row1_columns - 1) * gap;
-   // Snapped to the grid, because centring a row does not land on it by
-   // itself. A row of eleven columns comes out 762 wide on this panel and
-   // leaves 19 at each side, which is half a pixel away from every other edge
-   // on the screen. Rounded down rather than up, so the row keeps its full
-   // width and gives the odd point to the trailing margin.
-   const std::int32_t step = token::kGrid.value;
-   const std::int32_t centred = (panel_.width.value - row_width) / 2;
-   const std::int32_t row_left = centred - centred % step;
-
-   // The digits span the same measure as the letters below them, in ten equal
-   // columns of their own. They are wider than a letter because there are
-   // fewer of them, and they are the same on every layer, so nothing here is
-   // handed to `Relabel`.
+   // The digits, which are the same on every layer, so nothing here is handed
+   // to `Relabel`.
    const int digit_columns = Columns(kDigits);
-   const std::int32_t digit_span = (row_width - (digit_columns - 1) * gap) / digit_columns;
-
-   // Every width on this row has to be even, or every second key starts half a
-   // pixel off the grid. Snapping the key rather than the position is what
-   // does it: with an even key and an even gap, one even start carries the
-   // whole row.
-   const std::int32_t digit_width = digit_span - digit_span % step;
-   const std::int32_t digit_used = digit_columns * digit_width + (digit_columns - 1) * gap;
-   const std::int32_t digit_inset = (row_width - digit_used) / 2;
-   std::int32_t digit_left = row_left + digit_inset - digit_inset % step;
-   for (const char* at = kDigits; *at != '\0'; ++at) {
-      const char one[2] = {*at, '\0'};
-      lettering(cap(digit_left, row_at(0), digit_width, false, Does::kType), one, false);
-      digit_left += digit_width + gap;
+   const Spread digits = SpreadAcross(available, digit_columns, gap, step);
+   std::int32_t digit_left = edge;
+   for (int which = 0; which < digit_columns; ++which) {
+      const char one[2] = {kDigits[which], '\0'};
+      const std::int32_t width = WidthAt(which, digit_columns, digits, step);
+      lettering(cap(digit_left, row_at(0), width, false, Does::kType), one, false);
+      digit_left += width + gap;
    }
 
-   const std::int32_t first_end = row_of(letters.top, row_left, row_at(1), key_width);
-   Object deleting = cap(first_end, row_at(1), key_width, true, Does::kBackspace);
+   // The letters, with the key that rubs out joining them at the trailing end
+   // and counted as one of the row's columns, so the row still comes out flush.
+   const int row1_columns = Columns(letters.top) + 1;
+   const Spread first = SpreadAcross(available, row1_columns, gap, step);
+   const std::int32_t first_end = row_of(letters.top, edge, row_at(1), first, row1_columns);
+   Object deleting =
+       cap(first_end, row_at(1), WidthAt(row1_columns - 1, row1_columns, first, step), true, Does::kBackspace);
    if (keys.backspace != nullptr) {
       marking(deleting, keys.backspace, false);
    }
 
-   // Inset by half a key against the row above. Snapped to the grid, because
-   // half of a key's width is not a whole number of points and two surfaces
-   // half a point apart is what the grid is there to prevent. It carries no
-   // modifier of its own, so its width follows from its own letters alone.
+   // The second row carries nothing but letters, so all of the width is theirs
+   // and they come out wider than the row above. That is what parts the two.
    const int row2_columns = Columns(letters.middle);
-   const std::int32_t second_width = row2_columns * key_width + (row2_columns - 1) * gap;
-   const std::int32_t second_left = (panel_.width.value - second_width) / 2;
-   row_of(letters.middle, second_left - second_left % step, row_at(2), key_width);
+   row_of(letters.middle, edge, row_at(2), SpreadAcross(available, row2_columns, gap, step), row2_columns);
 
-   // The third row spans the same measure as the first and second, edge to
-   // edge, with a modifier at each end. A German trailing modifier is
-   // whatever is left once its letters and the leading shift are placed,
-   // which is wider than a shift on purpose: that is what keeps its letters
-   // out of the second row's columns, since no two rows are meant to line up.
-   // Every other language's two ends come out the same width, because there
-   // is nothing left to make one of them different.
+   // The third row has a modifier at each end, both the same width in every
+   // language. They are wider than a letter because they are not letters, and
+   // being a stated width rather than a share is what keeps this row's letters
+   // out of the columns of the row above it.
    const std::int32_t third_top = row_at(3);
+   const std::int32_t shift_width = panel_(token::kKeyboardShift).value;
    const int row3_columns = Columns(letters.bottom);
-   const std::int32_t row3_keys = row3_columns * key_width + (row3_columns + 1) * gap;
-   const std::int32_t even_share = (available - row3_keys) / 2;
+   const Spread third = SpreadAcross(available - 2 * shift_width - 2 * gap, row3_columns, gap, step);
 
-   // Snapped, for the reason the digit row is: the letters between the two
-   // modifiers start where the leading one ends, so an odd modifier puts every
-   // letter on this row half a pixel off. The trailing one takes what is left
-   // and stays even, because everything it is subtracted from is.
-   const std::int32_t leading_shift = german ? panel_(token::kKeyboardShift).value : even_share - even_share % step;
-   const std::int32_t trailing_shift = available - leading_shift - row3_keys;
-
-   Object leading = cap(edge, third_top, leading_shift, true, Does::kModify);
+   Object leading = cap(edge, third_top, shift_width, true, Does::kModify);
    if (keys.shift != nullptr) {
       showing.modifiers[0] = marking(leading, keys.shift, true);
    }
 
-   row_of(letters.bottom, edge + leading_shift + gap, third_top, key_width);
+   row_of(letters.bottom, edge + shift_width + gap, third_top, third, row3_columns);
 
-   Object trailing = cap(edge + available - trailing_shift, third_top, trailing_shift, true, Does::kModify);
+   Object trailing = cap(edge + available - shift_width, third_top, shift_width, true, Does::kModify);
    if (keys.shift != nullptr) {
       showing.modifiers[1] = marking(trailing, keys.shift, true);
    }
