@@ -187,7 +187,9 @@ struct Panel {
 
 /// The panel this project measures, and the one every figure in its papers
 /// describes.
-inline constexpr Panel kJc8048w500{.width = 800_pt, .height = 480_pt, .points_per_mm = 7.35f};
+inline constexpr Panel kJc8048w500{.width = token::kPanelJc8048w500Width,
+                                   .height = token::kPanelJc8048w500Height,
+                                   .points_per_mm = token::kPanelJc8048w500PointsPerMm};
 
 // The figure a fingertip comes out at on this panel, which the whole interface
 // is built on. This is not an example: when it stops holding, the library does

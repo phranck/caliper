@@ -4,6 +4,12 @@ Do not edit: tools/generate_tokens.py overwrites this file. Change
 tokens/caliper.toml and run it again.
 """
 
+# The panels, each one its width and height in pixels and how many of
+# them a millimetre holds.
+PANELS = {
+    "jc8048w500": {"width": 800, "height": 480, "points_per_mm": 7.35},
+}
+
 SPACING_MM = {
     "edge": 2.18,
     "group": 3.27,

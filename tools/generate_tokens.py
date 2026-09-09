@@ -84,6 +84,11 @@ def read_tokens() -> dict:
         else:
             tokens["radius"][name] = float(value)
 
+    # The panels, as they are: two whole numbers of pixels and a density. They
+    # pass through untouched, because unlike everything else here they are a
+    # fact about a piece of glass rather than a decision anybody made.
+    tokens["panel"] = {name: dict(values) for name, values in raw["panel"].items()}
+
     tokens["grid"] = {name: int(value) for name, value in raw["grid"].items()}
     tokens["colour"] = dict(raw["colour"])
     return tokens
@@ -194,6 +199,20 @@ def write_header(tokens: dict) -> None:
         "// The grid every edge lands on, in whole pixels.",
         f"inline constexpr Point kGrid{{{tokens['grid']['unit']}}};",
         "",
+        "// The panels. Width and height are the pixels a panel has and the",
+        "// density is what turns a millimetre above into a number of them.",
+        "// `Panel` itself is built from these in `panel.h`, which cannot be",
+        "// done here because the type lives there and includes this.",
+    ]
+    for name, values in tokens["panel"].items():
+        upper = "".join(part.capitalize() for part in name.split("_"))
+        lines += [
+            f"inline constexpr Point kPanel{upper}Width{{{values['width']}}};",
+            f"inline constexpr Point kPanel{upper}Height{{{values['height']}}};",
+            f"inline constexpr float kPanel{upper}PointsPerMm = {cpp_float(values['points_per_mm'])};",
+        ]
+    lines += [
+        "",
         "// The palette. A colour has no measurement, so these pass through as they",
         "// were written.",
     ]
@@ -224,6 +243,16 @@ def write_module(tokens: dict) -> None:
         "Do not edit: tools/generate_tokens.py overwrites this file. Change",
         "tokens/caliper.toml and run it again.",
         '"""',
+        "",
+        "# The panels, each one its width and height in pixels and how many of",
+        "# them a millimetre holds.",
+        "PANELS = {",
+    ]
+    for name, values in tokens["panel"].items():
+        lines.append('    "%s": {"width": %d, "height": %d, "points_per_mm": %s},'
+                     % (name, values["width"], values["height"], values["points_per_mm"]))
+    lines += [
+        "}",
         "",
         "SPACING_MM = {",
     ]
