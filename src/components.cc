@@ -534,13 +534,15 @@ bool Screen::InABand(Object object) const {
 
 namespace {
 
-/// The three layers, each of them three rows, and where the switch leads next.
-/// The third carries what a password needs and neither of the others had room
-/// for: a network whose word is "Haus|2026" cannot be entered without the bar,
-/// and that is noticed in front of the network and nowhere earlier.
 /**
  * One of the keyboard's layers: what its three rows say whilst it is
  * showing.
+ *
+ * A keyboard shows three of these: the letters, which depend on the language
+ * per `KeyboardLayout`, the figures, and the symbols. The third carries what
+ * a password needs and neither of the others had room for: a network whose
+ * word is "Haus|2026" cannot be entered without the bar, and that is noticed
+ * in front of the network and nowhere earlier.
  */
 struct Layer {
    const char* top;

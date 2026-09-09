@@ -52,21 +52,6 @@ struct Typography {
 };
 
 /**
- * Registers Caliper's look with the graphics library, for one display.
- *
- * It is a theme rather than a second styling world beside the library's own.
- * Anything taken straight from LVGL is styled by it too, so a widget nobody
- * wrapped still belongs to the same design instead of standing beside it.
- *
- * The values come from the generated header, so the device and the documents
- * that describe it cannot carry different ones.
- *
- * @param display The display to style.
- * @param panel The panel it draws on, which turns the physical values into
- *              points.
- * @param fonts The typefaces to set text in.
- */
-/**
  * The accent in force.
  *
  * One colour on a screen of greys, and the one a person picks, so it is not
@@ -98,6 +83,21 @@ std::uint32_t AccentDim();
  */
 void SetAccent(std::uint32_t colour);
 
+/**
+ * Registers Caliper's look with the graphics library, for one display.
+ *
+ * It is a theme rather than a second styling world beside the library's own.
+ * Anything taken straight from LVGL is styled by it too, so a widget nobody
+ * wrapped still belongs to the same design instead of standing beside it.
+ *
+ * The values come from the generated header, so the device and the documents
+ * that describe it cannot carry different ones.
+ *
+ * @param display The display to style.
+ * @param panel The panel it draws on, which turns the physical values into
+ *              points.
+ * @param fonts The typefaces to set text in.
+ */
 void InstallTheme(lv_display_t* display, const Panel& panel, const Typography& fonts);
 
 /// The typefaces the theme was installed with, for a component that sets text.

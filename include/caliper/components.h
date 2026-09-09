@@ -653,16 +653,6 @@ Object Button(Object parent, const Panel& panel, const char* label, Emphasis emp
 Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbol, Point size, bool accent = false);
 
 /**
- * What is playing, as artwork with two lines beside it.
- *
- * @param parent What it goes into.
- * @param panel The panel, for the measurements.
- * @param cover The artwork, or nullptr for none.
- * @param title What is playing.
- * @param second Where it is playing.
- * @returns The group.
- */
-/**
  * The field a keyboard types into.
  *
  * A secret field carries a key at its right end that shows what was typed and
@@ -681,6 +671,16 @@ Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbo
 Object TextField(Object parent, const Panel& panel, bool secret = false, const lv_image_dsc_t* reveal = nullptr,
                  const lv_image_dsc_t* conceal = nullptr);
 
+/**
+ * What is playing, as artwork with two lines beside it.
+ *
+ * @param parent What it goes into.
+ * @param panel The panel, for the measurements.
+ * @param cover The artwork, or nullptr for none.
+ * @param title What is playing.
+ * @param second Where it is playing.
+ * @returns The group.
+ */
 Object PlayingInfo(Object parent, const Panel& panel, const lv_image_dsc_t* cover, const char* title,
                    const char* second);
 

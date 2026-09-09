@@ -6,7 +6,7 @@
 #include "caliper/units.h"
 
 /**
- * The six things about a screen that can be settled mechanically.
+ * The seven things about a screen that can be settled mechanically.
  *
  * None of them is checked by a graphics toolkit, and none is visible on a
  * screen at four times the size. Whether a surface can still be hit and a line
