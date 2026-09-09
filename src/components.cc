@@ -2,6 +2,7 @@
 
 #include <iterator>
 
+#include "caliper/keyboards.h"
 #include "caliper/shapes.h"
 #include "caliper/theme.h"
 #include "caliper/tokens.h"
@@ -549,123 +550,30 @@ bool Screen::InABand(Object object) const {
 namespace {
 constexpr int kLayerCount = 3;
 
-/// What can stand at the end of a row of the first layer.
-enum class End {
-   kNothing,
-   kFiller,
-   kShift,
-   kBackspace,
-};
-
-/// The four rows of the first layer, in the order they are drawn.
-constexpr int kRowCount = 4;
-
-/**
- * The first layer of one country's keyboard.
- *
- * Everything here was read off that country's own layout and then measured
- * against this panel with `tools/keyboard-layout.html` in LEVEL. The rows are
- * the characters unshifted; `shifted` says what shift makes of each of them,
- * position by position, with a space where shift makes nothing new. A letter
- * has no entry there, because shift relabels the whole row to capitals.
- */
-struct Alphabet {
-   const char* rows[kRowCount];
-   const char* shifted[kRowCount];
-
-   /// The characters this country's layout cannot reach, and nothing else.
-   ///
-   /// A tablet keyboard needs two layers of symbols because its letters carry
-   /// no punctuation at all. This one carries a whole national layout with a
-   /// second case, so it reaches nearly everything already: on the English
-   /// layout, 37 of the 44 characters those two layers held stood on the
-   /// letters as well, each on a different key. A character that can be typed
-   /// in two places, and in two different places, is the one thing a keyboard
-   /// must not do, so what is reachable does not appear here.
-   ///
-   /// One row per kind, so that a row means something and a character is looked
-   /// for rather than hunted: the punctuation a password wants, then the money,
-   /// then the marks a language sets its sentences with. Each row is centred,
-   /// and a space leaves a key out whilst keeping its place, which is what
-   /// centres it and what lets a row end short without the rest closing up.
-   ///
-   /// The fourth row carries nothing, because three kinds hold everything any
-   /// of these languages is missing, and a row that empties rather than
-   /// vanishes keeps the keyboard the height it had.
-   const char* symbols[kRowCount];
-
-   End ends[kRowCount][2];
-   Millimeter lead[kRowCount];
-};
-
-constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "<yxcvbnm,.-"},
-                           {"°!\"§$%&/()=?", "           *", "           '", ">       ;:_"},
-                           {" ~`[]{}\\|@", "    €£¥", "   «»¡¿…", ""},
-                           {{End::kNothing, End::kBackspace},
-                            {End::kFiller, End::kFiller},
-                            {End::kFiller, End::kFiller},
-                            {End::kShift, End::kFiller}},
-                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
-
-constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "`zxcvbnm,./"},
-                            {"±!@#$%^&*()_", "          {}", "         :\"|", "~       <>?"},
-                            {"     =+", "    €£¥", "   °«»¡¿…", ""},
-                            {{End::kNothing, End::kBackspace},
-                             {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kFiller},
-                             {End::kShift, End::kFiller}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
-
-/// The one layout whose digits come with shift rather than without. That is
-/// kept: the accents stand unshifted where they do on the keyboard, and the
-/// digits over them.
-constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "<wxcvbn,;:="},
-                           {"#1234567890°", "          ¨*", "          %£", ">       ./+"},
-                           {" ~_[]{}\\|-?", "     €¥", "   «»¡¿…", ""},
-                           {{End::kNothing, End::kBackspace},
-                            {End::kFiller, End::kFiller},
-                            {End::kFiller, End::kFiller},
-                            {End::kShift, End::kFiller}},
-                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
-
-constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "<zxcvbnm,.-"},
-                            {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", ">       ;:_"},
-                            {" ~[]{}\\|@#", "    €£¥", "  §°«»¡¿…", ""},
-                            {{End::kNothing, End::kBackspace},
-                             {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kFiller},
-                             {End::kShift, End::kFiller}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
-
-constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "<zxcvbnm,.-"},
-                            {"|!\"£$%&/()=?", "          é*", "         ç°", ">       ;:_"},
-                            {" ~`^[]{}@#", "     €¥", "   §«»¡¿…", ""},
-                            {{End::kNothing, End::kBackspace},
-                             {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kFiller},
-                             {End::kShift, End::kFiller}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+/// The layouts, the sizes they are drawn at and the type that holds them all
+/// come from `tokens/keyboards.json`, which the layout page in LEVEL reads as
+/// well. Nothing about a keyboard is written here.
+using keyboards::Alphabet;
+using keyboards::End;
+using keyboards::kCharacterKeys;
+using keyboards::kRowCount;
 
 /// Which alphabet a language types on.
 constexpr const Alphabet& AlphabetFor(KeyboardLayout which) {
    switch (which) {
       case KeyboardLayout::kEnglish:
-         return kEnglish;
+         return keyboards::kEnglish;
       case KeyboardLayout::kFrench:
-         return kFrench;
+         return keyboards::kFrench;
       case KeyboardLayout::kSpanish:
-         return kSpanish;
+         return keyboards::kSpanish;
       case KeyboardLayout::kItalian:
-         return kItalian;
+         return keyboards::kItalian;
       case KeyboardLayout::kGerman:
          break;
    }
-   return kGerman;
+   return keyboards::kGerman;
 }
-
-/// How many keys the fullest layer needs a label for: the letters, at twelve,
-/// twelve, twelve and eleven.
-constexpr int kCharacterKeys = 47;
 
 /// A screen carries one keyboard, so what it is showing is one answer here
 /// rather than a field on every key.

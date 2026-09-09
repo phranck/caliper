@@ -22,6 +22,10 @@ The library builds twice: as an ESP-IDF component for the device, and for the ho
 
 `tools/caliper_tokens.py` has a reader outside this repository: `Papers/level/sources/build_screens.py` imports it directly. Before removing or renaming a key, check what that generator does with it, because nothing here would notice a broken import on its own.
 
+The keyboard is the same arrangement in its own file. `tokens/keyboards.json` holds its sizes, its colours and every country's layout, and `tools/generate_keyboards.py` writes `include/caliper/keyboards.h` from it. It has two readers outside this repository as well: LEVEL's `tools/keyboard-layout.html` reads the file itself, which is why it is JSON rather than TOML, and LEVEL's `tools/fonts.sh` asks it which cut the keys are set in. The symbol rows there are derived rather than decided, so the generator works them out and writes them back: editing them by hand is undone at the next run.
+
+Neither generator is run by the build. The workflow runs both and fails where the tree came out different, which is what a generated file left behind by an edit looks like.
+
 ## What the tests reach
 
 The two host tests work on `Check` and on `Panel`, which need no board and no graphics library. Everything else, so `Inspect`, `Screen` and every component, needs a live object tree, and it is verified by building the screens in LEVEL's simulator and reading what caliper reports there.

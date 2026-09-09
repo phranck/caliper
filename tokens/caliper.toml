@@ -36,11 +36,6 @@ line_gap = "1.63 mm"  # two lines that belong together
 # is what makes it read as lying over the screen rather than fixed to it.
 floating = "1.09 mm"
 
-# Between two keys of the keyboard. Its own figure rather than a margin
-# borrowed from elsewhere: what parts two keys is a decision about a hand, and
-# it moves when the keys do.
-keyboard_gap = "1.09 mm"
-
 # The air inside the player pill, above and below what stands in it. It sets
 # the pill's height and therefore the curve of its ends as well.
 player_inset = "1.09 mm"
@@ -166,44 +161,6 @@ card_symbol = "5.44 mm"
 # not pass a size and cannot pass a different one.
 content_unavailable_symbol = "7.07 mm"
 
-# The keyboard, worked out with `tools/keyboard-layout.html` in LEVEL and read
-# off it. Every figure here is a millimetre so that a key stays the same size
-# under a finger on a panel of any density: a sharper screen draws the same key
-# with more points, not a smaller key.
-#
-# A key that writes is a little wider than it is tall, because a row of them is
-# read across and a finger travels sideways between them more often than up.
-keyboard_key = "7.1 mm"
-keyboard_key_high = "6.8 mm"
-
-# The keyboard keeps a margin of its own, tighter than the screen's, because a
-# key at the edge is still a key and the row it sits in has to reach the glass.
-#
-# The figures here are the millimetre that lands on the point wanted, not the
-# round one: this panel puts 7.35 points on a millimetre, so 1.5 mm would come
-# out at 11 points and every key after it would sit half a pixel off the grid.
-keyboard_edge = "1.36 mm"
-
-# The keys of the bottom row that are not the space bar. The one that ends the
-# task is the widest, since it carries a word that every language writes
-# differently.
-keyboard_symbols = "11.4 mm"
-keyboard_confirm = "20.9 mm"
-keyboard_escape = "12.0 mm"
-
-# What stands on a key, stated as the height of a capital rather than as a
-# point size: the cap is the part one sees, and the point size is the figure a
-# typeface wants for it.
-keyboard_char = "2.18 mm"
-keyboard_shifted = "1.63 mm"
-keyboard_stack = "1.09 mm"
-
-# What a control shows, and how far it stands from the corner it sits in. A
-# control says what it does in a corner so the middle of a row stays clear and
-# the eye reads across it.
-keyboard_mark = "2.2 mm"
-keyboard_corner = "1.1 mm"
-
 # A key of the player. The pill takes its height from this and the air around
 # it, so the shape of its ends follows whenever either moves.
 media_key = "6.80 mm"
@@ -271,14 +228,6 @@ raised = "#262626"
 # tray the keys lie in, a control key just above it, and a character key well
 # clear of both. The distance between the last two is what says at a glance
 # which keys write and which do something else, and it is larger here than
-# anywhere else in this design because a keyboard is read in a hurry.
-key_tray = "#1b1b1b"      # what the keys lie on
-key_filler = "#282828"    # a surface that carries a row to the margin and does nothing
-key_quiet = "#3a3a3a"     # a key that does something other than write
-key = "#626262"           # a key that writes
-key_ink = "#ececec"       # what a key that writes says
-key_shifted = "#c0c0c0"   # what shift would make of it, over the character
-key_mark = "#c0c0c0"      # what a control shows
 ink = "#ececec"
 
 # What stands in the status_bar is lighter than the text below it. The bar is
