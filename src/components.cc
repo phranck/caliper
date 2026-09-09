@@ -799,6 +799,12 @@ void KeyTouched(lv_event_t* event) {
 
 }  // namespace
 
+/// How long the caret stands and how long it is gone, in milliseconds. The
+/// graphics library's own figure for it, kept here because a caret that blinks
+/// at some other rate reads as a device that is busy rather than as one
+/// waiting.
+constexpr std::uint32_t kCaretBlink = 400;
+
 Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_dsc_t* reveal,
                  const lv_image_dsc_t* conceal) {
    Object field = lv_textarea_create(parent);
@@ -816,6 +822,12 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    // that says where the next character lands.
    lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
+
+   // And it blinks, which the graphics library does only where this is set:
+   // at nought it deletes the animation and leaves the caret standing. What it
+   // costs is the caret's own rectangle redrawn twice a second, which is two
+   // points by a line's height against a panel of 800 by 480.
+   lv_obj_set_style_anim_duration(field, kCaretBlink, LV_PART_CURSOR);
 
    // As tall as a button, because a field is a control and not a row in a
    // list. At a row's height it stands over the keyboard as the largest thing
@@ -885,9 +897,8 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
           LV_EVENT_CLICKED, nullptr);
    }
 
-   // The caret blinks, which is what says the field is the one being typed
-   // into. It blinks whilst the field has the focus, and this screen has one
-   // field and nothing else to give it to.
+   // The focus is what says the field is the one being typed into, and this
+   // screen has one field and nothing else to give it to.
    lv_obj_add_state(field, LV_STATE_FOCUSED);
    return field;
 }
