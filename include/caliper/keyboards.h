@@ -80,44 +80,54 @@ struct Alphabet {
 };
 
 /// Deutsch, the layout of the keyboard its country writes on.
-inline constexpr Alphabet kGerman{
-    {"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "<yxcvbnm,.-"},
-    {"°!\"§$%&/()=?", "           *", "           '", ">       ;:_"},
-    {" ~`[]{}\\|@", "    €£¥", "   «»¡¿…", ""},
-    {{End::kNothing, End::kBackspace}, {End::kFiller, End::kFiller}, {End::kFiller, End::kFiller}, {End::kShift, End::kFiller}},
-    {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+inline constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "<yxcvbnm,.-"},
+                                  {"°!\"§$%&/()=?", "           *", "           '", ">       ;:_"},
+                                  {" ~`[]{}\\|@", "    €£¥", "   «»¡¿…", ""},
+                                  {{End::kNothing, End::kBackspace},
+                                   {End::kFiller, End::kFiller},
+                                   {End::kFiller, End::kFiller},
+                                   {End::kShift, End::kFiller}},
+                                  {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// English, the layout of the keyboard its country writes on.
-inline constexpr Alphabet kEnglish{
-    {"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "`zxcvbnm,./"},
-    {"±!@#$%^&*()_", "          {}", "         :\"|", "~       <>?"},
-    {"     =+", "    €£¥", "   °«»¡¿…", ""},
-    {{End::kNothing, End::kBackspace}, {End::kFiller, End::kFiller}, {End::kFiller, End::kFiller}, {End::kShift, End::kFiller}},
-    {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+inline constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "`zxcvbnm,./"},
+                                   {"±!@#$%^&*()_", "          {}", "         :\"|", "~       <>?"},
+                                   {"     =+", "    €£¥", "   °«»¡¿…", ""},
+                                   {{End::kNothing, End::kBackspace},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kShift, End::kFiller}},
+                                   {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// Français, the layout of the keyboard its country writes on.
-inline constexpr Alphabet kFrench{
-    {"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "<wxcvbn,;:="},
-    {"#1234567890°", "          ¨*", "          %£", ">       ./+"},
-    {" ~_[]{}\\|-?", "     €¥", "   «»¡¿…", ""},
-    {{End::kNothing, End::kBackspace}, {End::kFiller, End::kFiller}, {End::kFiller, End::kFiller}, {End::kShift, End::kFiller}},
-    {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+inline constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "<wxcvbn,;:="},
+                                  {"#1234567890°", "          ¨*", "          %£", ">       ./+"},
+                                  {" ~_[]{}\\|-?", "     €¥", "   «»¡¿…", ""},
+                                  {{End::kNothing, End::kBackspace},
+                                   {End::kFiller, End::kFiller},
+                                   {End::kFiller, End::kFiller},
+                                   {End::kShift, End::kFiller}},
+                                  {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// Español, the layout of the keyboard its country writes on.
-inline constexpr Alphabet kSpanish{
-    {"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "<zxcvbnm,.-"},
-    {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", ">       ;:_"},
-    {" ~[]{}\\|@#", "    €£¥", "  §°«»¡¿…", ""},
-    {{End::kNothing, End::kBackspace}, {End::kFiller, End::kFiller}, {End::kFiller, End::kFiller}, {End::kShift, End::kFiller}},
-    {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+inline constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "<zxcvbnm,.-"},
+                                   {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", ">       ;:_"},
+                                   {" ~[]{}\\|@#", "    €£¥", "  §°«»¡¿…", ""},
+                                   {{End::kNothing, End::kBackspace},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kShift, End::kFiller}},
+                                   {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// Italiano, the layout of the keyboard its country writes on.
-inline constexpr Alphabet kItalian{
-    {"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "<zxcvbnm,.-"},
-    {"|!\"£$%&/()=?", "          é*", "         ç°", ">       ;:_"},
-    {" ~`^[]{}@#", "     €¥", "   §«»¡¿…", ""},
-    {{End::kNothing, End::kBackspace}, {End::kFiller, End::kFiller}, {End::kFiller, End::kFiller}, {End::kShift, End::kFiller}},
-    {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
+inline constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "<zxcvbnm,.-"},
+                                   {"|!\"£$%&/()=?", "          é*", "         ç°", ">       ;:_"},
+                                   {" ~`^[]{}@#", "     €¥", "   §«»¡¿…", ""},
+                                   {{End::kNothing, End::kBackspace},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kFiller, End::kFiller},
+                                    {End::kShift, End::kFiller}},
+                                   {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 }  // namespace cal::keyboards
 
