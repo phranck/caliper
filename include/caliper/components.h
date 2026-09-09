@@ -92,6 +92,19 @@ struct PlayerController {
 };
 
 /**
+ * Which alphabet the keyboard's first layer shows.
+ *
+ * Figures and symbols are the same either way; only the letters differ, in
+ * what they are and in how many columns they take. German needs its own
+ * keys for the umlauts and therefore twelve columns in its widest row;
+ * every other language this device carries so far manages in eleven.
+ */
+enum class KeyboardLayout {
+   kGerman,
+   kEnglish,
+};
+
+/**
  * What the keyboard carries.
  *
  * The symbols are passed in rather than held here, because the collection they
@@ -112,9 +125,14 @@ struct Keyboard {
    /// One layer back, which is what the same key does on the other two.
    const lv_image_dsc_t* back = nullptr;
 
-   /// Rubs out what stands before the caret, and what stands after it.
+   /// Rubs out what stands before the caret. The letters carry their own
+   /// delete key now, so there is nothing left to rub out ahead of it.
    const lv_image_dsc_t* backspace = nullptr;
-   const lv_image_dsc_t* forward_delete = nullptr;
+
+   /// Which letters the first layer shows. The rest of the keyboard is the
+   /// same in either case; only the alphabet and how many columns it takes
+   /// depend on the language a word is typed in.
+   KeyboardLayout layout = KeyboardLayout::kGerman;
 };
 
 /**
@@ -333,13 +351,19 @@ class Screen {
    Object player_controller(const PlayerController& player);
 
    /**
-    * The keyboard along the bottom, in three layers.
+    * The keyboard along the bottom, in four rows.
     *
-    * Row two is inset by half a key against row one, and row three carries a
-    * modifier at each end. The two modifiers are different widths on purpose,
-    * and that difference is what keeps the letters of row three out of row
-    * two's columns: on a keyboard no two rows line up, and the eye finds a key
-    * by its offset against the row above.
+    * Three of letters and one of controls. The first row carries one delete
+    * key at its trailing end, and the third a modifier at each end. The
+    * third row's two modifiers are different widths on purpose, and that
+    * difference is what keeps its letters out of the second row's columns:
+    * on a keyboard no two rows line up, and the eye finds a key by its
+    * offset against the row above. Row two is inset by half a key against
+    * row one for the same reason, and carries no modifier of its own.
+    *
+    * How many columns the first and third rows take, and which letters
+    * stand on them, follows `keys.layout`. Figures and symbols are the same
+    * whichever it is.
     *
     * The key at the bottom left walks through the layers in a ring, so letters,
     * figures, symbols and back to letters. A ring rather than a pair, because
@@ -347,13 +371,14 @@ class Screen {
     *
     * Built from placed keys rather than from the library's own button matrix.
     * A matrix divides a row into equal parts and pads them alike, and this
-    * keyboard has three rows with different gap counts and two modifiers at
-    * stated widths, none of which a matrix can hold.
+    * keyboard has rows with different column counts and modifiers at stated
+    * or computed widths, none of which a matrix can hold.
     *
-    * A screen carries one keyboard, which is why the layer it is showing is
-    * kept here rather than on the object.
+    * A screen carries one keyboard, which is why the layer it is showing and
+    * which letters it is showing are kept here rather than on the object.
     *
-    * @param keys What it types into and what its modifiers look like.
+    * @param keys What it types into, which alphabet it shows, and what its
+    *             modifiers look like.
     * @returns The keyboard, which sends `LV_EVENT_READY` when the key at the
     *          end is touched.
     */
