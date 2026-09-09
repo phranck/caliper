@@ -119,11 +119,11 @@ struct Keyboard {
    /// than a key, because it ends the task instead of adding a character.
    const char* confirm = nullptr;
 
-   /// Between small and capital letters, on the letters.
+   /// The key at each end of the third row, which means the other set: the
+   /// other case on the letters, and the other half of the symbols on the two
+   /// layers that have no case. It keeps this symbol on every layer, so the
+   /// key a hand reaches for without looking always answers the same way.
    const lv_image_dsc_t* shift = nullptr;
-
-   /// One layer back, which is what the same key does on the other two.
-   const lv_image_dsc_t* back = nullptr;
 
    /// Rubs out what stands before the caret. The letters carry their own
    /// delete key now, so there is nothing left to rub out ahead of it.
