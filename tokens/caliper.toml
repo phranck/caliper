@@ -116,10 +116,12 @@ status = "265 mm"
 # "Einstellungen" needs 74.5 points at 14 and has 80 less its padding.
 caption = "203 mm"
 
-# What a key of the keyboard says. Larger than the body, because a key is read
-# at a glance whilst the finger is already moving towards it. Named for the
-# label rather than the key, because the key's own colour has the shorter name.
-key_label = "468 mm"
+# What a key of the keyboard says. The body's size and the plain cut, because
+# a key is small and square and a letter set larger or heavier fills it: what
+# tells one key from the next is the letter's shape, and a shape is read best
+# with air around it. Named for the label rather than the key, because the
+# key's own colour has the shorter name.
+key_label = "405 mm"
 
 [layout]
 # The heights that decide where the content area begins and ends: StatusBar

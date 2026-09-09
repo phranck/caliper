@@ -58,7 +58,7 @@ inline constexpr Reading kBody{405.0f};
 inline constexpr Reading kSmall{345.0f};
 inline constexpr Reading kStatus{265.0f};
 inline constexpr Reading kCaption{203.0f};
-inline constexpr Reading kKeyLabel{468.0f};
+inline constexpr Reading kKeyLabel{405.0f};
 
 // Only the outer corners. Anything nested is computed by inner_radius
 // below, because two numbers drift into a pinched corner.

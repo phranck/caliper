@@ -1009,12 +1009,10 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t available = panel_.width.value - 2 * edge;
    const std::int32_t step = token::kGrid.value;
 
-   // One width for every key that writes, taken from the row that has the most
-   // of them and one key at its end. That row is the tightest, so a width that
-   // fits there fits everywhere, and every other row has more to give its ends.
-   const int most = Columns(letters.top) > Columns(letters.middle) ? Columns(letters.top) : Columns(letters.middle);
-   const std::int32_t share = (available - most * gap) / (most + 1);
-   const std::int32_t key_width = share - share % step;
+   // A key that writes is square, which is what the reference draws and what a
+   // finger expects: the same reach across as down. It is therefore as wide as
+   // a row is tall, and everything else on the row follows from that.
+   const std::int32_t key_width = key_height;
 
    int index = 0;
    const auto row_of = [&](const char* text, std::int32_t left, std::int32_t row_top) {
@@ -1057,35 +1055,25 @@ Object Screen::keyboard(const Keyboard& keys) {
    // two would come out narrower than a key that writes. A row is never left
    // short of the trailing margin: whatever the characters do not spend is
    // divided between the ends, and an odd point goes to the trailing one.
-   const auto fill_row = [&](std::int32_t row_top, const char* text, const EndKey& lead, const EndKey& trail,
-                             bool alone_leads) {
+   // Lays one row: a key at the leading end where there is one, the characters
+   // at their one width, and a key at the trailing end where there is one.
+   // Whichever ends the row has share what the characters leave, so the row
+   // reaches both margins. A row with no end key stands in the middle of the
+   // panel instead, which is the one row that does not reach them and the one
+   // this alphabet leaves nothing for.
+   const auto fill_row = [&](std::int32_t row_top, const char* text, const EndKey* lead, const EndKey* trail) {
       const int count = Columns(text);
-      const std::int32_t spent = count * key_width;
+      const std::int32_t spent = count * key_width + (count - 1) * gap;
+      const int ends = (lead != nullptr ? 1 : 0) + (trail != nullptr ? 1 : 0);
 
-      // A row of n characters with a key at either end has n + 1 gaps, and one
-      // with a key at one end has n. Counting them wrong leaves the row a gap
-      // short of the trailing margin, which no check reports because being
-      // short is not being off the grid.
-      const std::int32_t both = (available - spent - (count + 1) * gap) / 2;
-      const bool two = both >= key_width;
-      const std::int32_t room = available - spent - (count + (two ? 1 : 0)) * gap;
-
-      // Where only one key fits, which side it stands on decides whether this
-      // row lines up with the one above it. Two rows of the same length with
-      // their one key on the same side are the same row twice, and that is
-      // the grid this layout exists to break.
-      const std::int32_t leading_width = two ? room / 2 - (room / 2) % step : (alone_leads ? room : 0);
-      const std::int32_t trailing_width = two || !alone_leads ? room - leading_width : 0;
-
-      const auto place = [&](const EndKey& what, std::int32_t left, std::int32_t width) {
-         if (width <= 0) {
-            return;
-         }
+      const auto place = [&](const EndKey& what, std::int32_t left, std::int32_t width, bool leading) {
          Object key = cap(left, row_top, width, true, what.does, what.layer);
+         const lv_align_t corner_of = leading ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_BOTTOM_RIGHT;
+         const std::int32_t across = leading ? corner : -corner;
+
          if (what.words != nullptr) {
             Object label = lettering(key, what.words, true);
-            lv_obj_align(label, left == edge ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_BOTTOM_RIGHT,
-                         left == edge ? corner : -corner, -corner);
+            lv_obj_align(label, corner_of, across, -corner);
             if (what.does == Does::kLayerToggle && showing.layer_key_count < Showing::kLayerKeys) {
                showing.layer_keys[showing.layer_key_count] = label;
                showing.layer_key_count += 1;
@@ -1093,63 +1081,70 @@ Object Screen::keyboard(const Keyboard& keys) {
             return;
          }
          if (what.mark != nullptr) {
-            Object glyph = marking(key, what.mark, what.does == Does::kModify);
-            lv_obj_align(glyph, left == edge ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_BOTTOM_RIGHT,
-                         left == edge ? corner : -corner, -corner);
+            lv_obj_align(marking(key, what.mark, what.does == Does::kModify), corner_of, across, -corner);
          }
       };
 
+      if (ends == 0) {
+         const std::int32_t inset = (available - spent) / 2;
+         row_of(text, edge + inset - inset % step, row_top);
+         return;
+      }
+
+      const std::int32_t room = available - spent - ends * gap;
+      const std::int32_t leading_width = ends == 2 ? room / 2 - (room / 2) % step : (lead != nullptr ? room : 0);
+      const std::int32_t trailing_width = room - leading_width;
+
       std::int32_t left = edge;
-      if (leading_width > 0) {
-         place(lead, left, leading_width);
+      if (lead != nullptr) {
+         place(*lead, left, leading_width, true);
          left += leading_width + gap;
       }
       left = row_of(text, left, row_top);
-      place(trail, left, trailing_width);
+      if (trail != nullptr) {
+         place(*trail, left, trailing_width, false);
+      }
    };
 
-   const EndKey kBackspace{nullptr, keys.backspace, Does::kBackspace, 0};
-   const EndKey kToFigures{"123", nullptr, Does::kLayerToggle, 0};
-   const EndKey kToSymbols{"#+=", nullptr, Does::kSwitch, 2};
-   const EndKey kShift{nullptr, keys.shift, Does::kModify, 0};
+   const EndKey rub_out{nullptr, keys.backspace, Does::kBackspace, 0};
+   const EndKey to_figures{"123", nullptr, Does::kLayerToggle, 0};
+   const EndKey to_symbols{"#+=", nullptr, Does::kSwitch, 2};
+   const EndKey shift{nullptr, keys.shift, Does::kModify, 0};
 
    // The digits, which are the same on every layer, so none of them is handed
    // to `Relabel`.
-   fill_row(row_at(0), kDigits, kToSymbols, kBackspace, true);
+   // The digits, which are the same on every layer, with the key that rubs out
+   // at their trailing end. That is where a keyboard with a row of digits puts
+   // it, and it is the widest key on the row for the same reason.
+   fill_row(row_at(0), kDigits, nullptr, &rub_out);
 
    // The digits took the first ten places in the list of labels. The letters
    // start again at nought and write over them, which is what should happen:
    // the list is what `Relabel` walks when the layer changes, and a digit is
-   // the same on every layer.
+   // the same whichever layer that is.
    index = 0;
-   fill_row(row_at(1), letters.top, kToFigures, kBackspace, false);
-   fill_row(row_at(2), letters.middle, kToSymbols, kToFigures, true);
-   fill_row(row_at(3), letters.bottom, kShift, kShift, false);
 
-   // The bottom row. The leading key carries the way to the figures and the
-   // way back from them, and so do the keys at the ends of the two rows of
-   // letters, which is why more than one of them changes what it says. Escape
-   // stands at the trailing edge, because it is the way back and every screen
-   // keeps that where a thumb already expects it; the button that ends the
-   // task keeps its own wide place beside it, and the space bar takes the
-   // rest, filled like a key that writes because that is what it does.
+   // No key stands twice. There are seven that do not write and eight places
+   // wanting one, so the row of letters in the middle takes none and stands in
+   // the middle of the panel instead. It is the row that reads as inset on
+   // every keyboard ever drawn, so it is the one to leave.
+   fill_row(row_at(1), letters.top, &to_figures, nullptr);
+   fill_row(row_at(2), letters.middle, nullptr, nullptr);
+   fill_row(row_at(3), letters.bottom, &shift, &shift);
+
+   // The bottom row. The key that jumps to the symbols stands at the leading
+   // edge, the space bar takes seven keys of it, the button that ends the task
+   // keeps its own place, and escape stands at the trailing edge, because that
+   // is where every screen keeps its way back and a thumb already expects it.
    const std::int32_t fourth_top = row_at(4);
 
-   Object numbers = cap(edge, fourth_top, switch_width, true, Does::kLayerToggle);
-   Object numbers_label = lettering(numbers, "123", true);
-   lv_obj_align(numbers_label, LV_ALIGN_BOTTOM_LEFT, gap, -gap);
-   if (showing.layer_key_count < Showing::kLayerKeys) {
-      showing.layer_keys[showing.layer_key_count] = numbers_label;
-      showing.layer_key_count += 1;
-   }
+   Object symbols = cap(edge, fourth_top, switch_width, true, Does::kSwitch, 2);
+   lv_obj_align(lettering(symbols, "#+=", true), LV_ALIGN_BOTTOM_LEFT, corner, -corner);
 
    std::int32_t right = panel_.width.value - edge;
    if (keys.escape != nullptr) {
-      // As wide as one of the keys at the other end, so both ends of the row
-      // weigh the same and the way out is as easy to hit as the way into the
-      // figures. The space bar gives up the width, having more than it needs.
       Object escaping = cap(right - switch_width, fourth_top, switch_width, true, Does::kEscape);
-      lv_obj_align(marking(escaping, keys.escape, false), LV_ALIGN_BOTTOM_RIGHT, -gap, -gap);
+      lv_obj_align(marking(escaping, keys.escape, false), LV_ALIGN_BOTTOM_RIGHT, -corner, -corner);
       right -= switch_width + gap;
    }
 
@@ -1164,10 +1159,13 @@ Object Screen::keyboard(const Keyboard& keys) {
       right -= width + gap;
    }
 
-   // The space bar is a key that writes, so it is filled like one. It takes
-   // what the four keys around it leave, which is most of the row.
+   // The space bar is a key that writes, so it is filled like one, and it is
+   // as wide as seven of them because that is what a hand spans. It takes the
+   // rest of the row where the keys beside it leave more than that.
    const std::int32_t space_left = edge + switch_width + gap;
-   cap(space_left, fourth_top, right - gap - space_left, false, Does::kSpace);
+   const std::int32_t seven = 7 * key_width + 6 * gap;
+   const std::int32_t space_room = right - gap - space_left;
+   cap(space_left, fourth_top, space_room < seven ? space_room : seven, false, Does::kSpace);
 
    // The field spans the content it stands in, which is the widest thing on
    // the screen and lands on the grid in every language. Tied to the rows of
