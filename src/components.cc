@@ -958,15 +958,30 @@ Object Screen::keyboard(const Keyboard& keys) {
    const int row1_columns = Columns(letters.top) + 1;
    const std::int32_t key_width = (available - (row1_columns - 1) * gap) / row1_columns;
    const std::int32_t row_width = row1_columns * key_width + (row1_columns - 1) * gap;
-   const std::int32_t row_left = (panel_.width.value - row_width) / 2;
+   // Snapped to the grid, because centring a row does not land on it by
+   // itself. A row of eleven columns comes out 762 wide on this panel and
+   // leaves 19 at each side, which is half a pixel away from every other edge
+   // on the screen. Rounded down rather than up, so the row keeps its full
+   // width and gives the odd point to the trailing margin.
+   const std::int32_t step = token::kGrid.value;
+   const std::int32_t centred = (panel_.width.value - row_width) / 2;
+   const std::int32_t row_left = centred - centred % step;
 
    // The digits span the same measure as the letters below them, in ten equal
    // columns of their own. They are wider than a letter because there are
    // fewer of them, and they are the same on every layer, so nothing here is
    // handed to `Relabel`.
    const int digit_columns = Columns(kDigits);
-   const std::int32_t digit_width = (row_width - (digit_columns - 1) * gap) / digit_columns;
-   std::int32_t digit_left = row_left;
+   const std::int32_t digit_span = (row_width - (digit_columns - 1) * gap) / digit_columns;
+
+   // Every width on this row has to be even, or every second key starts half a
+   // pixel off the grid. Snapping the key rather than the position is what
+   // does it: with an even key and an even gap, one even start carries the
+   // whole row.
+   const std::int32_t digit_width = digit_span - digit_span % step;
+   const std::int32_t digit_used = digit_columns * digit_width + (digit_columns - 1) * gap;
+   const std::int32_t digit_inset = (row_width - digit_used) / 2;
+   std::int32_t digit_left = row_left + digit_inset - digit_inset % step;
    for (const char* at = kDigits; *at != '\0'; ++at) {
       const char one[2] = {*at, '\0'};
       lettering(cap(digit_left, row_at(0), digit_width, false, Does::kType), one, false);
@@ -986,7 +1001,6 @@ Object Screen::keyboard(const Keyboard& keys) {
    const int row2_columns = Columns(letters.middle);
    const std::int32_t second_width = row2_columns * key_width + (row2_columns - 1) * gap;
    const std::int32_t second_left = (panel_.width.value - second_width) / 2;
-   const std::int32_t step = token::kGrid.value;
    row_of(letters.middle, second_left - second_left % step, row_at(2), key_width);
 
    // The third row spans the same measure as the first and second, edge to
@@ -998,9 +1012,15 @@ Object Screen::keyboard(const Keyboard& keys) {
    // is nothing left to make one of them different.
    const std::int32_t third_top = row_at(3);
    const int row3_columns = Columns(letters.bottom);
-   const std::int32_t leading_shift = german ? panel_(token::kKeyboardShift).value
-                                             : (available - row3_columns * key_width - (row3_columns + 1) * gap) / 2;
-   const std::int32_t trailing_shift = available - leading_shift - row3_columns * key_width - (row3_columns + 1) * gap;
+   const std::int32_t row3_keys = row3_columns * key_width + (row3_columns + 1) * gap;
+   const std::int32_t even_share = (available - row3_keys) / 2;
+
+   // Snapped, for the reason the digit row is: the letters between the two
+   // modifiers start where the leading one ends, so an odd modifier puts every
+   // letter on this row half a pixel off. The trailing one takes what is left
+   // and stays even, because everything it is subtracted from is.
+   const std::int32_t leading_shift = german ? panel_(token::kKeyboardShift).value : even_share - even_share % step;
+   const std::int32_t trailing_shift = available - leading_shift - row3_keys;
 
    Object leading = cap(edge, third_top, leading_shift, true, Does::kModify);
    if (keys.shift != nullptr) {
@@ -1053,11 +1073,12 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t space_left = edge + 2 * switch_width + 2 * gap;
    cap(space_left, fourth_top, right - gap - space_left, true, Does::kSpace);
 
-   // The field and the keys share one measure, worked out here because this is
-   // where it is worked out at all. A field of one width above a keyboard of
-   // another reads as two things that were placed separately.
+   // The field spans the content it stands in, which is the widest thing on
+   // the screen and lands on the grid in every language. Tied to the rows of
+   // keys instead it would inherit their column count, and eleven columns
+   // leave an odd margin where twelve leave an even one.
    if (keys.field != nullptr) {
-      lv_obj_set_width(keys.field, row_width);
+      lv_obj_set_width(keys.field, lv_pct(100));
    }
 
    // What stands above a keyboard gets the room the keyboard leaves and no
