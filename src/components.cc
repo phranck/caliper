@@ -1007,10 +1007,22 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
 
-   // And it blinks, which the graphics library does only where this is set:
-   // at nought it deletes the animation and leaves the caret standing. What it
-   // costs is the caret's own rectangle redrawn twice a second, which is two
-   // points by a line's height against a panel of 800 by 480.
+   // And it is a point narrower than the letter it stands before. The graphics
+   // library offers no width for a caret: it takes the width of that letter and
+   // adds the padding, so the padding is where a point comes off.
+   lv_obj_set_style_pad_right(field, -1, LV_PART_CURSOR);
+
+   // And it blinks, which the graphics library does only where this is set: at
+   // nought it deletes the animation and leaves the caret standing.
+   //
+   // What that costs depends on something this library does not decide. Where
+   // the display draws what changed, it is the caret's own rectangle twice a
+   // second, a few points by a line's height. Where the display redraws the
+   // whole screen for any change at all, it is the whole screen twice a second,
+   // and on a panel of 800 by 480 that alone spends a quarter of the time
+   // redrawing a screen nobody touched, with every keystroke queued behind it.
+   // A caret is the cheapest thing on a screen or one of the dearest, and which
+   // one is settled where the display is set up.
    lv_obj_set_style_anim_duration(field, kCaretBlink, LV_PART_CURSOR);
 
    // As tall as a button, because a field is a control and not a row in a
