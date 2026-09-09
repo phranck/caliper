@@ -129,6 +129,12 @@ struct Keyboard {
    /// delete key now, so there is nothing left to rub out ahead of it.
    const lv_image_dsc_t* backspace = nullptr;
 
+   /// Leaves the screen the keyboard stands on, the way the key that hid it
+   /// used to. Sent as `LV_EVENT_CANCEL` rather than folded into `confirm`,
+   /// because ending a task and abandoning it are different answers and a
+   /// caller needs to tell them apart.
+   const lv_image_dsc_t* escape = nullptr;
+
    /// Which letters the first layer shows. The rest of the keyboard is the
    /// same in either case; only the alphabet and how many columns it takes
    /// depend on the language a word is typed in.
@@ -365,9 +371,14 @@ class Screen {
     * stand on them, follows `keys.layout`. Figures and symbols are the same
     * whichever it is.
     *
-    * The key at the bottom left walks through the layers in a ring, so letters,
-    * figures, symbols and back to letters. A ring rather than a pair, because
-    * that is how a telephone does it and the hand already knows the way.
+    * Two keys in the fourth row go straight from the letters to the figures
+    * or the symbols, so reaching a bracket no longer means passing through
+    * the figures first. From either of those two, the modifier steps back to
+    * the letters, the same key that shifts them.
+    *
+    * Escape sits at the trailing edge of the fourth row, sending
+    * `LV_EVENT_CANCEL` where the confirm key sends `LV_EVENT_READY`, so a
+    * caller tells an ending task from an abandoned one.
     *
     * Built from placed keys rather than from the library's own button matrix.
     * A matrix divides a row into equal parts and pads them alike, and this
