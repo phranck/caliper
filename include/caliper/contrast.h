@@ -64,6 +64,20 @@ std::uint32_t InkOn(std::uint32_t colour);
  */
 std::uint32_t DimmedAccent(std::uint32_t colour);
 
+/**
+ * What an action is filled with, given the colour the device is set to.
+ *
+ * The accent taken far enough towards the ground that white reaches the floor
+ * above on every one of the sixteen. That is what lets the word on an action
+ * always be white: an ink that changes with the colour under it makes one
+ * control read as two, and the colour is the person's to choose whilst what a
+ * control looks like is not.
+ *
+ * @param colour The accent.
+ * @returns The fill for an action carrying it.
+ */
+std::uint32_t ActionFill(std::uint32_t colour);
+
 }  // namespace cal
 
 #endif  // CALIPER_CONTRAST_H_
