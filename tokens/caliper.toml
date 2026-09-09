@@ -172,8 +172,9 @@ content_unavailable_symbol = "7.07 mm"
 keyboard_key = "8.98 mm"
 keyboard_shift = "11.42 mm"
 
-# The key that walks through the layers, at the bottom left. Wider than a
-# letter because it carries a word rather than a character.
+# The two keys that jump straight from the letters to the figures or the
+# symbols. Wider than a letter because each carries a word rather than a
+# character.
 keyboard_switch = "13.60 mm"
 
 # A key of the player. The pill takes its height from this and the air around

@@ -540,21 +540,20 @@ namespace {
 /// and that is noticed in front of the network and nowhere earlier.
 /**
  * One of the keyboard's layers: what its three rows say whilst it is
- * showing, and what its switch key names the layer it goes to next.
+ * showing.
  */
 struct Layer {
    const char* top;
    const char* middle;
    const char* bottom;
-   const char* next;
 };
 
 /// The letters, one set per `KeyboardLayout`. Figures and symbols are the
 /// same whichever it is, so only the letters are written twice.
-constexpr Layer kGermanLetters{"qwertzuiopü", "asdfghjklöä", "yxcvbnm,.", "123"};
-constexpr Layer kEnglishLetters{"qwertyuiop", "asdfghjkl", "zxcvbnm,.", "123"};
-constexpr Layer kFigures{"1234567890", "-/:;()€&@", ".,?!'\"%", "#+="};
-constexpr Layer kSymbols{"[]{}<>\\|~^", "#$`*_+=°§", "±«»…·¿¡", "abc"};
+constexpr Layer kGermanLetters{"qwertzuiopü", "asdfghjklöä", "yxcvbnm,."};
+constexpr Layer kEnglishLetters{"qwertyuiop", "asdfghjkl", "zxcvbnm,."};
+constexpr Layer kFigures{"1234567890", "-/:;()€&@", ".,?!'\"%"};
+constexpr Layer kSymbols{"[]{}<>\\|~^", "#$`*_+=°§", "±«»…·¿¡"};
 
 constexpr int kLayerCount = 3;
 
@@ -571,7 +570,6 @@ struct Showing {
    Object labels[kCharacterKeys] = {};
    Object band = nullptr;
    Object field = nullptr;
-   Object switch_label = nullptr;
 
    /// The modifier at each end of the third row. Both answer a touch the
    /// same way and both change icon together when the layer changes.
@@ -641,10 +639,6 @@ void Relabel() {
       }
    }
 
-   if (showing.switch_label != nullptr) {
-      lv_label_set_text(showing.switch_label, layer.next);
-   }
-
    // On the letters the modifiers shift, and on the other two they step back
    // a layer, which is the same key doing the thing that is left to do.
    const lv_image_dsc_t* symbol = showing.layer == 0 ? showing.shift : showing.back;
@@ -657,18 +651,28 @@ void Relabel() {
    }
 }
 
-/// What a key does when it is touched.
+/// What a key does when it is touched. `kSwitch` carries which layer it
+/// goes to alongside it, since two keys share the action and differ only in
+/// their target.
 enum class Does {
    kType,
    kModify,
    kSwitch,
    kSpace,
    kBackspace,
+   kEscape,
 };
+
+/// `Does` packed with the layer a `kSwitch` key goes to, in the bits above
+/// it. Every other action ignores what it carries there.
+void* Touching(Does does, int layer = 0) {
+   return reinterpret_cast<void*>(static_cast<std::uintptr_t>(does) | (static_cast<std::uintptr_t>(layer) << 8));
+}
 
 void KeyTouched(lv_event_t* event) {
    Object key = static_cast<Object>(lv_event_get_target(event));
-   const Does does = static_cast<Does>(reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event)));
+   const std::uintptr_t packed = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
+   const Does does = static_cast<Does>(packed & 0xFF);
 
    switch (does) {
       case Does::kType:
@@ -685,7 +689,7 @@ void KeyTouched(lv_event_t* event) {
          Relabel();
          break;
       case Does::kSwitch:
-         showing.layer = (showing.layer + 1) % kLayerCount;
+         showing.layer = static_cast<int>(packed >> 8);
          showing.capital = false;
          Relabel();
          break;
@@ -698,6 +702,9 @@ void KeyTouched(lv_event_t* event) {
          if (showing.field != nullptr) {
             lv_textarea_delete_char(showing.field);
          }
+         break;
+      case Does::kEscape:
+         lv_obj_send_event(showing.band, LV_EVENT_CANCEL, nullptr);
          break;
    }
 }
@@ -830,7 +837,8 @@ Object Screen::keyboard(const Keyboard& keys) {
    // A rounded rectangle and not a squircle: keys side by side are where a
    // soft flank reads as restless rather than gentle, because the eye compares
    // several outlines at once.
-   const auto cap = [&](std::int32_t left, std::int32_t row_top, std::int32_t width, bool quiet, Does does) {
+   const auto cap = [&](std::int32_t left, std::int32_t row_top, std::int32_t width, bool quiet, Does does,
+                        int layer = 0) {
       Object key = lv_obj_create(keyboard_);
       MakePlain(key);
       lv_obj_set_pos(key, left, row_top);
@@ -847,8 +855,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       lv_obj_set_style_bg_color(key, lv_color_hex(Accent()), LV_STATE_PRESSED);
 
       lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
-      lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED,
-                          reinterpret_cast<void*>(static_cast<std::uintptr_t>(does)));
+      lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED, Touching(does, layer));
       return key;
    };
 
@@ -949,15 +956,28 @@ Object Screen::keyboard(const Keyboard& keys) {
       showing.modifiers[1] = marking(trailing, keys.shift, true);
    }
 
-   // The bottom row. The button that ends the task is placed first, because the
-   // space bar takes what is left: a longer word on the button makes the space
-   // bar narrower rather than pushing the row over the edge.
+   // The bottom row. Two keys go straight from the letters to the figures or
+   // the symbols, each naming where it goes rather than what is showing, so
+   // neither needs relabelling when the layer changes. Escape stands at the
+   // trailing edge, because it is the way back and every screen keeps that
+   // where a thumb already expects it; the button that ends the task keeps
+   // its own wide place beside it, and the space bar takes whatever the four
+   // of them leave in the middle.
    const std::int32_t fourth_top = first_row + 3 * (key_height + gap);
 
-   Object stepping = cap(edge, fourth_top, switch_width, true, Does::kSwitch);
-   showing.switch_label = lettering(stepping, letters.next, true);
+   Object numbers = cap(edge, fourth_top, switch_width, true, Does::kSwitch, 1);
+   lettering(numbers, "123", true);
+
+   Object symbols = cap(edge + switch_width + gap, fourth_top, switch_width, true, Does::kSwitch, 2);
+   lettering(symbols, "#+=", true);
 
    std::int32_t right = panel_.width.value - edge;
+   if (keys.escape != nullptr) {
+      Object escaping = cap(right - key_height, fourth_top, key_height, true, Does::kEscape);
+      marking(escaping, keys.escape, false);
+      right -= key_height + gap;
+   }
+
    if (keys.confirm != nullptr) {
       Object done = Button(keyboard_, panel_, keys.confirm, Emphasis::kAccent);
       lv_obj_update_layout(done);
@@ -969,7 +989,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       right -= width + gap;
    }
 
-   const std::int32_t space_left = edge + switch_width + gap;
+   const std::int32_t space_left = edge + 2 * switch_width + 2 * gap;
    cap(space_left, fourth_top, right - gap - space_left, true, Does::kSpace);
 
    Relabel();
