@@ -164,12 +164,10 @@ card_symbol = "5.44 mm"
 # not pass a size and cannot pass a different one.
 content_unavailable_symbol = "7.07 mm"
 
-# A key of the keyboard, and the wider one that shifts. Ten keys across the
-# measure give 66 points each, which is a fingertip at 9 mm, and that decides
-# every other width on it. Shift is wider so that the letters of the bottom row
-# do not land in the same column as the row above: on a keyboard no two rows
-# line up, and the eye finds a key by its offset against the one over it.
-keyboard_key = "8.98 mm"
+# The third row's leading shift, on German's layout. Its trailing modifier is
+# computed instead, from whatever the row's letters and this leading one
+# leave over. Every other language computes both ends the same way, since
+# neither has a stated width to hang one on.
 keyboard_shift = "11.42 mm"
 
 # The two keys that jump straight from the letters to the figures or the
