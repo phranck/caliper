@@ -7,7 +7,7 @@
 namespace cal {
 
 /**
- * Walks a finished screen and runs the six checks over everything on it.
+ * Walks a finished screen and runs the seven checks over everything on it.
  *
  * This is the half of the checks that needs the graphics library: it reads the
  * geometry the layout actually produced, rather than the geometry somebody

@@ -141,7 +141,7 @@ Walk walk;
  * @param scrolled Whether an enclosing container scrolls. Inside one, content
  *                 below the fold is the point rather than a fault, so the band
  *                 check is left out for it and the downward half of the margin
- *                 with it. The other four still run, and so do the sides.
+ *                 with it. The other five still run, and so do the sides.
  */
 void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
    const Element element = describe(object);

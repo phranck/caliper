@@ -121,7 +121,7 @@ struct Panel {
    /**
     * A corner inside another, in pixels.
     *
-    * The rule itself lives with the values in `tokens.hpp`; this is the same
+    * The rule itself lives with the values in `tokens.h`; this is the same
     * rule with the panel applied, so a caller drawing a nested surface never
     * handles the two corners as separate numbers.
     *
