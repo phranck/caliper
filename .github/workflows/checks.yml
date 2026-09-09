@@ -18,6 +18,23 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  style:
+    name: The style the repository writes down
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The generated data is named in .clang-format-ignore, so nothing here
+      # repeats that list. Every written source is checked, and a violation
+      # fails rather than being reported and passed over.
+      - name: Hold it
+        run: |
+          clang-format --version
+          git ls-files '*.cc' '*.h' | xargs clang-format --dry-run --Werror
+
+      - name: A doc comment that documents nothing
+        run: python3 tools/check_doc_comments.py
+
   core:
     name: The arithmetic, without a board
     runs-on: ubuntu-latest
