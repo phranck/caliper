@@ -238,8 +238,14 @@ squircle_artwork = 8.0
 bg = "#111111"
 surface = "#1b1b1b"
 raised = "#262626"
-key = "#3d3d3d"          # a key cap, lighter than the surface beneath it
-key_edge = "#4b4b4b"     # its edge, half a step lighter again
+# The keyboard, read off the reference phranck gave for it. Three steps: the
+# tray the keys lie in, a control key just above it, and a character key well
+# clear of both. The distance between the last two is what says at a glance
+# which keys write and which do something else, and it is larger here than
+# anywhere else in this design because a keyboard is read in a hurry.
+key_tray = "#1b1b1b"     # what the keys lie on
+key_quiet = "#3a3a3a"    # a key that does something other than write
+key = "#626262"          # a key that writes
 ink = "#ececec"
 
 # What stands in the status_bar is lighter than the text below it. The bar is
