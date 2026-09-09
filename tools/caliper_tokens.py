@@ -32,7 +32,6 @@ LAYOUT_MM = {
     "card": 68.0,
     "card_symbol": 5.44,
     "content_unavailable_symbol": 7.07,
-    "keyboard_key": 8.98,
     "keyboard_shift": 11.42,
     "keyboard_switch": 13.6,
     "media_key": 6.8,
