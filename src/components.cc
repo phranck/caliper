@@ -547,25 +547,6 @@ bool Screen::InABand(Object object) const {
 }
 
 namespace {
-/**
- * One of the keyboard's layers of figures or symbols: what its three rows say.
- *
- * The letters are not one of these. They differ by language in more than their
- * characters, so they have `Alphabet` to themselves.
- */
-struct Layer {
-   const char* top;
-   const char* middle;
-   const char* bottom;
-};
-
-/// What the figures and the symbols show, the same in every language. Between
-/// them they carry everything a password can be made of, down to the bar, since
-/// a network whose word is "Haus|2026" cannot be entered without it and that is
-/// noticed in front of the network and nowhere earlier.
-constexpr Layer kFigures{"[]{}<>\\|~^", "-/:;()€&@", ".,?!'\"%"};
-constexpr Layer kSymbols{"£¥¢¤©®×÷", "#$`*_+=°§", "±«»…·¿¡"};
-
 constexpr int kLayerCount = 3;
 
 /// What can stand at the end of a row of the first layer.
@@ -591,12 +572,23 @@ constexpr int kRowCount = 4;
 struct Alphabet {
    const char* rows[kRowCount];
    const char* shifted[kRowCount];
+
+   /// The two layers of symbols, in the arrangement a tablet keyboard puts
+   /// them in. They are the same in every language but for the currency, which
+   /// stands first among the four. Their fourth row carries nothing: a tablet
+   /// gives them three rows against the letters' four, and a row that empties
+   /// rather than vanishes keeps the keyboard the height it had.
+   const char* figures[kRowCount];
+   const char* symbols[kRowCount];
+
    End ends[kRowCount][2];
    Millimeter lead[kRowCount];
 };
 
 constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "yxcvbnm,.-"},
                            {"°!\"§$%&/()=?", "           *", "           '", "       ;:"},
+                           {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
+                           {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
                             {End::kFiller, End::kFiller},
@@ -605,6 +597,8 @@ constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", 
 
 constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "zxcvbnm,./"},
                             {"±!@#$%^&*()_", "          {}", "         :\"|", "       <>?"},
+                            {"1234567890", "@#$&*()'\"", "%-+=/;:!?", ""},
+                            {"1234567890", "$€£¥_^[]{}", "§|~…\\<>!?", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
@@ -616,6 +610,8 @@ constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "
 /// digits over them.
 constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "wxcvbn,;:="},
                            {"#1234567890°", "          ¨*", "          %£", "       ./+"},
+                           {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
+                           {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
                             {End::kFiller, End::kFiller},
@@ -624,6 +620,8 @@ constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`
 
 constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "zxcvbnm,.-"},
                             {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", "       ;:_"},
+                            {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
+                            {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
@@ -632,6 +630,8 @@ constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç",
 
 constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "zxcvbnm,.-"},
                             {"|!\"£$%&/()=?", "          é*", "         ç°", "       ;:_"},
+                            {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
+                            {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
@@ -662,10 +662,9 @@ constexpr int kCharacterKeys = 46;
 /// A screen carries one keyboard, so what it is showing is one answer here
 /// rather than a field on every key.
 struct Showing {
-   /// The letters, chosen from `keys.layout` when the keyboard was built, and
-   /// the two layers of symbols that are the same in every language.
+   /// The letters and the two layers of symbols, chosen from `keys.layout`
+   /// when the keyboard was built.
    const Alphabet* alphabet = nullptr;
-   Layer layers[kLayerCount] = {};
 
    /// What each key says, and over it what shift would make of it. The second
    /// is empty on a key where shift makes a capital, since the whole row is
@@ -757,16 +756,13 @@ void OneCharacter(const char* at, int bytes, char* into) {
 void Relabel() {
    const char* rows[kRowCount] = {};
    const char* shifted[kRowCount] = {};
-   if (showing.layer == 0 && showing.alphabet != nullptr) {
+   if (showing.alphabet != nullptr) {
       for (int row = 0; row < kRowCount; ++row) {
-         rows[row] = showing.alphabet->rows[row];
-         shifted[row] = showing.alphabet->shifted[row];
+         rows[row] = showing.layer == 1   ? showing.alphabet->figures[row]
+                     : showing.layer == 2 ? showing.alphabet->symbols[row]
+                                          : showing.alphabet->rows[row];
+         shifted[row] = showing.layer == 0 ? showing.alphabet->shifted[row] : nullptr;
       }
-   } else {
-      const Layer& layer = showing.layers[showing.layer];
-      rows[0] = layer.top;
-      rows[1] = layer.middle;
-      rows[2] = layer.bottom;
    }
 
    int index = 0;
@@ -1081,8 +1077,6 @@ Object Screen::keyboard(const Keyboard& keys) {
    showing.field = keys.field;
    showing.shift = keys.shift;
    showing.alphabet = &AlphabetFor(keys.layout);
-   showing.layers[1] = kFigures;
-   showing.layers[2] = kSymbols;
    const Alphabet& letters = *showing.alphabet;
 
    // One cap. Three steps, and the middle one is where a key stops writing: a
