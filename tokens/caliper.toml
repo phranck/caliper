@@ -187,10 +187,10 @@ keyboard_edge = "1.36 mm"
 # The keys of the bottom row that are not the space bar. The one that ends the
 # task is the widest, since it carries a word that every language writes
 # differently.
-keyboard_layer = "9.2 mm"
+keyboard_layer = "11.4 mm"
 keyboard_symbols = "11.4 mm"
-keyboard_confirm = "21.2 mm"
-keyboard_escape = "9.2 mm"
+keyboard_confirm = "20.9 mm"
+keyboard_escape = "12.0 mm"
 
 # What stands on a key, stated as the height of a capital rather than as a
 # point size: the cap is the part one sees, and the point size is the figure a

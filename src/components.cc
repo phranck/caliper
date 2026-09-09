@@ -599,17 +599,17 @@ constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", 
                            {"°!\"§$%&/()=?", "           *", "           '", "       ;:"},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
-                            {End::kFiller, End::kNothing},
+                            {End::kFiller, End::kFiller},
                             {End::kShift, End::kShift}},
-                           {Millimeter{6.5f}, Millimeter{3.5f}, Millimeter{8.1f}, Millimeter{11.7f}}};
+                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
 
 constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "zxcvbnm,./"},
                             {"±!@#$%^&*()_", "          {}", "         :\"|", "       <>?"},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kNothing},
+                             {End::kFiller, End::kFiller},
                              {End::kShift, End::kShift}},
-                            {Millimeter{6.5f}, Millimeter{3.5f}, Millimeter{8.1f}, Millimeter{11.7f}}};
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
 
 /// The one layout whose digits come with shift rather than without. That is
 /// kept: the accents stand unshifted where they do on the keyboard, and the
@@ -618,25 +618,25 @@ constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`
                            {"#1234567890°", "          ¨*", "          %£", "       ./+"},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
-                            {End::kFiller, End::kNothing},
+                            {End::kFiller, End::kFiller},
                             {End::kShift, End::kShift}},
-                           {Millimeter{4.2f}, Millimeter{3.5f}, Millimeter{8.1f}, Millimeter{11.7f}}};
+                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
 
 constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "zxcvbnm,.-"},
                             {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", "       ;:_"},
-                            {{End::kFiller, End::kBackspace},
+                            {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kNothing},
+                             {End::kFiller, End::kFiller},
                              {End::kShift, End::kShift}},
-                            {Millimeter{0.0f}, Millimeter{3.5f}, Millimeter{8.1f}, Millimeter{11.7f}}};
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
 
 constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "zxcvbnm,.-"},
                             {"|!\"£$%&/()=?", "          é*", "         ç°", "       ;:_"},
-                            {{End::kFiller, End::kBackspace},
+                            {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
-                             {End::kFiller, End::kNothing},
+                             {End::kFiller, End::kFiller},
                              {End::kShift, End::kShift}},
-                            {Millimeter{0.0f}, Millimeter{3.5f}, Millimeter{8.1f}, Millimeter{11.7f}}};
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
 
 /// Which alphabet a language types on.
 constexpr const Alphabet& AlphabetFor(KeyboardLayout which) {
@@ -717,6 +717,24 @@ int Columns(const char* text) {
       at += CharacterBytes(at);
    }
    return count;
+}
+
+/**
+ * Puts a label so that the top of its capitals lands where it is wanted.
+ *
+ * A label is placed by its box, and a box is a whole line tall: it keeps the
+ * room above the letter that a second line of text would need. What one sees on
+ * a key is the capital, so the room above it is measured out of the way first.
+ *
+ * @param label The label, with its face already set.
+ * @param top Where the top of a capital is to land, from the top of the key.
+ * @param cap How tall a capital is in that face.
+ */
+void CapAt(Object label, std::int32_t top, std::int32_t cap) {
+   const lv_font_t* face = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+   const std::int32_t above =
+       face == nullptr ? 0 : static_cast<std::int32_t>(lv_font_get_line_height(face)) - face->base_line - cap;
+   lv_obj_align(label, LV_ALIGN_TOP_MID, 0, top - above);
 }
 
 /// Copies one character out of a string, however many bytes it takes.
@@ -1154,9 +1172,15 @@ Object Screen::keyboard(const Keyboard& keys) {
       }
       Object over = lettering(key, "", token::kKeyShifted, token::kKeyboardShifted);
       Object under = lettering(key, one, token::kKeyInk, token::kKeyboardChar);
+
+      // The two are placed by where their capitals are to land, not by where
+      // their boxes are. A label's box is a line tall and a line keeps room
+      // above and below the letter, so aligning boxes to a figure meant for
+      // capitals drops the character towards the bottom of the key and past it.
       const std::int32_t both = shifted_cap + stack + char_cap;
-      lv_obj_align(over, LV_ALIGN_TOP_MID, 0, (key_height - both) / 2);
-      lv_obj_align(under, LV_ALIGN_TOP_MID, 0, (key_height - both) / 2 + shifted_cap + stack);
+      const std::int32_t first = (key_height - both) / 2;
+      CapAt(over, first, shifted_cap);
+      CapAt(under, first + shifted_cap + stack, char_cap);
       showing.shifted[index] = over;
       showing.labels[index] = under;
       index += 1;
