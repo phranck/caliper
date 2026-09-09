@@ -54,7 +54,7 @@ READING_MM = {
     "small": 345.0,
     "status": 265.0,
     "caption": 203.0,
-    "key_label": 468.0,
+    "key_label": 405.0,
 }
 
 CAP_ANGLE_MRAD = 6.1
