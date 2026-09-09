@@ -82,6 +82,14 @@ inline constexpr Millimeter kRadiusButton = InnerRadius(kRadiusCard, kInset);
 // The grid every edge lands on, in whole pixels.
 inline constexpr Point kGrid{2};
 
+// The panels. Width and height are the pixels a panel has and the
+// density is what turns a millimetre above into a number of them.
+// `Panel` itself is built from these in `panel.h`, which cannot be
+// done here because the type lives there and includes this.
+inline constexpr Point kPanelJc8048w500Width{800};
+inline constexpr Point kPanelJc8048w500Height{480};
+inline constexpr float kPanelJc8048w500PointsPerMm = 7.35f;
+
 // The palette. A colour has no measurement, so these pass through as they
 // were written.
 inline constexpr std::uint32_t kBg = 0x111111;

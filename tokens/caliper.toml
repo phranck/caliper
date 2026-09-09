@@ -9,6 +9,19 @@
 # same number of pixels. Points appear nowhere in this file; they are what comes
 # out of it once a panel is known.
 
+# The panels this library measures for. Width and height are the pixels a panel
+# has, and the density is what turns every millimetre above into a number of
+# them. The first entry is the one on the bench.
+#
+# These are pixels rather than millimetres because they are what a panel is,
+# not what somebody chose. Everything else in this file is a decision and is
+# therefore physical; a panel's resolution is a fact about a piece of glass.
+
+[panel.jc8048w500]
+width = 800
+height = 480
+points_per_mm = 7.35
+
 [spacing]
 edge = "2.18 mm"      # the screen's edge to anything inside it
 group = "3.27 mm"     # two groups side by side, such as a cover and its text
