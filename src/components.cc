@@ -68,9 +68,7 @@ Screen::Screen(const Panel& panel, Frame frame) : panel_(panel), frame_(frame) {
 
 /// What a bare screen keeps clear at each end: the room the two answers in the
 /// corners take, and the air around them.
-static std::int32_t BareEnd(const Panel& panel) {
-   return 2 * panel(token::kInset).value + panel(token::kBandButton).value;
-}
+static std::int32_t BareEnd(const Panel& panel) { return 2 * panel(token::kInset).value + panel(token::kButton).value; }
 
 Point Screen::ContentTop() const {
    // The same at the top as at the bottom. Nothing stands up there, and the
@@ -80,7 +78,7 @@ Point Screen::ContentTop() const {
    if (frame_ == Frame::kBare) {
       return Point{BareEnd(panel_)};
    }
-   return Point{panel_(token::kBandStatusBar).value + panel_(token::kBandHeader).value};
+   return Point{panel_(token::kStatusBar).value + panel_(token::kHeader).value};
 }
 
 Point Screen::ContentBottom() const {
@@ -96,11 +94,11 @@ Point Screen::ContentBottom() const {
    // it is kept where it is taken and nowhere else. Kept on every screen it was
    // an empty strip the height of a row at the bottom of anything without a
    // player, which is what a footer looks like when it holds nothing.
-   const std::int32_t below = player_ == nullptr ? panel_(token::kEdge).value : panel_(token::kBandFooter).value;
+   const std::int32_t below = player_ == nullptr ? panel_(token::kEdge).value : panel_(token::kFooter).value;
    return Point{panel_.height.value - below};
 }
 
-Point Screen::RowHeight() const { return panel_(token::kBandHeader); }
+Point Screen::RowHeight() const { return panel_(token::kHeader); }
 
 int Screen::RowsVisible(Point row_height) const {
    // Less the distance the content holds at its own bottom edge, the same
@@ -133,11 +131,11 @@ Object Screen::status_bar(const StatusBar& status) {
    // Beside the sidebar rather than above it. The sidebar runs the whole height
    // because it belongs to the device, and the status bar says what the device
    // is doing about what stands beside it.
-   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
+   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
 
    Object band = lv_obj_create(root_);
    MakePlain(band);
-   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandStatusBar).value);
+   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kStatusBar).value);
    lv_obj_set_pos(band, aside, 0);
    lv_obj_set_style_bg_color(band, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
@@ -222,12 +220,12 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    // Beside the sidebar, not above it. The status bar reports the state of the
    // device and therefore spans everything; a header says what one is looking
    // at inside an area, and the area begins where the sidebar ends.
-   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
-   const std::int32_t above = frame_ == Frame::kBare ? 0 : panel_(token::kBandStatusBar).value;
+   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
+   const std::int32_t above = frame_ == Frame::kBare ? 0 : panel_(token::kStatusBar).value;
 
    Object band = lv_obj_create(root_);
    MakePlain(band);
-   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kBandHeader).value);
+   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kHeader).value);
    lv_obj_set_pos(band, aside, above);
    // The header's own edge, and half a corner on top of it. A line of type
    // flush against a rounded edge reads as colliding with it, and what stands
@@ -305,8 +303,8 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
 
 Object Screen::sidebar(const Sidebar& areas) {
    const std::int32_t corner = panel_(token::kRadiusButton).value;
-   const std::int32_t width = panel_(token::kBandSidebar).value;
-   const std::int32_t item = panel_(token::kBandSidebarItem).value;
+   const std::int32_t width = panel_(token::kSidebar).value;
+   const std::int32_t item = panel_(token::kSidebarItem).value;
    const std::int32_t gap = panel_(token::kEdge).value;
    const std::int32_t count = static_cast<std::int32_t>(areas.icons.size());
 
@@ -315,7 +313,7 @@ Object Screen::sidebar(const Sidebar& areas) {
    // as much as the spacing to the edges, and they stop reading as one set of
    // four. The middle is taken under the header, because that is where the
    // sidebar's own list begins.
-   const std::int32_t under = panel_(token::kBandStatusBar).value;
+   const std::int32_t under = panel_(token::kStatusBar).value;
    const std::int32_t block = count > 0 ? count * item + (count - 1) * gap : 0;
    const std::int32_t first = under + (panel_.height.value - under - block) / 2;
 
@@ -355,7 +353,7 @@ Object Screen::sidebar(const Sidebar& areas) {
    // corner, and the disc over it is the content taking its part back.
    Object filled = lv_obj_create(root_);
    MakePlain(filled);
-   lv_obj_set_pos(filled, width, panel_(token::kBandStatusBar).value);
+   lv_obj_set_pos(filled, width, panel_(token::kStatusBar).value);
    lv_obj_set_size(filled, corner, corner);
    lv_obj_set_style_bg_color(filled, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(filled, LV_OPA_COVER, 0);
@@ -363,7 +361,7 @@ Object Screen::sidebar(const Sidebar& areas) {
 
    Object rounded = lv_obj_create(root_);
    MakePlain(rounded);
-   lv_obj_set_pos(rounded, width, panel_(token::kBandStatusBar).value);
+   lv_obj_set_pos(rounded, width, panel_(token::kStatusBar).value);
    lv_obj_set_size(rounded, 2 * corner, 2 * corner);
    lv_obj_set_style_bg_color(rounded, lv_color_hex(token::kBg), 0);
    lv_obj_set_style_bg_opa(rounded, LV_OPA_COVER, 0);
@@ -383,7 +381,7 @@ Object Screen::sidebar(const Sidebar& areas) {
    Object head = lv_obj_create(sidebar_);
    MakePlain(head);
    lv_obj_set_pos(head, 0, 0);
-   lv_obj_set_size(head, width, panel_(token::kBandStatusBar).value);
+   lv_obj_set_size(head, width, panel_(token::kStatusBar).value);
    MarkAsBandPart(head);
 
    if (areas.mark != nullptr && areas.mark_fill != nullptr) {
@@ -456,10 +454,10 @@ Object Screen::sidebar(const Sidebar& areas) {
 }
 
 Object Screen::player_controller(const PlayerController& player) {
-   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
+   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
    const std::int32_t clear = panel_(token::kFloating).value;
    const std::int32_t inset = panel_(token::kPlayerInset).value;
-   const std::int32_t key = panel_(token::kBandMediaKey).value;
+   const std::int32_t key = panel_(token::kMediaKey).value;
 
    // Its height is what it holds plus the air above and below, so the ends
    // follow whenever either of the two moves.
@@ -707,7 +705,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
 
-   lv_obj_set_height(field, panel(token::kBandHeader).value);
+   lv_obj_set_height(field, panel(token::kHeader).value);
 
    // A grade below the heading over it, and in the plain cut.
    const lv_font_t* face = typography().field != nullptr ? typography().field : typography().body;
@@ -718,7 +716,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
       // with it. The same air above and below puts the line in the middle of
       // the field, and it puts the middle of what the field holds on the middle
       // of the field itself, which is what the key at the end aligns to.
-      const std::int32_t air = (panel(token::kBandHeader).value - lv_font_get_line_height(face)) / 2;
+      const std::int32_t air = (panel(token::kHeader).value - lv_font_get_line_height(face)) / 2;
       lv_obj_set_style_pad_ver(field, air, 0);
    }
 
@@ -734,7 +732,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
       // As large as a key, so a finger hits it, and set in from the right edge
       // by the same inset the text holds at the left. It is aligned inside the
       // text's own box, so the room made for it has to be given back.
-      const std::int32_t size = panel(token::kBandButton).value;
+      const std::int32_t size = panel(token::kButton).value;
       const std::int32_t inset = panel(token::kInset).value;
 
       Object looking = lv_obj_create(field);
@@ -780,11 +778,11 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
 }
 
 Object Screen::keyboard(const Keyboard& keys) {
-   const std::int32_t key_width = panel_(token::kBandKeyboardKey).value;
-   const std::int32_t key_height = panel_(token::kBandButton).value;
+   const std::int32_t key_width = panel_(token::kKeyboardKey).value;
+   const std::int32_t key_height = panel_(token::kButton).value;
    const std::int32_t gap = panel_(token::kKeyboardGap).value;
-   const std::int32_t shift_width = panel_(token::kBandKeyboardShift).value;
-   const std::int32_t switch_width = panel_(token::kBandKeyboardSwitch).value;
+   const std::int32_t shift_width = panel_(token::kKeyboardShift).value;
+   const std::int32_t switch_width = panel_(token::kKeyboardSwitch).value;
    const std::int32_t edge = panel_(token::kEdge).value;
 
    // Set from the bottom up, so the last row holds the same margin as
@@ -922,7 +920,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       Object done = Button(keyboard_, panel_, keys.confirm, Emphasis::kAccent);
       lv_obj_update_layout(done);
       const std::int32_t width = lv_obj_get_width(done);
-      lv_obj_set_pos(done, right - width, fourth_top + (key_height - panel_(token::kBandButton).value) / 2);
+      lv_obj_set_pos(done, right - width, fourth_top + (key_height - panel_(token::kButton).value) / 2);
       lv_obj_add_event_cb(
           done, [](lv_event_t*) { lv_obj_send_event(showing.band, LV_EVENT_READY, nullptr); }, LV_EVENT_CLICKED,
           nullptr);
@@ -944,7 +942,7 @@ Object Screen::keyboard(const Keyboard& keys) {
 
 Object Screen::card(const Card& what) {
    const std::int32_t inset = panel_(token::kInset).value;
-   const std::int32_t symbol = panel_(token::kBandCardSymbol).value;
+   const std::int32_t symbol = panel_(token::kCardSymbol).value;
 
    // What is behind it stays where it is and is dimmed. A message about a
    // screen with that screen taken away is a message somebody has to answer
@@ -962,7 +960,7 @@ Object Screen::card(const Card& what) {
 
    card_ = lv_obj_create(dimming_);
    MakePlain(card_);
-   lv_obj_set_width(card_, panel_(token::kBandCard).value);
+   lv_obj_set_width(card_, panel_(token::kCard).value);
 
    // Its height follows what it holds. A stated one gives the air inside it
    // away to whatever happens to be put in.
@@ -1089,7 +1087,7 @@ Object Screen::Content() {
    // object: the object has been given its size but no layout has run yet, so
    // asking it returns nought and everything on the screen sits a sidebar's
    // width too far left.
-   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kBandSidebar).value;
+   const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
 
    content_ = lv_obj_create(root_);
    MakePlain(content_);
@@ -1170,7 +1168,7 @@ Object Row(Object parent, const Panel& panel, const char* name, const char* valu
    lv_obj_set_width(line, lv_pct(100));
 
    // A row is as tall as the header, which is what the design gives both.
-   lv_obj_set_height(line, panel(token::kBandHeader).value);
+   lv_obj_set_height(line, panel(token::kHeader).value);
    lv_obj_remove_flag(line, LV_OBJ_FLAG_SCROLLABLE);
    lv_obj_set_style_pad_hor(line, panel(token::kInset).value, 0);
 
@@ -1395,7 +1393,7 @@ Object Button(Object parent, const Panel& panel, const char* label, Emphasis emp
    lv_obj_set_width(control, LV_SIZE_CONTENT);
    lv_obj_set_style_min_width(control, panel(token::kMinimum).value, 0);
 
-   lv_obj_set_height(control, panel(token::kBandButton).value);
+   lv_obj_set_height(control, panel(token::kButton).value);
 
    // What it is filled with depends on what it stands on. The ordinary fill is
    // the colour of a raised surface, and a button on one of those would be
@@ -1499,7 +1497,7 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
    lv_obj_set_style_pad_row(block, 0, 0);
 
    if (icon != nullptr) {
-      const std::int32_t size = panel(token::kBandContentUnavailableSymbol).value;
+      const std::int32_t size = panel(token::kContentUnavailableSymbol).value;
       Object symbol = lv_image_create(block);
       lv_image_set_src(symbol, icon);
       lv_obj_set_size(symbol, size, size);
@@ -1559,7 +1557,7 @@ Object PlayingInfo(Object parent, const Panel& panel, const lv_image_dsc_t* cove
    // The artwork carries the same shape and the same size as a key, so the two
    // ends of the pill hold the same thing in different clothing.
    if (cover != nullptr) {
-      SquircleImage(group, panel(token::kBandMediaKey).value, cover);
+      SquircleImage(group, panel(token::kMediaKey).value, cover);
    }
 
    // The two lines stack, and what they are called says which is which: the
@@ -1594,7 +1592,7 @@ Object MediaButtons(Object parent, const Panel& panel, std::initializer_list<con
 
    int index = 0;
    for (const lv_image_dsc_t* symbol : symbols) {
-      IconButton(group, panel, symbol, panel(token::kBandMediaKey), index == accent);
+      IconButton(group, panel, symbol, panel(token::kMediaKey), index == accent);
       index += 1;
    }
    return group;
@@ -1646,7 +1644,7 @@ constexpr std::int32_t kShareSteps = 1000;
 }  // namespace
 
 Object Bar(Object parent, const Panel& panel, float filled) {
-   const std::int32_t height = panel(token::kBandTrack).value;
+   const std::int32_t height = panel(token::kTrack).value;
 
    Object track = lv_obj_create(parent);
    MakePlain(track);
@@ -1678,8 +1676,8 @@ Object Bar(Object parent, const Panel& panel, float filled) {
 }
 
 Object Slider(Object parent, const Panel& panel, const char* label, const char* value, float filled) {
-   const std::int32_t knob = panel(token::kBandSliderKnob).value;
-   const std::int32_t height = panel(token::kBandTrack).value;
+   const std::int32_t knob = panel(token::kSliderKnob).value;
+   const std::int32_t height = panel(token::kTrack).value;
 
    Object group = lv_obj_create(parent);
    MakePlain(group);

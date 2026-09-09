@@ -26,21 +26,21 @@ inline constexpr Millimeter kStatusGap{2.18f};
 
 // The heights that decide where the content area begins and ends:
 // StatusBar and Header above it, and the room reserved below it.
-inline constexpr Millimeter kBandStatusBar{4.35f};
-inline constexpr Millimeter kBandHeader{9.25f};
-inline constexpr Millimeter kBandFooter{10.88f};
-inline constexpr Millimeter kBandButton{6.53f};
-inline constexpr Millimeter kBandCard{68.0f};
-inline constexpr Millimeter kBandCardSymbol{5.44f};
-inline constexpr Millimeter kBandContentUnavailableSymbol{7.07f};
-inline constexpr Millimeter kBandKeyboardKey{8.98f};
-inline constexpr Millimeter kBandKeyboardShift{11.42f};
-inline constexpr Millimeter kBandKeyboardSwitch{13.6f};
-inline constexpr Millimeter kBandMediaKey{6.8f};
-inline constexpr Millimeter kBandTrack{2.18f};
-inline constexpr Millimeter kBandSliderKnob{5.99f};
-inline constexpr Millimeter kBandSidebar{11.97f};
-inline constexpr Millimeter kBandSidebarItem{10.88f};
+inline constexpr Millimeter kStatusBar{4.35f};
+inline constexpr Millimeter kHeader{9.25f};
+inline constexpr Millimeter kFooter{10.88f};
+inline constexpr Millimeter kButton{6.53f};
+inline constexpr Millimeter kCard{68.0f};
+inline constexpr Millimeter kCardSymbol{5.44f};
+inline constexpr Millimeter kContentUnavailableSymbol{7.07f};
+inline constexpr Millimeter kKeyboardKey{8.98f};
+inline constexpr Millimeter kKeyboardShift{11.42f};
+inline constexpr Millimeter kKeyboardSwitch{13.6f};
+inline constexpr Millimeter kMediaKey{6.8f};
+inline constexpr Millimeter kTrack{2.18f};
+inline constexpr Millimeter kSliderKnob{5.99f};
+inline constexpr Millimeter kSidebar{11.97f};
+inline constexpr Millimeter kSidebarItem{10.88f};
 
 // What a hand needs. The floor every touch target is measured against.
 inline constexpr Millimeter kFingertip{9.0f};

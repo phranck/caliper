@@ -707,7 +707,7 @@ Object CentredBlock(Object parent, const Panel& panel, int across = 100);
  * @param panel The panel, for the measurements.
  * @param icon The symbol above it, or nullptr for none. It has to be supplied
  *             at the size this arrangement draws, which is
- *             `panel(token::kBandContentUnavailableSymbol)`.
+ *             `panel(token::kContentUnavailableSymbol)`.
  * @param text What is going on.
  * @param sub_text The line under it, or nullptr for none.
  * @returns The block, so a caller can put a control at the bottom of it.

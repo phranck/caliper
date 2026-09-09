@@ -207,6 +207,14 @@ static_assert(kJc8048w500(token::kEdge) == 16_pt);
 static_assert(kJc8048w500(token::kInset) == 20_pt);
 static_assert(kJc8048w500(token::kLineGap) == 12_pt);
 
+// The layout heights, each under its own name rather than behind a shared
+// prefix that named a mechanism only the first two of these actually are.
+static_assert(kJc8048w500(token::kStatusBar) == 32_pt);
+static_assert(kJc8048w500(token::kHeader) == 68_pt);
+static_assert(kJc8048w500(token::kFooter) == 80_pt);
+static_assert(kJc8048w500(token::kButton) == 48_pt);
+static_assert(kJc8048w500(token::kCard) == 500_pt);
+
 // The corners, outer and nested.
 static_assert(kJc8048w500(token::kRadiusCard) == 28_pt);
 static_assert(kJc8048w500.InnerRadius(token::kRadiusCard) == 8_pt);
