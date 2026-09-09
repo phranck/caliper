@@ -71,6 +71,14 @@ Screen::Screen(const Panel& panel, Frame frame) : panel_(panel), frame_(frame) {
 static std::int32_t BareEnd(const Panel& panel) { return 2 * panel(token::kInset).value + panel(token::kButton).value; }
 
 Point Screen::ContentTop() const {
+   // A screen carrying a keyboard keeps nothing in its bottom corners, because
+   // those corners are keys. The room a bare screen holds for the answers that
+   // would stand there is therefore not held at the top either, and what is
+   // left goes to the one field being typed into.
+   if (keyboard_ != nullptr) {
+      return Point{panel_(token::kEdge).value + panel_(token::kInset).value};
+   }
+
    // The same at the top as at the bottom. Nothing stands up there, and the
    // room is kept all the same, because that is what makes the middle of the
    // content the middle of the screen: a block centred in it is then centred on
@@ -82,6 +90,12 @@ Point Screen::ContentTop() const {
 }
 
 Point Screen::ContentBottom() const {
+   // Where there is a keyboard, it decides: nothing may stand behind it, and
+   // it reaches the bottom edge itself.
+   if (keyboard_ != nullptr) {
+      return Point{lv_obj_get_y(keyboard_)};
+   }
+
    // A bare screen keeps room at the bottom for the two answers every step of
    // a setup carries, one in each corner. They are not a band and draw no
    // surface, but the content stops above them all the same.
@@ -539,10 +553,10 @@ namespace {
  * showing.
  *
  * A keyboard shows three of these: the letters, which depend on the language
- * per `KeyboardLayout`, the figures, and the symbols. The third carries what
- * a password needs and neither of the others had room for: a network whose
- * word is "Haus|2026" cannot be entered without the bar, and that is noticed
- * in front of the network and nowhere earlier.
+ * per `KeyboardLayout`, the figures, and the symbols. Between them the two
+ * that are not letters carry everything a password can be made of, down to
+ * the bar, since a network whose word is "Haus|2026" cannot be entered
+ * without it and that is noticed in front of the network and nowhere earlier.
  */
 struct Layer {
    const char* top;
@@ -554,8 +568,13 @@ struct Layer {
 /// same whichever it is, so only the letters are written twice.
 constexpr Layer kGermanLetters{"qwertzuiopü", "asdfghjklöä", "yxcvbnm,."};
 constexpr Layer kEnglishLetters{"qwertyuiop", "asdfghjkl", "zxcvbnm,."};
-constexpr Layer kFigures{"1234567890", "-/:;()€&@", ".,?!'\"%"};
-constexpr Layer kSymbols{"[]{}<>\\|~^", "#$`*_+=°§", "±«»…·¿¡"};
+constexpr Layer kFigures{"[]{}<>\\|~^", "-/:;()€&@", ".,?!'\"%"};
+constexpr Layer kSymbols{"£¥¢¤©®×÷", "#$`*_+=°§", "±«»…·¿¡"};
+
+/// The row above every layer, the same whichever one is showing. A keyboard
+/// with room for it puts the digits where a hand expects them, and holding
+/// them here is what leaves all three of a symbol layer's rows to symbols.
+constexpr const char* kDigits = "1234567890";
 
 constexpr int kLayerCount = 3;
 
@@ -573,11 +592,18 @@ struct Showing {
    Object band = nullptr;
    Object field = nullptr;
 
-   /// The modifier at each end of the third row. Both answer a touch the
-   /// same way and both change icon together when the layer changes.
+   /// The modifier at each end of the third row. Both answer a touch the same
+   /// way, and both keep the one symbol they were given: a key that changes
+   /// what it shows is a key that means two things, and this is the key a hand
+   /// reaches for without looking.
    Object modifiers[2] = {nullptr, nullptr};
    const lv_image_dsc_t* shift = nullptr;
-   const lv_image_dsc_t* back = nullptr;
+
+   /// The key that goes from the letters to the figures and back. It is the
+   /// one that says where it leads, so it reads `abc` whilst anything but the
+   /// letters is showing.
+   Object layer_key = nullptr;
+
    int layer = 0;
    bool capital = false;
 };
@@ -641,15 +667,10 @@ void Relabel() {
       }
    }
 
-   // On the letters the modifiers shift, and on the other two they step back
-   // a layer, which is the same key doing the thing that is left to do.
-   const lv_image_dsc_t* symbol = showing.layer == 0 ? showing.shift : showing.back;
-   if (symbol != nullptr) {
-      for (Object modifier : showing.modifiers) {
-         if (modifier != nullptr) {
-            lv_image_set_src(modifier, symbol);
-         }
-      }
+   // The way back to the letters is written on the key that leads away from
+   // them, so that key alone changes and the modifiers keep their symbol.
+   if (showing.layer_key != nullptr) {
+      lv_label_set_text(showing.layer_key, showing.layer == 0 ? "123" : "abc");
    }
 }
 
@@ -660,6 +681,7 @@ enum class Does {
    kType,
    kModify,
    kSwitch,
+   kLayerToggle,
    kSpace,
    kBackspace,
    kEscape,
@@ -682,16 +704,26 @@ void KeyTouched(lv_event_t* event) {
             lv_textarea_add_text(showing.field, lv_label_get_text(lv_obj_get_child(key, 0)));
          }
          break;
+      // Shift means the other set, whichever layer is showing: the other case
+      // on the letters, and the other half of the symbols on the two that have
+      // no case. The way back to the letters is not here, because a key that
+      // sometimes leaves the layer and sometimes changes it is the one a hand
+      // gets wrong.
       case Does::kModify:
          if (showing.layer == 0) {
             showing.capital = !showing.capital;
          } else {
-            showing.layer = 0;
+            showing.layer = showing.layer == 1 ? 2 : 1;
          }
          Relabel();
          break;
       case Does::kSwitch:
          showing.layer = static_cast<int>(packed >> 8);
+         showing.capital = false;
+         Relabel();
+         break;
+      case Does::kLayerToggle:
+         showing.layer = showing.layer == 0 ? 1 : 0;
          showing.capital = false;
          Relabel();
          break;
@@ -731,7 +763,10 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
 
-   lv_obj_set_height(field, panel(token::kHeader).value);
+   // As tall as a button, because a field is a control and not a row in a
+   // list. At a row's height it stands over the keyboard as the largest thing
+   // on the screen, which is not what is being read there.
+   lv_obj_set_height(field, panel(token::kButton).value);
 
    // A grade below the heading over it, and in the plain cut.
    const lv_font_t* face = typography().field != nullptr ? typography().field : typography().body;
@@ -742,7 +777,7 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
       // with it. The same air above and below puts the line in the middle of
       // the field, and it puts the middle of what the field holds on the middle
       // of the field itself, which is what the key at the end aligns to.
-      const std::int32_t air = (panel(token::kHeader).value - lv_font_get_line_height(face)) / 2;
+      const std::int32_t air = (panel(token::kButton).value - lv_font_get_line_height(face)) / 2;
       lv_obj_set_style_pad_ver(field, air, 0);
    }
 
@@ -809,11 +844,17 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t switch_width = panel_(token::kKeyboardSwitch).value;
    const std::int32_t edge = panel_(token::kEdge).value;
 
-   // Set from the bottom up, so the last row holds the same margin as
-   // everything else on the screen. The rows are placed inside the keyboard,
-   // which is why only the keyboard knows this figure.
-   const std::int32_t top = panel_.height.value - edge - 4 * key_height - 3 * gap;
-   const std::int32_t first_row = 0;
+   // Five rows: the digits, the three the layer decides, and the one that
+   // carries space and the answers. Set from the bottom up, so the last row
+   // holds the same margin as everything else on the screen. The rows are
+   // placed inside the keyboard, which is why only the keyboard knows this.
+   constexpr int kRows = 5;
+   const std::int32_t top = panel_.height.value - edge - kRows * key_height - (kRows - 1) * gap;
+
+   // Where a row starts, counted from the top of the keyboard. Every row is a
+   // key tall and they are evenly parted, so one expression answers for all of
+   // them and no row states a position of its own.
+   const auto row_at = [&](int row) { return row * (key_height + gap); };
 
    keyboard_ = lv_obj_create(root_);
    MakePlain(keyboard_);
@@ -824,7 +865,6 @@ Object Screen::keyboard(const Keyboard& keys) {
 
    showing.field = keys.field;
    showing.shift = keys.shift;
-   showing.back = keys.back;
 
    const bool german = keys.layout == KeyboardLayout::kGerman;
    showing.layers[0] = german ? kGermanLetters : kEnglishLetters;
@@ -846,7 +886,10 @@ Object Screen::keyboard(const Keyboard& keys) {
       lv_obj_set_pos(key, left, row_top);
       lv_obj_set_size(key, width, key_height);
       lv_obj_set_style_radius(key, panel_(token::kRadiusButton).value, 0);
-      lv_obj_set_style_bg_color(key, lv_color_hex(quiet ? token::kSurface : token::kKey), 0);
+      // A quiet key is filled like a raised surface rather than like the
+      // ground: at the ground's own colour the bottom row reads as a gap in
+      // the keyboard rather than as keys that say less.
+      lv_obj_set_style_bg_color(key, lv_color_hex(quiet ? token::kRaised : token::kKey), 0);
       lv_obj_set_style_bg_opa(key, LV_OPA_COVER, 0);
       lv_obj_set_style_border_color(key, lv_color_hex(token::kKeyEdge), 0);
       lv_obj_set_style_border_width(key, 1, 0);
@@ -917,8 +960,21 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t row_width = row1_columns * key_width + (row1_columns - 1) * gap;
    const std::int32_t row_left = (panel_.width.value - row_width) / 2;
 
-   const std::int32_t first_end = row_of(letters.top, row_left, first_row, key_width);
-   Object deleting = cap(first_end, first_row, key_width, true, Does::kBackspace);
+   // The digits span the same measure as the letters below them, in ten equal
+   // columns of their own. They are wider than a letter because there are
+   // fewer of them, and they are the same on every layer, so nothing here is
+   // handed to `Relabel`.
+   const int digit_columns = Columns(kDigits);
+   const std::int32_t digit_width = (row_width - (digit_columns - 1) * gap) / digit_columns;
+   std::int32_t digit_left = row_left;
+   for (const char* at = kDigits; *at != '\0'; ++at) {
+      const char one[2] = {*at, '\0'};
+      lettering(cap(digit_left, row_at(0), digit_width, false, Does::kType), one, false);
+      digit_left += digit_width + gap;
+   }
+
+   const std::int32_t first_end = row_of(letters.top, row_left, row_at(1), key_width);
+   Object deleting = cap(first_end, row_at(1), key_width, true, Does::kBackspace);
    if (keys.backspace != nullptr) {
       marking(deleting, keys.backspace, false);
    }
@@ -931,7 +987,7 @@ Object Screen::keyboard(const Keyboard& keys) {
    const std::int32_t second_width = row2_columns * key_width + (row2_columns - 1) * gap;
    const std::int32_t second_left = (panel_.width.value - second_width) / 2;
    const std::int32_t step = token::kGrid.value;
-   row_of(letters.middle, second_left - second_left % step, first_row + key_height + gap, key_width);
+   row_of(letters.middle, second_left - second_left % step, row_at(2), key_width);
 
    // The third row spans the same measure as the first and second, edge to
    // edge, with a modifier at each end. A German trailing modifier is
@@ -940,7 +996,7 @@ Object Screen::keyboard(const Keyboard& keys) {
    // out of the second row's columns, since no two rows are meant to line up.
    // Every other language's two ends come out the same width, because there
    // is nothing left to make one of them different.
-   const std::int32_t third_top = first_row + 2 * (key_height + gap);
+   const std::int32_t third_top = row_at(3);
    const int row3_columns = Columns(letters.bottom);
    const std::int32_t leading_shift = german ? panel_(token::kKeyboardShift).value
                                              : (available - row3_columns * key_width - (row3_columns + 1) * gap) / 2;
@@ -958,26 +1014,29 @@ Object Screen::keyboard(const Keyboard& keys) {
       showing.modifiers[1] = marking(trailing, keys.shift, true);
    }
 
-   // The bottom row. Two keys go straight from the letters to the figures or
-   // the symbols, each naming where it goes rather than what is showing, so
-   // neither needs relabelling when the layer changes. Escape stands at the
-   // trailing edge, because it is the way back and every screen keeps that
-   // where a thumb already expects it; the button that ends the task keeps
-   // its own wide place beside it, and the space bar takes whatever the four
-   // of them leave in the middle.
-   const std::int32_t fourth_top = first_row + 3 * (key_height + gap);
+   // The bottom row. The leading key carries the way to the figures and the
+   // way back from them, which is why it is the one key here that changes what
+   // it says. The one beside it goes straight to the symbols and names where
+   // it goes, so it never changes. Escape stands at the trailing edge, because
+   // it is the way back and every screen keeps that where a thumb already
+   // expects it; the button that ends the task keeps its own wide place beside
+   // it, and the space bar takes whatever the four of them leave.
+   const std::int32_t fourth_top = row_at(4);
 
-   Object numbers = cap(edge, fourth_top, switch_width, true, Does::kSwitch, 1);
-   lettering(numbers, "123", true);
+   Object numbers = cap(edge, fourth_top, switch_width, true, Does::kLayerToggle);
+   showing.layer_key = lettering(numbers, "123", true);
 
    Object symbols = cap(edge + switch_width + gap, fourth_top, switch_width, true, Does::kSwitch, 2);
    lettering(symbols, "#+=", true);
 
    std::int32_t right = panel_.width.value - edge;
    if (keys.escape != nullptr) {
-      Object escaping = cap(right - key_height, fourth_top, key_height, true, Does::kEscape);
+      // As wide as one of the keys at the other end, so both ends of the row
+      // weigh the same and the way out is as easy to hit as the way into the
+      // figures. The space bar gives up the width, having more than it needs.
+      Object escaping = cap(right - switch_width, fourth_top, switch_width, true, Does::kEscape);
       marking(escaping, keys.escape, false);
-      right -= key_height + gap;
+      right -= switch_width + gap;
    }
 
    if (keys.confirm != nullptr) {
@@ -993,6 +1052,25 @@ Object Screen::keyboard(const Keyboard& keys) {
 
    const std::int32_t space_left = edge + 2 * switch_width + 2 * gap;
    cap(space_left, fourth_top, right - gap - space_left, true, Does::kSpace);
+
+   // The field and the keys share one measure, worked out here because this is
+   // where it is worked out at all. A field of one width above a keyboard of
+   // another reads as two things that were placed separately.
+   if (keys.field != nullptr) {
+      lv_obj_set_width(keys.field, row_width);
+   }
+
+   // What stands above a keyboard gets the room the keyboard leaves and no
+   // more. A screen carrying one also keeps nothing in its bottom corners,
+   // because those corners are keys, so the room a bare screen holds for the
+   // answers that would stand there is given back at the top too. What is left
+   // is centred in it, since a heading and a field are a block rather than the
+   // beginning of a list.
+   if (content_ != nullptr) {
+      lv_obj_set_y(content_, ContentTop().value);
+      lv_obj_set_height(content_, ContentBottom().value - ContentTop().value);
+      lv_obj_set_flex_align(content_, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+   }
 
    Relabel();
    return keyboard_;
