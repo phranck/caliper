@@ -666,11 +666,18 @@ struct Showing {
    /// when the keyboard was built.
    const Alphabet* alphabet = nullptr;
 
-   /// What each key says, and over it what shift would make of it. The second
-   /// is empty on a key where shift makes a capital, since the whole row is
-   /// relabelled then, and on every key of the two symbol layers.
+   /// What each key says, and over it what shift would make of it.
    Object labels[kCharacterKeys] = {};
    Object shifted[kCharacterKeys] = {};
+
+   /// The keys themselves, so one with nothing on it can be put out of use.
+   Object keys[kCharacterKeys] = {};
+
+   /// Where each row's keys begin in those lists, and how many it has. A layer
+   /// with fewer characters than the letters leaves keys over at the end of a
+   /// row, and without this the next row's characters would run into them.
+   int begins[kRowCount] = {};
+   int holds[kRowCount] = {};
 
    Object band = nullptr;
    Object field = nullptr;
@@ -736,6 +743,32 @@ void CapAt(Object label, std::int32_t top, std::int32_t cap) {
    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, top - above);
 }
 
+/**
+ * Puts a key in or out of use.
+ *
+ * A layer with fewer characters than the letters leaves keys over. One with
+ * nothing on it is filled like the surface it lies on and takes no touch, so
+ * it reads as the absence of a key rather than as a key that does nothing.
+ *
+ * @param key The key.
+ * @param used Whether it has a character on it.
+ */
+void InUse(Object key, bool used) {
+   if (key == nullptr) {
+      return;
+   }
+   lv_obj_set_style_bg_color(key, lv_color_hex(used ? token::kKey : token::kKeyFiller), 0);
+   if (used) {
+      lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
+   } else {
+      lv_obj_remove_flag(key, LV_OBJ_FLAG_CLICKABLE);
+   }
+
+   // A key out of use does not answer a press either, so nothing under a finger
+   // lights up where nothing can be typed.
+   lv_obj_set_style_bg_color(key, lv_color_hex(used ? Accent() : token::kKeyFiller), LV_STATE_PRESSED);
+}
+
 /// Copies one character out of a string, however many bytes it takes.
 void OneCharacter(const char* at, int bytes, char* into) {
    for (int byte = 0; byte < bytes && byte < 4; ++byte) {
@@ -754,57 +787,65 @@ void OneCharacter(const char* at, int bytes, char* into) {
  * letter shift relabels the whole row instead.
  */
 void Relabel() {
-   const char* rows[kRowCount] = {};
-   const char* shifted[kRowCount] = {};
-   if (showing.alphabet != nullptr) {
-      for (int row = 0; row < kRowCount; ++row) {
-         rows[row] = showing.layer == 1   ? showing.alphabet->figures[row]
-                     : showing.layer == 2 ? showing.alphabet->symbols[row]
-                                          : showing.alphabet->rows[row];
-         shifted[row] = showing.layer == 0 ? showing.alphabet->shifted[row] : nullptr;
-      }
+   const Alphabet* alphabet = showing.alphabet;
+   if (alphabet == nullptr) {
+      return;
    }
 
-   int index = 0;
    for (int row = 0; row < kRowCount; ++row) {
-      const char* over = shifted[row];
-      for (const char* at = rows[row] == nullptr ? "" : rows[row]; *at != '\0';) {
+      const char* text = showing.layer == 1   ? alphabet->figures[row]
+                         : showing.layer == 2 ? alphabet->symbols[row]
+                                              : alphabet->rows[row];
+      const char* over = showing.layer == 0 ? alphabet->shifted[row] : nullptr;
+
+      int place = 0;
+      for (const char* at = text == nullptr ? "" : text; *at != '\0' && place < showing.holds[row]; ++place) {
          const int bytes = CharacterBytes(at);
-         if (index >= kCharacterKeys || showing.labels[index] == nullptr) {
-            at += bytes;
-            index += 1;
-            continue;
-         }
+         const int index = showing.begins[row] + place;
 
          char one[5] = {};
          OneCharacter(at, bytes, one);
-         if (showing.layer == 0 && showing.capital && bytes == 1) {
-            one[0] = static_cast<char>(one[0] - ('a' - 'A'));
-         }
-         lv_label_set_text(showing.labels[index], one);
 
-         if (showing.shifted[index] != nullptr) {
-            char above[5] = {};
-            if (over != nullptr && *over != '\0') {
-               const int taken = CharacterBytes(over);
-               if (*over != ' ') {
-                  OneCharacter(over, taken, above);
-               }
-               over += taken;
+         char above[5] = {};
+         if (over != nullptr && *over != '\0') {
+            const int taken = CharacterBytes(over);
+            if (*over != ' ') {
+               OneCharacter(over, taken, above);
             }
+            over += taken;
+         }
+
+         // Shift shows what it would make of the key, in place of the key's own
+         // character and at its size. Where it makes nothing else, it makes a
+         // capital. Either way the small mark goes, because what it announced
+         // has arrived.
+         if (showing.capital) {
+            if (above[0] != '\0') {
+               lv_label_set_text(showing.labels[index], above);
+            } else {
+               if (bytes == 1 && one[0] >= 'a' && one[0] <= 'z') {
+                  one[0] = static_cast<char>(one[0] - ('a' - 'A'));
+               }
+               lv_label_set_text(showing.labels[index], one);
+            }
+            lv_label_set_text(showing.shifted[index], "");
+         } else {
+            lv_label_set_text(showing.labels[index], one);
             lv_label_set_text(showing.shifted[index], above);
          }
 
+         InUse(showing.keys[index], true);
          at += bytes;
-         index += 1;
       }
-   }
-   for (; index < kCharacterKeys; ++index) {
-      if (showing.labels[index] != nullptr) {
+
+      // A key this layer has nothing for is put out of use rather than left
+      // standing empty: an empty key that answers a touch is a key that does
+      // something invisible.
+      for (; place < showing.holds[row]; ++place) {
+         const int index = showing.begins[row] + place;
          lv_label_set_text(showing.labels[index], "");
-      }
-      if (showing.shifted[index] != nullptr) {
          lv_label_set_text(showing.shifted[index], "");
+         InUse(showing.keys[index], false);
       }
    }
 
@@ -1164,6 +1205,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       if (index >= kCharacterKeys) {
          return;
       }
+      showing.keys[index] = key;
       Object over = lettering(key, "", token::kKeyShifted, token::kKeyboardShifted);
       Object under = lettering(key, one, token::kKeyInk, token::kKeyboardChar);
 
@@ -1205,6 +1247,10 @@ Object Screen::keyboard(const Keyboard& keys) {
          x += lead + gap;
       }
 
+      // Every layer draws as many keys as the letters need, because a layer with
+      // fewer characters must not move the keys the others share.
+      showing.begins[row] = index;
+      showing.holds[row] = count;
       for (const char* at = text; *at != '\0';) {
          const int bytes = CharacterBytes(at);
          char one[5] = {};
