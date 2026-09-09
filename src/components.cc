@@ -1824,8 +1824,8 @@ Object Button(Object parent, const Panel& panel, const char* label, Emphasis emp
    std::uint32_t fill = ground;
    std::uint32_t ink = token::kInk;
    if (emphasis == Emphasis::kAccent) {
-      fill = Accent();
-      ink = AccentInk();
+      fill = Action();
+      ink = ActionInk();
    } else if (emphasis == Emphasis::kWarning) {
       fill = token::kDanger;
       ink = token::kDangerInk;
@@ -1942,12 +1942,12 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
 }
 
 Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbol, Point size, bool accent) {
-   Object key = Squircle(parent, size.value, accent ? Accent() : token::kKey);
+   Object key = Squircle(parent, size.value, accent ? Action() : token::kKey);
    lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
 
    Object mark = lv_image_create(key);
    lv_image_set_src(mark, symbol);
-   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? AccentInk() : token::kInk), 0);
+   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? ActionInk() : token::kInk), 0);
    lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
    lv_obj_center(mark);
    return key;
