@@ -1,0 +1,99 @@
+{
+  "note": "Everything the keyboard is, in one place. The firmware's constants are generated from this by tools/generate_keyboards.py, and LEVEL's layout page reads this very file, so nothing here is ever copied anywhere by hand.",
+
+  "geometry": {
+    "note": "In millimetres, so that a key stays the same size under a finger on a panel of any density: a sharper screen draws the same key with more points, not a smaller key. A key that writes is a little wider than it is tall, because a row of them is read across and a finger travels sideways between them more often than up. The keyboard keeps a margin tighter than the screen's, because a key at the edge is still a key and its row has to reach the glass. What stands on a key is stated as the height of a capital rather than as a point size, since the capital is the part one sees and the point size is the figure a typeface wants for it. A control says what it does in a corner, so the middle of a row stays clear and the eye reads across it.",
+    "grid": "The figures are the millimetre that lands on the point wanted rather than the round one. This panel puts 7.35 points on a millimetre, so 1.5 mm comes out at 11 points and every key after it sits half a pixel off the grid. A panel rounds, and the layout page reports a value that lands between two points instead of quietly moving it.",
+    "key": "7.1 mm",
+    "key_high": "6.8 mm",
+    "gap": "1.09 mm",
+    "edge": "1.36 mm",
+    "symbols": "11.4 mm",
+    "confirm": "20.9 mm",
+    "escape": "12 mm",
+    "char": "2.18 mm",
+    "shifted": "1.63 mm",
+    "stack": "1.09 mm",
+    "mark": "2.2 mm",
+    "corner": "1.1 mm"
+  },
+
+  "colours": {
+    "note": "The three surfaces a key can be, what a key says, and the two quiet marks.",
+    "tray": "#1b1b1b",
+    "filler": "#282828",
+    "quiet": "#3a3a3a",
+    "key": "#626262",
+    "ink": "#ececec",
+    "shifted": "#c0c0c0",
+    "mark": "#c0c0c0"
+  },
+
+  "type": {
+    "note": "The cut the keys are set in. The point size is not stated: it follows from the cap heights above and the typeface's cap ratio, and LEVEL's tools/fonts.sh works it out rather than being told.",
+    "family": "BarlowSemiCondensed",
+    "character": "Bold",
+    "shifted": "Bold"
+  },
+
+  "extras": {
+    "note": "The characters a symbol row may hold, in the order they are laid out, grouped so that a row of the keyboard means something. A layout takes from each group only what its own letters cannot reach, which is why a country with a fuller keyboard shows fewer symbols.",
+    "punctuation": "~`^_=+[]{}<>\\|@#-?",
+    "money": "€$£¥",
+    "typography": "§°«»¡¿…"
+  },
+
+  "layouts": {
+    "note": "Each country's first layer entire. `rows` is what the keys say unshifted and `shifted` is what shift makes of each of them, position by position, with a space where it makes nothing new. `symbols` is derived rather than decided: the generator works it out and writes it back here, so editing it by hand is undone at the next build.",
+    "german": {
+      "named": "Deutsch",
+      "note": "German ISO, its first layer entire: the circumflex left of the 1, the sharp s right of the 0, and the + and the # at the trailing ends.",
+      "code": "de",
+      "rows": ["^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "<yxcvbnm,.-"],
+      "shifted": ["°!\"§$%&/()=?", "           *", "           '", ">       ;:_"],
+      "symbols": [" ~`[]{}\\|@", "    €£¥", "   «»¡¿…", ""],
+      "ends": ["none/backspace", "filler/filler", "filler/filler", "shift/filler"],
+      "lead": ["0 mm", "2.72 mm", "4.9 mm", "9.8 mm"]
+    },
+    "english": {
+      "named": "English",
+      "note": "US layout, its first layer entire, down to the backslash right of the apostrophe.",
+      "code": "en",
+      "rows": ["§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "`zxcvbnm,./"],
+      "shifted": ["±!@#$%^&*()_", "          {}", "         :\"|", "~       <>?"],
+      "symbols": ["     =+", "    €£¥", "   °«»¡¿…", ""],
+      "ends": ["none/backspace", "filler/filler", "filler/filler", "shift/filler"],
+      "lead": ["0 mm", "2.72 mm", "4.9 mm", "9.8 mm"]
+    },
+    "french": {
+      "named": "Français",
+      "note": "AZERTY, and the one layout whose digits come with shift rather than without. That is kept: the accents stand unshifted where they do on the keyboard, and the digits over them.",
+      "code": "fr",
+      "rows": ["@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "<wxcvbn,;:="],
+      "shifted": ["#1234567890°", "          ¨*", "          %£", ">       ./+"],
+      "symbols": [" ~_[]{}\\|-?", "     €¥", "   «»¡¿…", ""],
+      "ends": ["none/backspace", "filler/filler", "filler/filler", "shift/filler"],
+      "lead": ["0 mm", "2.72 mm", "4.9 mm", "9.8 mm"]
+    },
+    "spanish": {
+      "named": "Español",
+      "note": "Spanish ISO, its first layer entire, with the n with a tilde and the c with a cedilla right of the l.",
+      "code": "es",
+      "rows": ["º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "<zxcvbnm,.-"],
+      "shifted": ["ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", ">       ;:_"],
+      "symbols": [" ~[]{}\\|@#", "    €£¥", "  §°«»¡¿…", ""],
+      "ends": ["none/backspace", "filler/filler", "filler/filler", "shift/filler"],
+      "lead": ["0 mm", "2.72 mm", "4.9 mm", "9.8 mm"]
+    },
+    "italian": {
+      "named": "Italiano",
+      "note": "Italian ISO, its first layer entire, with the e with a grave right of the p and the o, a and u with graves right of the l.",
+      "code": "it",
+      "rows": ["\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "<zxcvbnm,.-"],
+      "shifted": ["|!\"£$%&/()=?", "          é*", "         ç°", ">       ;:_"],
+      "symbols": [" ~`^[]{}@#", "     €¥", "   §«»¡¿…", ""],
+      "ends": ["none/backspace", "filler/filler", "filler/filler", "shift/filler"],
+      "lead": ["0 mm", "2.72 mm", "4.9 mm", "9.8 mm"]
+    }
+  }
+}
