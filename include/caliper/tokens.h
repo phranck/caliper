@@ -33,7 +33,6 @@ inline constexpr Millimeter kButton{6.53f};
 inline constexpr Millimeter kCard{68.0f};
 inline constexpr Millimeter kCardSymbol{5.44f};
 inline constexpr Millimeter kContentUnavailableSymbol{7.07f};
-inline constexpr Millimeter kKeyboardKey{8.98f};
 inline constexpr Millimeter kKeyboardShift{11.42f};
 inline constexpr Millimeter kKeyboardSwitch{13.6f};
 inline constexpr Millimeter kMediaKey{6.8f};
