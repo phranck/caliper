@@ -197,13 +197,13 @@ keyboard_escape = "12.0 mm"
 # typeface wants for it.
 keyboard_char = "2.18 mm"
 keyboard_shifted = "1.4 mm"
-keyboard_stack = "0.27 mm"
+keyboard_stack = "1.09 mm"
 
 # What a control shows, and how far it stands from the corner it sits in. A
 # control says what it does in a corner so the middle of a row stays clear and
 # the eye reads across it.
 keyboard_mark = "2.2 mm"
-keyboard_corner = "0.54 mm"
+keyboard_corner = "1.1 mm"
 
 # A key of the player. The pill takes its height from this and the air around
 # it, so the shape of its ends follows whenever either moves.
