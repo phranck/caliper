@@ -187,7 +187,6 @@ keyboard_edge = "1.36 mm"
 # The keys of the bottom row that are not the space bar. The one that ends the
 # task is the widest, since it carries a word that every language writes
 # differently.
-keyboard_layer = "11.4 mm"
 keyboard_symbols = "11.4 mm"
 keyboard_confirm = "20.9 mm"
 keyboard_escape = "12.0 mm"
@@ -196,7 +195,7 @@ keyboard_escape = "12.0 mm"
 # point size: the cap is the part one sees, and the point size is the figure a
 # typeface wants for it.
 keyboard_char = "2.18 mm"
-keyboard_shifted = "1.4 mm"
+keyboard_shifted = "1.63 mm"
 keyboard_stack = "1.09 mm"
 
 # What a control shows, and how far it stands from the corner it sits in. A
@@ -278,7 +277,7 @@ key_filler = "#282828"    # a surface that carries a row to the margin and does 
 key_quiet = "#3a3a3a"     # a key that does something other than write
 key = "#626262"           # a key that writes
 key_ink = "#ececec"       # what a key that writes says
-key_shifted = "#aaaaaa"   # what shift would make of it, over the character
+key_shifted = "#c0c0c0"   # what shift would make of it, over the character
 key_mark = "#c0c0c0"      # what a control shows
 ink = "#ececec"
 

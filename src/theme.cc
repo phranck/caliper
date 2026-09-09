@@ -25,6 +25,7 @@ lv_color_t colour(std::uint32_t value) { return lv_color_hex(value); }
 std::uint32_t accent = token::kAccent;
 std::uint32_t accent_ink = 0;
 std::uint32_t accent_dim = 0;
+std::uint32_t action = 0;
 
 /**
  * Fills in the styles once, for the panel in question.
@@ -115,10 +116,20 @@ std::uint32_t AccentDim() {
    return accent_dim;
 }
 
+std::uint32_t Action() {
+   if (action == 0) {
+      action = ActionFill(accent);
+   }
+   return action;
+}
+
+std::uint32_t ActionInk() { return InkOn(Action()); }
+
 void SetAccent(std::uint32_t colour) {
    accent = colour;
    accent_ink = InkOn(colour);
    accent_dim = DimmedAccent(colour);
+   action = ActionFill(colour);
 }
 
 void InstallTheme(lv_display_t* display, const Panel& panel, const Typography& typefaces) {

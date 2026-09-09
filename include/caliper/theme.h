@@ -78,6 +78,22 @@ std::uint32_t AccentInk();
 std::uint32_t AccentDim();
 
 /**
+ * What an action that carries the accent is filled with.
+ *
+ * The accent itself is too light under white on several of the colours a person
+ * may pick, and an ink that changes with the colour beneath it makes one
+ * control read as two. Taking the fill down towards the ground instead lets the
+ * word on an action always be white, whatever the accent is, so this is what
+ * fills an accented button rather than the accent itself.
+ *
+ * @returns The accent, taken far enough down that white carries on it.
+ */
+std::uint32_t Action();
+
+/// What stands on that fill, which is white on every accent by construction.
+std::uint32_t ActionInk();
+
+/**
  * Sets the accent, and with it the two that follow from it.
  *
  * The ink and the dimmed version are worked out here rather than at every

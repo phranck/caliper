@@ -573,70 +573,78 @@ struct Alphabet {
    const char* rows[kRowCount];
    const char* shifted[kRowCount];
 
-   /// The two layers of symbols, in the arrangement a tablet keyboard puts
-   /// them in. They are the same in every language but for the currency, which
-   /// stands first among the four. Their fourth row carries nothing: a tablet
-   /// gives them three rows against the letters' four, and a row that empties
-   /// rather than vanishes keeps the keyboard the height it had.
-   const char* figures[kRowCount];
+   /// The characters this country's layout cannot reach, and nothing else.
+   ///
+   /// A tablet keyboard needs two layers of symbols because its letters carry
+   /// no punctuation at all. This one carries a whole national layout with a
+   /// second case, so it reaches nearly everything already: on the English
+   /// layout, 37 of the 44 characters those two layers held stood on the
+   /// letters as well, each on a different key. A character that can be typed
+   /// in two places, and in two different places, is the one thing a keyboard
+   /// must not do, so what is reachable does not appear here.
+   ///
+   /// One row per kind, so that a row means something and a character is looked
+   /// for rather than hunted: the punctuation a password wants, then the money,
+   /// then the marks a language sets its sentences with. Each row is centred,
+   /// and a space leaves a key out whilst keeping its place, which is what
+   /// centres it and what lets a row end short without the rest closing up.
+   ///
+   /// The fourth row carries nothing, because three kinds hold everything any
+   /// of these languages is missing, and a row that empties rather than
+   /// vanishes keeps the keyboard the height it had.
    const char* symbols[kRowCount];
 
    End ends[kRowCount][2];
    Millimeter lead[kRowCount];
 };
 
-constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "yxcvbnm,.-"},
-                           {"°!\"§$%&/()=?", "           *", "           '", "       ;:"},
-                           {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
-                           {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
+constexpr Alphabet kGerman{{"^1234567890ß", "qwertzuiopü+", "asdfghjklöä#", "<yxcvbnm,.-"},
+                           {"°!\"§$%&/()=?", "           *", "           '", ">       ;:_"},
+                           {" ~`[]{}\\|@", "    €£¥", "   «»¡¿…", ""},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
                             {End::kFiller, End::kFiller},
-                            {End::kShift, End::kShift}},
-                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
+                            {End::kShift, End::kFiller}},
+                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
-constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "zxcvbnm,./"},
-                            {"±!@#$%^&*()_", "          {}", "         :\"|", "       <>?"},
-                            {"1234567890", "@#$&*()'\"", "%-+=/;:!?", ""},
-                            {"1234567890", "$€£¥_^[]{}", "§|~…\\<>!?", ""},
+constexpr Alphabet kEnglish{{"§1234567890-", "qwertyuiop[]", "asdfghjkl;'\\", "`zxcvbnm,./"},
+                            {"±!@#$%^&*()_", "          {}", "         :\"|", "~       <>?"},
+                            {"     =+", "    €£¥", "   °«»¡¿…", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
-                             {End::kShift, End::kShift}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
+                             {End::kShift, End::kFiller}},
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// The one layout whose digits come with shift rather than without. That is
 /// kept: the accents stand unshifted where they do on the keyboard, and the
 /// digits over them.
-constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "wxcvbn,;:="},
-                           {"#1234567890°", "          ¨*", "          %£", "       ./+"},
-                           {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
-                           {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
+constexpr Alphabet kFrench{{"@&é\"'(§è!çà)", "azertyuiop^$", "qsdfghjklmù`", "<wxcvbn,;:="},
+                           {"#1234567890°", "          ¨*", "          %£", ">       ./+"},
+                           {" ~_[]{}\\|-?", "     €¥", "   «»¡¿…", ""},
                            {{End::kNothing, End::kBackspace},
                             {End::kFiller, End::kFiller},
                             {End::kFiller, End::kFiller},
-                            {End::kShift, End::kShift}},
-                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
+                            {End::kShift, End::kFiller}},
+                           {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
-constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "zxcvbnm,.-"},
-                            {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", "       ;:_"},
-                            {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
-                            {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
+constexpr Alphabet kSpanish{{"º1234567890'", "qwertyuiop`+", "asdfghjklñ´ç", "<zxcvbnm,.-"},
+                            {"ª!\"·$%&/()=?", "          ^*", "         Ñ¨Ç", ">       ;:_"},
+                            {" ~[]{}\\|@#", "    €£¥", "  §°«»¡¿…", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
-                             {End::kShift, End::kShift}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
+                             {End::kShift, End::kFiller}},
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
-constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "zxcvbnm,.-"},
-                            {"|!\"£$%&/()=?", "          é*", "         ç°", "       ;:_"},
-                            {"1234567890", "@#€&*()'\"", "%-+=/;:!?", ""},
-                            {"1234567890", "€$£¥_^[]{}", "§|~…\\<>!?", ""},
+constexpr Alphabet kItalian{{"\\1234567890'", "qwertyuiopè+", "asdfghjklòàù", "<zxcvbnm,.-"},
+                            {"|!\"£$%&/()=?", "          é*", "         ç°", ">       ;:_"},
+                            {" ~`^[]{}@#", "     €¥", "   §«»¡¿…", ""},
                             {{End::kNothing, End::kBackspace},
                              {End::kFiller, End::kFiller},
                              {End::kFiller, End::kFiller},
-                             {End::kShift, End::kShift}},
-                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{8.98f}}};
+                             {End::kShift, End::kFiller}},
+                            {Millimeter{0.0f}, Millimeter{2.72f}, Millimeter{4.9f}, Millimeter{9.8f}}};
 
 /// Which alphabet a language types on.
 constexpr const Alphabet& AlphabetFor(KeyboardLayout which) {
@@ -656,8 +664,8 @@ constexpr const Alphabet& AlphabetFor(KeyboardLayout which) {
 }
 
 /// How many keys the fullest layer needs a label for: the letters, at twelve,
-/// twelve, twelve and ten.
-constexpr int kCharacterKeys = 46;
+/// twelve, twelve and eleven.
+constexpr int kCharacterKeys = 47;
 
 /// A screen carries one keyboard, so what it is showing is one answer here
 /// rather than a field on every key.
@@ -670,9 +678,6 @@ struct Showing {
    Object labels[kCharacterKeys] = {};
    Object shifted[kCharacterKeys] = {};
 
-   /// The keys themselves, so one with nothing on it can be put out of use.
-   Object keys[kCharacterKeys] = {};
-
    /// Where each row's keys begin in those lists, and how many it has. A layer
    /// with fewer characters than the letters leaves keys over at the end of a
    /// row, and without this the next row's characters would run into them.
@@ -684,16 +689,23 @@ struct Showing {
 
    const lv_image_dsc_t* shift = nullptr;
 
-   /// Every key that goes from the letters to the figures and back. They are
-   /// the ones that say where they lead, so they read `abc` whilst anything
-   /// but the letters is showing. There is more than one because more than one
-   /// row ends in a key that has room for nothing else.
-   static constexpr int kLayerKeys = 4;
-   Object layer_keys[kLayerKeys] = {};
-   int layer_key_count = 0;
+   /// What the key that leads to the symbols says, because it is also the key
+   /// that comes back from them and so it names where it leads.
+   Object layer_key = nullptr;
 
-   int layer = 0;
+   /// Whether the symbols are showing rather than the letters, and whether
+   /// shift is on. Shift belongs to the letters alone.
+   bool symbols = false;
    bool capital = false;
+
+   /// How tall a key is, how tall each of the two characters stands, and how
+   /// much room is kept between them. A key is written again whenever the layer
+   /// or shift changes, and where it says one character it is placed differently
+   /// from where it says two, so these figures have to outlast the row's making.
+   std::int32_t key_height = 0;
+   std::int32_t stack = 0;
+   std::int32_t char_cap = 0;
+   std::int32_t shifted_cap = 0;
 };
 
 Showing showing;
@@ -744,29 +756,28 @@ void CapAt(Object label, std::int32_t top, std::int32_t cap) {
 }
 
 /**
- * Puts a key in or out of use.
+ * Places what one key says, by whether a shifted mark stands over it.
  *
- * A layer with fewer characters than the letters leaves keys over. One with
- * nothing on it is filled like the surface it lies on and takes no touch, so
- * it reads as the absence of a key rather than as a key that does nothing.
+ * A key carrying both holds the pair in the middle of itself, with the mark
+ * over the character. A key carrying only the character puts that character in
+ * the middle of the key: leaving it where the pair had it would sit it low and
+ * read as though the mark had gone missing rather than never been there.
  *
- * @param key The key.
- * @param used Whether it has a character on it.
+ * @param index Which key, in the lists `showing` keeps.
+ * @param marked Whether a shifted mark stands over the character.
  */
-void InUse(Object key, bool used) {
-   if (key == nullptr) {
+void Place(int index, bool marked) {
+   if (showing.labels[index] == nullptr) {
       return;
    }
-   lv_obj_set_style_bg_color(key, lv_color_hex(used ? token::kKey : token::kKeyFiller), 0);
-   if (used) {
-      lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
+   if (marked) {
+      const std::int32_t both = showing.shifted_cap + showing.stack + showing.char_cap;
+      const std::int32_t first = (showing.key_height - both) / 2;
+      CapAt(showing.shifted[index], first, showing.shifted_cap);
+      CapAt(showing.labels[index], first + showing.shifted_cap + showing.stack, showing.char_cap);
    } else {
-      lv_obj_remove_flag(key, LV_OBJ_FLAG_CLICKABLE);
+      CapAt(showing.labels[index], (showing.key_height - showing.char_cap) / 2, showing.char_cap);
    }
-
-   // A key out of use does not answer a press either, so nothing under a finger
-   // lights up where nothing can be typed.
-   lv_obj_set_style_bg_color(key, lv_color_hex(used ? Accent() : token::kKeyFiller), LV_STATE_PRESSED);
 }
 
 /// Copies one character out of a string, however many bytes it takes.
@@ -778,13 +789,65 @@ void OneCharacter(const char* at, int bytes, char* into) {
 }
 
 /**
- * Writes what each key says for the layer that is showing.
+ * Puts one character into its capital, where it has one.
  *
- * The letters have four rows and the two symbol layers three, and the letters
- * are the fullest, so a key beyond what a symbol layer fills is emptied rather
- * than left showing the letter it had. What shift would make of a key is shown
- * only on the letters: on the other two nothing is written over a key, and on a
- * letter shift relabels the whole row instead.
+ * Every letter these layouts type is either an unaccented one or an accented
+ * one from the first supplementary block, and those two are the two cases here.
+ * An accented letter is two bytes long, and within that block the capitals sit
+ * a fixed distance below the small letters, which is why the second byte alone
+ * moves. The sharp s and the small letter y with diaeresis both fall outside
+ * that run, and both are left alone: the first has no capital on a keyboard,
+ * and the second's capital is not in this block at all.
+ *
+ * @param one The character, in place, as up to four bytes and a terminator.
+ */
+void ToCapital(char* one) {
+   if (one[0] >= 'a' && one[0] <= 'z' && one[1] == '\0') {
+      one[0] = static_cast<char>(one[0] - ('a' - 'A'));
+      return;
+   }
+
+   constexpr unsigned char kSupplement = 0xC3;
+   constexpr unsigned char kFirstSmall = 0xA0;
+   constexpr unsigned char kLastSmall = 0xBE;
+   constexpr unsigned char kDivision = 0xB7;
+   constexpr unsigned char kToCapital = 0x20;
+   const auto second = static_cast<unsigned char>(one[1]);
+   if (static_cast<unsigned char>(one[0]) == kSupplement && second >= kFirstSmall && second <= kLastSmall &&
+       second != kDivision && one[2] == '\0') {
+      one[1] = static_cast<char>(second - kToCapital);
+   }
+}
+
+/// Reads one character out of a row and steps past it, or gives nothing back
+/// where the row has ended or holds a space there.
+///
+/// A space is a key the row has nothing for. It still takes its place, so what
+/// follows stands where it stands in the letters rather than sliding a key to
+/// the left.
+///
+/// @param at Where in the row to read, moved on by one character.
+/// @param into Where to put it, left empty where there is nothing.
+void TakeOne(const char** at, char* into) {
+   into[0] = '\0';
+   if (*at == nullptr || **at == '\0') {
+      return;
+   }
+   const int bytes = CharacterBytes(*at);
+   if (**at != ' ') {
+      OneCharacter(*at, bytes, into);
+   }
+   *at += bytes;
+}
+
+/**
+ * Writes what each key says.
+ *
+ * The symbols are laid over the letters rather than put in their place: a key
+ * the symbols reach shows one and types it, and every other key goes on being
+ * the letter it was, mark and all, and goes on working. Switching therefore
+ * brings something in and takes nothing away, which is why no key is ever
+ * empty and why shift keeps its meaning whilst the symbols are up.
  */
 void Relabel() {
    const Alphabet* alphabet = showing.alphabet;
@@ -793,26 +856,27 @@ void Relabel() {
    }
 
    for (int row = 0; row < kRowCount; ++row) {
-      const char* text = showing.layer == 1   ? alphabet->figures[row]
-                         : showing.layer == 2 ? alphabet->symbols[row]
-                                              : alphabet->rows[row];
-      const char* over = showing.layer == 0 ? alphabet->shifted[row] : nullptr;
+      const char* letters = alphabet->rows[row];
+      const char* marks = alphabet->shifted[row];
+      const char* extras = showing.symbols ? alphabet->symbols[row] : nullptr;
 
-      int place = 0;
-      for (const char* at = text == nullptr ? "" : text; *at != '\0' && place < showing.holds[row]; ++place) {
-         const int bytes = CharacterBytes(at);
+      for (int place = 0; place < showing.holds[row]; ++place) {
          const int index = showing.begins[row] + place;
 
          char one[5] = {};
-         OneCharacter(at, bytes, one);
-
          char above[5] = {};
-         if (over != nullptr && *over != '\0') {
-            const int taken = CharacterBytes(over);
-            if (*over != ' ') {
-               OneCharacter(over, taken, above);
-            }
-            over += taken;
+         char extra[5] = {};
+         TakeOne(&letters, one);
+         TakeOne(&marks, above);
+         TakeOne(&extras, extra);
+
+         // A symbol takes the key for as long as the symbols are up, and it has
+         // no second case, so nothing stands over it.
+         if (extra[0] != '\0') {
+            lv_label_set_text(showing.labels[index], extra);
+            lv_label_set_text(showing.shifted[index], "");
+            Place(index, false);
+            continue;
          }
 
          // Shift shows what it would make of the key, in place of the key's own
@@ -823,46 +887,30 @@ void Relabel() {
             if (above[0] != '\0') {
                lv_label_set_text(showing.labels[index], above);
             } else {
-               if (bytes == 1 && one[0] >= 'a' && one[0] <= 'z') {
-                  one[0] = static_cast<char>(one[0] - ('a' - 'A'));
-               }
+               ToCapital(one);
                lv_label_set_text(showing.labels[index], one);
             }
             lv_label_set_text(showing.shifted[index], "");
-         } else {
-            lv_label_set_text(showing.labels[index], one);
-            lv_label_set_text(showing.shifted[index], above);
+            Place(index, false);
+            continue;
          }
 
-         InUse(showing.keys[index], true);
-         at += bytes;
-      }
-
-      // A key this layer has nothing for is put out of use rather than left
-      // standing empty: an empty key that answers a touch is a key that does
-      // something invisible.
-      for (; place < showing.holds[row]; ++place) {
-         const int index = showing.begins[row] + place;
-         lv_label_set_text(showing.labels[index], "");
-         lv_label_set_text(showing.shifted[index], "");
-         InUse(showing.keys[index], false);
+         lv_label_set_text(showing.labels[index], one);
+         lv_label_set_text(showing.shifted[index], above);
+         Place(index, above[0] != '\0');
       }
    }
 
-   // The way back to the letters is written on the keys that lead away from
-   // them, so those alone change and the modifiers keep their symbol.
-   for (int which = 0; which < showing.layer_key_count; ++which) {
-      lv_label_set_text(showing.layer_keys[which], showing.layer == 0 ? "123" : "abc");
+   // The way back to the letters is written on the key that led away from them.
+   if (showing.layer_key != nullptr) {
+      lv_label_set_text(showing.layer_key, showing.symbols ? "abc" : "#+=");
    }
 }
 
-/// What a key does when it is touched. `kSwitch` carries which layer it
-/// goes to alongside it, since two keys share the action and differ only in
-/// their target.
+/// What a key does when it is touched.
 enum class Does {
    kType,
    kModify,
-   kSwitch,
    kLayerToggle,
    kSpace,
    kBackspace,
@@ -925,43 +973,34 @@ constexpr std::int32_t WidthAt(int which, int count, const Spread& spread, std::
    return spread.base + (rank < spread.wider ? step : 0);
 }
 
-/// `Does` packed with the layer a `kSwitch` key goes to, in the bits above
-/// it. Every other action ignores what it carries there.
-void* Touching(Does does, int layer = 0) {
-   return reinterpret_cast<void*>(static_cast<std::uintptr_t>(does) | (static_cast<std::uintptr_t>(layer) << 8));
-}
+/// What a key carries so its handler knows what it is for.
+void* Touching(Does does) { return reinterpret_cast<void*>(static_cast<std::uintptr_t>(does)); }
 
 void KeyTouched(lv_event_t* event) {
    Object key = static_cast<Object>(lv_event_get_target(event));
-   const std::uintptr_t packed = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
-   const Does does = static_cast<Does>(packed & 0xFF);
+   const Does does = static_cast<Does>(reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event)));
 
    switch (does) {
-      case Does::kType:
-         if (showing.field != nullptr && lv_obj_get_child_count(key) > 0) {
-            lv_textarea_add_text(showing.field, lv_label_get_text(lv_obj_get_child(key, 0)));
+      // The character comes from the label the key was given to hold it, not
+      // from whichever of its labels happens to stand first. A key that writes
+      // carries two, and the one added first is the small mark.
+      case Does::kType: {
+         Object says = static_cast<Object>(lv_obj_get_user_data(key));
+         if (showing.field != nullptr && says != nullptr) {
+            lv_textarea_add_text(showing.field, lv_label_get_text(says));
          }
          break;
-      // Shift means the other set, whichever layer is showing: the other case
-      // on the letters, and the other half of the symbols on the two that have
-      // no case. The way back to the letters is not here, because a key that
-      // sometimes leaves the layer and sometimes changes it is the one a hand
-      // gets wrong.
+      }
+      // Shift belongs to the letters, which is the only layer with a second
+      // case. The way back to the symbols is not here, because a key that
+      // sometimes changes the layer and sometimes changes the case is the one a
+      // hand gets wrong.
       case Does::kModify:
-         if (showing.layer == 0) {
-            showing.capital = !showing.capital;
-         } else {
-            showing.layer = showing.layer == 1 ? 2 : 1;
-         }
-         Relabel();
-         break;
-      case Does::kSwitch:
-         showing.layer = static_cast<int>(packed >> 8);
-         showing.capital = false;
+         showing.capital = !showing.capital;
          Relabel();
          break;
       case Does::kLayerToggle:
-         showing.layer = showing.layer == 0 ? 1 : 0;
+         showing.symbols = !showing.symbols;
          showing.capital = false;
          Relabel();
          break;
@@ -1007,10 +1046,22 @@ Object TextField(Object parent, const Panel& panel, bool secret, const lv_image_
    lv_obj_set_style_bg_color(field, lv_color_hex(Accent()), LV_PART_CURSOR);
    lv_obj_set_style_bg_opa(field, LV_OPA_COVER, LV_PART_CURSOR);
 
-   // And it blinks, which the graphics library does only where this is set:
-   // at nought it deletes the animation and leaves the caret standing. What it
-   // costs is the caret's own rectangle redrawn twice a second, which is two
-   // points by a line's height against a panel of 800 by 480.
+   // And it is a point narrower than the letter it stands before. The graphics
+   // library offers no width for a caret: it takes the width of that letter and
+   // adds the padding, so the padding is where a point comes off.
+   lv_obj_set_style_pad_right(field, -1, LV_PART_CURSOR);
+
+   // And it blinks, which the graphics library does only where this is set: at
+   // nought it deletes the animation and leaves the caret standing.
+   //
+   // What that costs depends on something this library does not decide. Where
+   // the display draws what changed, it is the caret's own rectangle twice a
+   // second, a few points by a line's height. Where the display redraws the
+   // whole screen for any change at all, it is the whole screen twice a second,
+   // and on a panel of 800 by 480 that alone spends a quarter of the time
+   // redrawing a screen nobody touched, with every keystroke queued behind it.
+   // A caret is the cheapest thing on a screen or one of the dearest, and which
+   // one is settled where the display is set up.
    lv_obj_set_style_anim_duration(field, kCaretBlink, LV_PART_CURSOR);
 
    // As tall as a button, because a field is a control and not a row in a
@@ -1124,8 +1175,8 @@ Object Screen::keyboard(const Keyboard& keys) {
    // control is a step above the tray it lies on, and a key that writes is well
    // clear of both. No key carries an edge, because a keyboard read in a hurry
    // is read by its fill.
-   const auto cap = [&](std::int32_t left, std::int32_t row_top, std::int32_t width, std::uint32_t fill, Does does,
-                        int layer = 0) {
+
+   const auto cap = [&](std::int32_t left, std::int32_t row_top, std::int32_t width, std::uint32_t fill, Does does) {
       Object key = lv_obj_create(keyboard_);
       MakePlain(key);
       lv_obj_set_pos(key, left, row_top);
@@ -1140,7 +1191,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       lv_obj_set_style_bg_color(key, lv_color_hex(Accent()), LV_STATE_PRESSED);
 
       lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
-      lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED, Touching(does, layer));
+      lv_obj_add_event_cb(key, KeyTouched, LV_EVENT_CLICKED, Touching(does));
       return key;
    };
 
@@ -1193,32 +1244,34 @@ Object Screen::keyboard(const Keyboard& keys) {
    };
 
    // A key that writes carries its character, and over it what shift would make
-   // of it. The two are placed by hand rather than stacked as two lines,
-   // because a line of text keeps room above and below it that a key has no use
-   // for: measured cap to cap they take a third of the key between them.
+   // of it. The two are labels placed by hand rather than two lines of one
+   // label, because a line of text keeps room above and below it that a key has
+   // no use for. `Place` does the placing, and these are the figures it needs.
    int index = 0;
-   const std::int32_t stack = panel_(token::kKeyboardStack).value;
-   const std::int32_t char_cap = panel_(token::kKeyboardChar).value;
-   const std::int32_t shifted_cap = panel_(token::kKeyboardShifted).value;
+   showing.key_height = key_height;
+   showing.stack = panel_(token::kKeyboardStack).value;
+   showing.char_cap = panel_(token::kKeyboardChar).value;
+   showing.shifted_cap = panel_(token::kKeyboardShifted).value;
    const auto writes = [&](std::int32_t left, std::int32_t row_top, const char* one) {
       Object key = cap(left, row_top, key_width, token::kKey, Does::kType);
       if (index >= kCharacterKeys) {
          return;
       }
-      showing.keys[index] = key;
       Object over = lettering(key, "", token::kKeyShifted, token::kKeyboardShifted);
       Object under = lettering(key, one, token::kKeyInk, token::kKeyboardChar);
 
-      // The two are placed by where their capitals are to land, not by where
-      // their boxes are. A label's box is a line tall and a line keeps room
-      // above and below the letter, so aligning boxes to a figure meant for
-      // capitals drops the character towards the bottom of the key and past it.
-      const std::int32_t both = shifted_cap + stack + char_cap;
-      const std::int32_t first = (key_height - both) / 2;
-      CapAt(over, first, shifted_cap);
-      CapAt(under, first + shifted_cap + stack, char_cap);
       showing.shifted[index] = over;
       showing.labels[index] = under;
+
+      // The key holds on to the label that carries its character, so touching
+      // it types what one reads on it. The alternative is to take whichever
+      // label stands first, and that is the mark.
+      lv_obj_set_user_data(key, under);
+
+      // Where the two stand is settled when the key is written rather than
+      // here, because it depends on what the key says and that changes with the
+      // layer and with shift.
+      Place(index, false);
       index += 1;
    };
 
@@ -1282,28 +1335,20 @@ Object Screen::keyboard(const Keyboard& keys) {
       lay(row);
    }
 
-   // The bottom row. The key that goes to the figures also comes back from
-   // them, so it is the one key here that changes what it says; the one beside
-   // it goes straight to the symbols and names where it goes. Escape stands at
-   // the trailing edge, because it is the way back and every screen keeps that
-   // where a thumb already expects it. The space bar takes what the four of
+   // The bottom row. One key leads to the symbols and comes back from them, so
+   // it is the one key here that changes what it says. Escape stands at the
+   // trailing edge, because it is the way back and every screen keeps that
+   // where a thumb already expects it. The space bar takes what the three of
    // them leave, and is filled like a key that writes because that is what it
    // does.
    const std::int32_t bottom = row_at(kRowCount);
-   const std::int32_t layer_width = panel_(token::kKeyboardLayer).value;
    const std::int32_t symbols_width = panel_(token::kKeyboardSymbols).value;
    const std::int32_t confirm_width = panel_(token::kKeyboardConfirm).value;
    const std::int32_t escape_width = panel_(token::kKeyboardEscape).value;
 
-   Object numbers = cap(edge, bottom, layer_width, token::kKeyQuiet, Does::kLayerToggle);
-   Object numbers_label = lettering(numbers, "123", token::kKeyMark, token::kKeyboardMark);
-   lv_obj_align(numbers_label, LV_ALIGN_BOTTOM_LEFT, corner, -corner);
-   showing.layer_keys[showing.layer_key_count] = numbers_label;
-   showing.layer_key_count += 1;
-
-   Object symbols = cap(edge + layer_width + gap, bottom, symbols_width, token::kKeyQuiet, Does::kSwitch, 2);
-   lv_obj_align(lettering(symbols, "#+=", token::kKeyMark, token::kKeyboardMark), LV_ALIGN_BOTTOM_LEFT, corner,
-                -corner);
+   Object symbols = cap(edge, bottom, symbols_width, token::kKeyQuiet, Does::kLayerToggle);
+   showing.layer_key = lettering(symbols, "#+=", token::kKeyMark, token::kKeyboardMark);
+   lv_obj_align(showing.layer_key, LV_ALIGN_BOTTOM_LEFT, corner, -corner);
 
    std::int32_t right = edge + available;
    if (keys.escape != nullptr) {
@@ -1325,7 +1370,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       right -= confirm_width + gap;
    }
 
-   const std::int32_t space_left = edge + layer_width + gap + symbols_width + gap;
+   const std::int32_t space_left = edge + symbols_width + gap;
    cap(space_left, bottom, right - gap - space_left, token::kKey, Does::kSpace);
 
    // The field spans the content it stands in, which is the widest thing on the
@@ -1824,8 +1869,8 @@ Object Button(Object parent, const Panel& panel, const char* label, Emphasis emp
    std::uint32_t fill = ground;
    std::uint32_t ink = token::kInk;
    if (emphasis == Emphasis::kAccent) {
-      fill = Accent();
-      ink = AccentInk();
+      fill = Action();
+      ink = ActionInk();
    } else if (emphasis == Emphasis::kWarning) {
       fill = token::kDanger;
       ink = token::kDangerInk;
@@ -1942,12 +1987,12 @@ Object ContentUnavailableView(Object parent, const Panel& panel, const lv_image_
 }
 
 Object IconButton(Object parent, const Panel& panel, const lv_image_dsc_t* symbol, Point size, bool accent) {
-   Object key = Squircle(parent, size.value, accent ? Accent() : token::kKey);
+   Object key = Squircle(parent, size.value, accent ? Action() : token::kKey);
    lv_obj_add_flag(key, LV_OBJ_FLAG_CLICKABLE);
 
    Object mark = lv_image_create(key);
    lv_image_set_src(mark, symbol);
-   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? AccentInk() : token::kInk), 0);
+   lv_obj_set_style_image_recolor(mark, lv_color_hex(accent ? ActionInk() : token::kInk), 0);
    lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
    lv_obj_center(mark);
    return key;
