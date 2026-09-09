@@ -18,7 +18,7 @@ The library builds twice: as an ESP-IDF component for the device, and for the ho
 
 ## The values are generated, not written
 
-`tokens/caliper.toml` holds every design value once, and `tools/generate_tokens.py` writes `include/caliper/tokens.h` and `tools/caliper_tokens.py` from it. Neither output is edited, because the next run puts the old one back. A key under `[layout]` becomes `kBand<Name>` and one under `[spacing]` becomes `k<Name>`.
+`tokens/caliper.toml` holds every design value once, and `tools/generate_tokens.py` writes `include/caliper/tokens.h` and `tools/caliper_tokens.py` from it. Neither output is edited, because the next run puts the old one back. A key under `[layout]` becomes `k<Name>`, the same as one under `[spacing]`.
 
 `tools/caliper_tokens.py` has a reader outside this repository: `Papers/level/sources/build_screens.py` imports it directly. Before removing or renaming a key, check what that generator does with it, because nothing here would notice a broken import on its own.
 
