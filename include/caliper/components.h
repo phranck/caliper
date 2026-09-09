@@ -94,14 +94,18 @@ struct PlayerController {
 /**
  * Which alphabet the keyboard's first layer shows.
  *
- * Figures and symbols are the same either way; only the letters differ, in
- * what they are and in how many columns they take. German needs its own
- * keys for the umlauts and therefore twelve columns in its widest row;
- * every other language this device carries so far manages in eleven.
+ * Figures and symbols are the same whichever it is. What differs is the first
+ * layer: the characters, what shift makes of each of them, what stands at the
+ * ends of each row, and how wide the key at a row's leading end is. Each is the
+ * first layer of that country's own keyboard, so somebody who types on one
+ * finds the same keys in the same places here.
  */
 enum class KeyboardLayout {
    kGerman,
    kEnglish,
+   kFrench,
+   kSpanish,
+   kItalian,
 };
 
 /**

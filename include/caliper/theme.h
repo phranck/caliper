@@ -45,10 +45,15 @@ struct Typography {
    /// under the question it answers. Null falls back to `body`.
    const lv_font_t* field = nullptr;
 
-   /// What a key of the keyboard says. Larger than the body, because a key is
-   /// read at a glance whilst the finger is already moving towards it. Null
-   /// falls back to `heading`.
+   /// What a key of the keyboard says, at the cap height `keyboard_char`
+   /// states. Null falls back to `body`.
    const lv_font_t* key = nullptr;
+
+   /// What shift would make of a key, set over the character at the cap height
+   /// `keyboard_shifted` states. It is smaller than anything else this design
+   /// sets, because it is what one looks for rather than what one reads. Null
+   /// falls back to `caption`.
+   const lv_font_t* key_shifted = nullptr;
 };
 
 /**
