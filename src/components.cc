@@ -1354,6 +1354,13 @@ Object Screen::card(const Card& what) {
       Object mark = lv_image_create(heading);
       lv_image_set_src(mark, what.symbol);
       lv_obj_set_size(mark, symbol, symbol);
+
+      // Centred in the box the token gives it. A symbol is written with its
+      // empty border cut off, so it is smaller than that box in one direction
+      // or both, and the graphics library would put it in the top left corner.
+      // Beside a title it would then read as a symbol that does not line up
+      // with the words next to it.
+      lv_image_set_inner_align(mark, LV_IMAGE_ALIGN_CENTER);
       lv_obj_set_style_image_recolor(mark, lv_color_hex(what.kind == Card::Kind::kTrouble ? token::kDanger : Accent()),
                                      0);
       lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
