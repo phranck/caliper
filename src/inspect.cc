@@ -137,31 +137,31 @@ Walk walk;
  * Checks one object and everything under it.
  *
  * @param object The object.
- * @param bands Where the content area begins and ends.
+ * @param area Where the content begins and ends.
  * @param scrolled Whether an enclosing container scrolls. Inside one, content
- *                 below the fold is the point rather than a fault, so the band
+ *                 below the fold is the point rather than a fault, so the content
  *                 check is left out for it and the downward half of the margin
  *                 with it. The other five still run, and so do the sides.
  */
-void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
+void visit(lv_obj_t* object, const ContentArea& area, bool scrolled) {
    const Element element = describe(object);
 
-   // The band check is left out twice over: inside a scrolling container,
-   // where content below the fold is the point, and for the bands themselves,
-   // which reach outside the content area by definition. Everything else is
+   // The content check is left out twice over: inside a scrolling container,
+   // where content below the fold is the point, and for the things that stand
+   // outside the content by definition, such as the status bar and the player. Everything else is
    // checked wherever it stands, which is how a control in a footer gets
    // measured at all.
-   const bool banded = walk.screen->InABand(object);
-   const bool exempt = scrolled || banded;
-   const Bands applicable = exempt ? Bands{} : bands;
+   const bool outside = walk.screen->StandsOutsideContent(object);
+   const bool exempt = scrolled || outside;
+   const ContentArea applicable = exempt ? ContentArea{} : area;
 
-   // A band spans the panel, so it has no margin of its own to hold. What
-   // stands inside one holds the bar's margin, which is smaller than the
-   // screen's on purpose. Everything else holds the screen's.
+   // Something that stands outside the content spans the panel, so it has no
+   // margin of its own to hold. What stands inside one holds the bar's margin,
+   // which is smaller than the screen's on purpose. Everything else holds the screen's.
    Element measured = element;
-   if (walk.screen->IsABand(object) || object == walk.screen->root()) {
+   if (walk.screen->IsOutsideContent(object) || object == walk.screen->root()) {
       measured.margin = Point{0};
-   } else if (banded) {
+   } else if (outside) {
       measured.margin = walk.screen->panel()(token::kStatusEdge);
       measured.margin_vertical = false;
    } else {
@@ -182,7 +182,7 @@ void visit(lv_obj_t* object, const Bands& bands, bool scrolled) {
 
    const std::uint32_t children = lv_obj_get_child_count(object);
    for (std::uint32_t index = 0; index < children; ++index) {
-      visit(lv_obj_get_child(object, index), bands, scrolls);
+      visit(lv_obj_get_child(object, index), area, scrolls);
    }
 }
 
@@ -219,17 +219,17 @@ int Inspect(Screen& screen, Report report) {
    // from before it did.
    lv_obj_update_layout(lv_screen_active());
 
-   const Bands bands{screen.ContentTop(), screen.ContentBottom()};
+   const ContentArea area{screen.ContentTop(), screen.ContentBottom()};
 
    walk = Walk{&screen, report, 0};
 
    // The whole screen, not only the content. A control in a footer is a
-   // control, and leaving the bands out meant an undersized one in there was
+   // control, and leaving those out meant an undersized one in there was
    // never looked at.
    // The screen itself is the panel and holds no margin to anything.
    const std::uint32_t children = lv_obj_get_child_count(screen.root());
    for (std::uint32_t index = 0; index < children; ++index) {
-      visit(lv_obj_get_child(screen.root(), index), bands, false);
+      visit(lv_obj_get_child(screen.root(), index), area, false);
    }
 
    return walk.findings;

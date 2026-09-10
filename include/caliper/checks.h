@@ -32,8 +32,8 @@ enum class Rule {
    Corner,
    /// An edge between two points of the grid.
    Grid,
-   /// Content reaching under a band.
-   Band,
+   /// Content reaching outside the area the screen gives it.
+   ContentArea,
    /// Something that takes a touch and does nothing with it.
    Deaf,
 };
@@ -93,12 +93,12 @@ struct Element {
    /// margin for anything on a screen and the bar's own for anything in the
    /// status bar, which is deliberately narrower because the bar is 32 points
    /// tall where the screen is 480. Zero means the element spans the panel by
-   /// design, which is what a band does.
+   /// design, which is what the status bar and the header do.
    Point margin{0};
 
-   /// Whether the margin applies downwards as well as sideways. Inside a band
-   /// it does not: a band is 32 points tall, and a line of text in it cannot
-   /// hold 16 above and below. What frames it there is the band.
+   /// Whether the margin applies downwards as well as sideways. Inside the
+   /// status bar it does not: the bar is 32 points tall, and a line of text in
+   /// it cannot hold 16 above and below. What frames it there is the bar.
    bool margin_vertical = true;
 
    /// Whether the element draws anything at all. One that does not, so a
@@ -147,17 +147,19 @@ struct Finding {
 using Report = void (*)(const Finding&);
 
 /**
- * The bands a screen carries, so content can be told apart from what covers it.
+ * Where a screen's content begins and ends, so what stands outside it can be
+ * told apart from what stands in it.
  *
- * A band takes its height from what it holds, so these are results rather than
- * settings, and they are passed in rather than assumed.
+ * The status bar, the header, the sidebar, the player and the keyboard each
+ * take their height from what they hold, so these two are results rather than
+ * settings and are passed in rather than assumed.
  */
-struct Bands {
+struct ContentArea {
    /// The first row of pixels the content may use.
-   Point content_top{0};
+   Point top{0};
 
-   /// The first row it may not, which is where the footer begins.
-   Point content_bottom{0};
+   /// The first row it may not.
+   Point bottom{0};
 };
 
 /**
@@ -165,11 +167,11 @@ struct Bands {
  *
  * @param element The element to check.
  * @param panel The panel it is built for, which decides what a finger needs.
- * @param bands Where the content area begins and ends.
+ * @param area Where the content begins and ends.
  * @param report Called once per finding.
  * @returns How many findings there were, so a caller can stop a build on it.
  */
-constexpr int Check(const Element& element, const Panel& panel, const Bands& bands, Report report) {
+constexpr int Check(const Element& element, const Panel& panel, const ContentArea& area, Report report) {
    int findings = 0;
 
    const auto found = [&](Rule rule, std::int32_t actual, std::int32_t required) {
@@ -258,12 +260,12 @@ constexpr int Check(const Element& element, const Panel& panel, const Bands& ban
    }
 
    // A row hidden behind the footer is a row that was drawn and paid for.
-   if (bands.content_bottom.value > 0) {
-      if (element.top.value < bands.content_top.value) {
-         found(Rule::Band, element.top.value, bands.content_top.value);
+   if (area.bottom.value > 0) {
+      if (element.top.value < area.top.value) {
+         found(Rule::ContentArea, element.top.value, area.top.value);
       }
-      if (bottom > bands.content_bottom.value) {
-         found(Rule::Band, bottom, bands.content_bottom.value);
+      if (bottom > area.bottom.value) {
+         found(Rule::ContentArea, bottom, area.bottom.value);
       }
    }
 
@@ -288,8 +290,8 @@ constexpr const char* NameOf(Rule rule) {
          return "corner";
       case Rule::Grid:
          return "grid";
-      case Rule::Band:
-         return "band";
+      case Rule::ContentArea:
+         return "content area";
       case Rule::Deaf:
          return "swallows a touch";
    }
