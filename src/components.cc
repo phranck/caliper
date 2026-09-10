@@ -119,20 +119,16 @@ int Screen::RowsVisible(Point row_height) const {
    // Less the distance the content holds at its own bottom edge, the same
    // margin every side of it keeps, so the last row does not crowd it.
    const std::int32_t room = ContentBottom().value - ContentTop().value - panel_(token::kEdge).value;
-   const std::int32_t gap = panel_(token::kLineGap).value;
 
    if (row_height.value <= 0) {
       return 0;
    }
 
-   // One row needs its own height, every further one needs a gap as well.
-   int count = 0;
-   std::int32_t used = 0;
-   while (used + row_height.value <= room) {
-      used += row_height.value + gap;
-      count += 1;
-   }
-   return count;
+   // Nothing stands between two rows. A list is one surface, its rows sit
+   // straight on each other, and what parts them is a hairline of no height.
+   // The gap this used to count belongs between two groups, not between two
+   // rows, and counting it reported fewer rows than a screen shows.
+   return room / row_height.value;
 }
 
 Page Screen::Paginate(Point row_height, int shown, int total) const {
