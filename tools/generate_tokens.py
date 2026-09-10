@@ -7,9 +7,9 @@ outputs say at the top that they are generated. Neither is ever edited, which
 is the whole mechanism that keeps a device and the papers describing it from
 drifting apart.
 
-The generator runs before the compiler rather than by hand. Changing the values
-and building gives the new header; changing the header and building gives the
-old one back.
+Run it after changing the values. Nothing runs it for you, so the check that
+keeps the two in step is in the workflow: it runs both generators and fails
+where the tree came out different, which is what a file left behind looks like.
 
 Run it with no arguments to write both files in their usual places:
 

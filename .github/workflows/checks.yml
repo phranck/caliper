@@ -35,6 +35,15 @@ jobs:
       - name: A doc comment that documents nothing
         run: python3 tools/check_doc_comments.py
 
+      # Both generators run by hand, so nothing else would notice a generated
+      # file left behind by an edit to the file it comes from. Running them and
+      # finding the tree unchanged is what says the two are in step.
+      - name: Generated files that have fallen behind
+        run: |
+          python3 tools/generate_tokens.py
+          python3 tools/generate_keyboards.py
+          git diff --exit-code
+
   core:
     name: The arithmetic, without a board
     runs-on: ubuntu-latest
