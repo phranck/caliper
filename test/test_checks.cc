@@ -17,15 +17,15 @@ using namespace cal;
 
 constexpr Panel panel = kJc8048w500;
 
-/// The bands of a screen of this design: a status bar of 32 and a header of 68
+/// The area of a screen of this design: a status bar of 32 and a header of 68
 /// above, a footer of 112 below.
-constexpr Bands bands{.content_top = Point{100}, .content_bottom = Point{368}};
+constexpr ContentArea area{.top = Point{100}, .bottom = Point{368}};
 
 /// Counts findings without reporting them, which is what a compile-time check
 /// can do.
-constexpr int findings(const Element& element) { return Check(element, panel, bands, nullptr); }
+constexpr int findings(const Element& element) { return Check(element, panel, area, nullptr); }
 
-/// An element that holds every rule: inside the margins, inside the bands, on
+/// An element that holds every rule: inside the margins, inside the area, on
 /// the grid, large enough for a finger, its text fitting, its corner concentric.
 constexpr Element sound{.name = "sound",
                         .left = Point{16},
@@ -165,13 +165,13 @@ void print(const Finding& finding) {
  */
 void run(const Element& element, const char* what) {
    std::printf("%-22s ", what);
-   const int count = Check(element, panel, bands, nullptr);
+   const int count = Check(element, panel, area, nullptr);
    if (count == 0) {
       std::printf("clean\n");
       return;
    }
    std::printf("%d finding%s\n", count, count == 1 ? "" : "s");
-   Check(element, panel, bands, print);
+   Check(element, panel, area, print);
 }
 
 }  // namespace

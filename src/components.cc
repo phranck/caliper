@@ -23,9 +23,10 @@ namespace {
 /// short enough that nobody waits for it.
 constexpr std::uint32_t kCardFadeMs = 180;
 
-/// The flag that says an object is a piece of a band. One of the four the
+/// The flag that says an object is a piece of something standing outside the
+/// content. One of the four the
 /// library leaves to whoever is using it.
-constexpr lv_obj_flag_t kBandPart = LV_OBJ_FLAG_USER_1;
+constexpr lv_obj_flag_t kOutsideContent = LV_OBJ_FLAG_USER_1;
 
 void MakePlain(Object object) {
    // Scenery, and therefore not a target. The library makes every container
@@ -98,8 +99,8 @@ Point Screen::ContentBottom() const {
    }
 
    // A bare screen keeps room at the bottom for the two answers every step of
-   // a setup carries, one in each corner. They are not a band and draw no
-   // surface, but the content stops above them all the same.
+   // a setup carries, one in each corner. They stand outside the content and
+   // draw no surface, but the content stops above them all the same.
    if (frame_ == Frame::kBare) {
       return Point{panel_.height.value - BareEnd(panel_)};
    }
@@ -119,20 +120,16 @@ int Screen::RowsVisible(Point row_height) const {
    // Less the distance the content holds at its own bottom edge, the same
    // margin every side of it keeps, so the last row does not crowd it.
    const std::int32_t room = ContentBottom().value - ContentTop().value - panel_(token::kEdge).value;
-   const std::int32_t gap = panel_(token::kLineGap).value;
 
    if (row_height.value <= 0) {
       return 0;
    }
 
-   // One row needs its own height, every further one needs a gap as well.
-   int count = 0;
-   std::int32_t used = 0;
-   while (used + row_height.value <= room) {
-      used += row_height.value + gap;
-      count += 1;
-   }
-   return count;
+   // Nothing stands between two rows. A list is one surface, its rows sit
+   // straight on each other, and what parts them is a hairline of no height.
+   // The gap this used to count belongs between two groups, not between two
+   // rows, and counting it reported fewer rows than a screen shows.
+   return room / row_height.value;
 }
 
 Page Screen::Paginate(Point row_height, int shown, int total) const {
@@ -148,28 +145,28 @@ Object Screen::status_bar(const StatusBar& status) {
    // is doing about what stands beside it.
    const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
 
-   Object band = lv_obj_create(root_);
-   MakePlain(band);
-   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kStatusBar).value);
-   lv_obj_set_pos(band, aside, 0);
-   lv_obj_set_style_bg_color(band, lv_color_hex(token::kSurface), 0);
-   lv_obj_set_style_bg_opa(band, LV_OPA_COVER, 0);
+   Object bar = lv_obj_create(root_);
+   MakePlain(bar);
+   lv_obj_set_size(bar, panel_.width.value - aside, panel_(token::kStatusBar).value);
+   lv_obj_set_pos(bar, aside, 0);
+   lv_obj_set_style_bg_color(bar, lv_color_hex(token::kSurface), 0);
+   lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
    // More room at the left than at the right, because what stands at the left
    // is a line of words and what stands at the right is a run of symbols with
    // their own air around them.
-   lv_obj_set_style_pad_left(band, panel_(token::kEdge).value, 0);
-   lv_obj_set_style_pad_right(band, panel_(token::kStatusEdge).value, 0);
-   status_ = band;
+   lv_obj_set_style_pad_left(bar, panel_(token::kEdge).value, 0);
+   lv_obj_set_style_pad_right(bar, panel_(token::kStatusEdge).value, 0);
+   status_ = bar;
 
    // Everything sits at the right end, in the order a person reads it: how
    // full it is, what the radio is doing, then the time. Laid out from the
    // right rather than placed, so leaving one out closes the gap.
-   lv_obj_set_flex_flow(band, LV_FLEX_FLOW_ROW);
-   lv_obj_set_flex_align(band, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-   lv_obj_set_style_pad_column(band, panel_(token::kStatusGap).value, 0);
+   lv_obj_set_flex_flow(bar, LV_FLEX_FLOW_ROW);
+   lv_obj_set_flex_align(bar, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+   lv_obj_set_style_pad_column(bar, panel_(token::kStatusGap).value, 0);
 
    const auto symbol = [&](const lv_image_dsc_t* source) -> Object {
-      Object image = lv_image_create(band);
+      Object image = lv_image_create(bar);
       lv_image_set_src(image, source);
       lv_obj_set_style_image_recolor(image, lv_color_hex(token::kStatusInk), 0);
       lv_obj_set_style_image_recolor_opa(image, LV_OPA_COVER, 0);
@@ -185,7 +182,7 @@ Object Screen::status_bar(const StatusBar& status) {
    // rest is its colour, not a second cut: at 19 points a heavier face reads
    // as a different typeface rather than as emphasis.
    const auto text = [&](const char* content, std::uint32_t colour) -> Object {
-      Object label = lv_label_create(band);
+      Object label = lv_label_create(bar);
       lv_label_set_text(label, content);
       lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
 
@@ -205,7 +202,7 @@ Object Screen::status_bar(const StatusBar& status) {
    // A spacer that grows, so everything the bar reports sits at the right end.
    // Nothing stands at the left: the status bar reports the device, and what
    // the screen is about is said by the header under it.
-   Spacer(band);
+   Spacer(bar);
 
    // The battery and its figure first, then the radio. The two battery items
    // belong together and are read as one, so the radio stands beside the pair
@@ -228,7 +225,7 @@ Object Screen::status_bar(const StatusBar& status) {
       clock_ = text(status.clock, token::kStatusInk);
    }
 
-   return band;
+   return bar;
 }
 
 Object Screen::Header(const char* title, const WayBack& back, const char* note) {
@@ -238,21 +235,21 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    const std::int32_t aside = sidebar_ == nullptr ? 0 : panel_(token::kSidebar).value;
    const std::int32_t above = frame_ == Frame::kBare ? 0 : panel_(token::kStatusBar).value;
 
-   Object band = lv_obj_create(root_);
-   MakePlain(band);
-   lv_obj_set_size(band, panel_.width.value - aside, panel_(token::kHeader).value);
-   lv_obj_set_pos(band, aside, above);
+   Object head = lv_obj_create(root_);
+   MakePlain(head);
+   lv_obj_set_size(head, panel_.width.value - aside, panel_(token::kHeader).value);
+   lv_obj_set_pos(head, aside, above);
    // The header's own edge, and half a corner on top of it. A line of type
    // flush against a rounded edge reads as colliding with it, and what stands
    // under the header is the list, whose corner has already pulled it that
    // far in. Half the list's radius, so it moves when the radius does.
-   lv_obj_set_style_pad_hor(band, panel_(token::kEdge).value + panel_(token::kRadiusCard).value / 2, 0);
-   header_ = band;
+   lv_obj_set_style_pad_hor(head, panel_(token::kEdge).value + panel_(token::kRadiusCard).value / 2, 0);
+   header_ = head;
 
    // The name at the trailing end, directly over what it names. The way out of
    // the screen has the leading end, where a hand holding the device reaches
    // without moving, so a name yields the place a thumb wants.
-   Object heading = lv_label_create(band);
+   Object heading = lv_label_create(head);
    lv_label_set_text(heading, title);
    lv_obj_set_style_text_color(heading, lv_color_hex(token::kInk), 0);
    if (typography().heading != nullptr) {
@@ -266,7 +263,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    // each other, because a finger aiming at either of them means the same
    // thing.
    if (back.text != nullptr) {
-      Object way = lv_obj_create(band);
+      Object way = lv_obj_create(head);
       MakePlain(way);
       lv_obj_set_height(way, panel_(token::kMinimum).value);
       lv_obj_set_width(way, LV_SIZE_CONTENT);
@@ -275,7 +272,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
       lv_obj_set_style_pad_column(way, panel_(token::kLineGap).value / 2, 0);
       lv_obj_align(way, LV_ALIGN_LEFT_MID, 0, 0);
       lv_obj_add_flag(way, LV_OBJ_FLAG_CLICKABLE);
-      MarkAsBandPart(way);
+      MarkAsOutsideContent(way);
 
       if (back.symbol != nullptr) {
          Object arrow = lv_image_create(way);
@@ -299,7 +296,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
    // end, because both are about where one is rather than about what one is
    // looking at. It is a label and nothing else: nothing here leads anywhere.
    if (note != nullptr) {
-      Object aside = lv_label_create(band);
+      Object aside = lv_label_create(head);
       lv_label_set_text(aside, note);
       lv_obj_set_style_text_color(aside, lv_color_hex(token::kMuted), 0);
       if (typography().small != nullptr) {
@@ -313,7 +310,7 @@ Object Screen::Header(const char* title, const WayBack& back, const char* note) 
       }
    }
 
-   return band;
+   return head;
 }
 
 Object Screen::sidebar(const Sidebar& areas) {
@@ -337,14 +334,14 @@ Object Screen::sidebar(const Sidebar& areas) {
    const std::int32_t open_bottom = open_top + item;
 
    // The sidebar and the status bar are one surface, and the open item is a
-   // piece of the content reaching into it. So the surface is laid in bands
+   // piece of the content reaching into it. So the surface is laid in pieces
    // above and below that item rather than as one panel with something drawn on
    // it, and every corner it turns towards the content is rounded.
    //
-   // The library gives an object one radius for all four corners, so a band is
-   // drawn wider and taller than it shows: what should stay square hangs off
-   // the panel, where nothing sees it.
-   const auto band = [&](std::int32_t from, std::int32_t to) {
+   // The library gives an object one radius for all four corners, so a surface
+   // like this is drawn wider and taller than it shows: what should stay square
+   // hangs off the panel, where nothing sees it.
+   const auto piece = [&](std::int32_t from, std::int32_t to) {
       Object piece = lv_obj_create(root_);
       MakePlain(piece);
       lv_obj_set_pos(piece, -corner, from);
@@ -352,14 +349,14 @@ Object Screen::sidebar(const Sidebar& areas) {
       lv_obj_set_style_bg_color(piece, lv_color_hex(token::kSurface), 0);
       lv_obj_set_style_bg_opa(piece, LV_OPA_COVER, 0);
       lv_obj_set_style_radius(piece, corner, 0);
-      MarkAsBandPart(piece);
+      MarkAsOutsideContent(piece);
    };
 
    if (opened) {
-      band(-corner, open_top);
-      band(open_bottom, panel_.height.value + corner);
+      piece(-corner, open_top);
+      piece(open_bottom, panel_.height.value + corner);
    } else {
-      band(-corner, panel_.height.value + corner);
+      piece(-corner, panel_.height.value + corner);
    }
 
    // Where the sidebar meets the status bar the surface turns a corner, and the
@@ -372,7 +369,7 @@ Object Screen::sidebar(const Sidebar& areas) {
    lv_obj_set_size(filled, corner, corner);
    lv_obj_set_style_bg_color(filled, lv_color_hex(token::kSurface), 0);
    lv_obj_set_style_bg_opa(filled, LV_OPA_COVER, 0);
-   MarkAsBandPart(filled);
+   MarkAsOutsideContent(filled);
 
    Object rounded = lv_obj_create(root_);
    MakePlain(rounded);
@@ -381,10 +378,10 @@ Object Screen::sidebar(const Sidebar& areas) {
    lv_obj_set_style_bg_color(rounded, lv_color_hex(token::kBg), 0);
    lv_obj_set_style_bg_opa(rounded, LV_OPA_COVER, 0);
    lv_obj_set_style_radius(rounded, corner, 0);
-   MarkAsBandPart(rounded);
+   MarkAsOutsideContent(rounded);
 
    // The anchors themselves carry no surface of their own. What marks the open
-   // one is the gap the bands leave for it, so there is one answer to where it
+   // one is the gap those pieces leave for it, so there is one answer to where it
    // is rather than two that have to agree.
    sidebar_ = lv_obj_create(root_);
    MakePlain(sidebar_);
@@ -397,7 +394,7 @@ Object Screen::sidebar(const Sidebar& areas) {
    MakePlain(head);
    lv_obj_set_pos(head, 0, 0);
    lv_obj_set_size(head, width, panel_(token::kStatusBar).value);
-   MarkAsBandPart(head);
+   MarkAsOutsideContent(head);
 
    if (areas.mark != nullptr && areas.mark_fill != nullptr) {
       mark_ = lv_obj_create(head);
@@ -427,9 +424,9 @@ Object Screen::sidebar(const Sidebar& areas) {
       lv_obj_add_flag(anchor, LV_OBJ_FLAG_CLICKABLE);
 
       // The header and the items divide the sidebar between them and each one
-      // reaches both its edges, which is what a band does. A margin inside one
+      // reaches both its edges, which is what a bar does. A margin inside one
       // would be a margin inside the sidebar, and the sidebar has none.
-      MarkAsBandPart(anchor);
+      MarkAsOutsideContent(anchor);
 
       // Which area it stands for, on the object itself. The header stands in
       // the same container, so counting children says the wrong thing, and it
@@ -498,11 +495,11 @@ Object Screen::player_controller(const PlayerController& player) {
    // point, which a circle does not. The middle is what is left between them.
    Object left = Squircle(player_, height, token::kRaised);
    lv_obj_set_pos(left, 0, 0);
-   MarkAsBandPart(left);
+   MarkAsOutsideContent(left);
 
    Object right = Squircle(player_, height, token::kRaised);
    lv_obj_set_pos(right, width - height, 0);
-   MarkAsBandPart(right);
+   MarkAsOutsideContent(right);
 
    // The seam between an end and the middle sits on the grid. Half a point is
    // invisible on its own and plain to see where two surfaces meet, which is
@@ -515,7 +512,7 @@ Object Screen::player_controller(const PlayerController& player) {
    lv_obj_set_pos(middle, seam, 0);
    lv_obj_set_style_bg_color(middle, lv_color_hex(token::kRaised), 0);
    lv_obj_set_style_bg_opa(middle, LV_OPA_COVER, 0);
-   MarkAsBandPart(middle);
+   MarkAsOutsideContent(middle);
 
    // Both groups stand the air's width in from the ends, which is where the
    // squircle of an end sits around the squircle of a key.
@@ -529,18 +526,18 @@ Object Screen::player_controller(const PlayerController& player) {
    return player_;
 }
 
-void Screen::MarkAsBandPart(Object object) { lv_obj_add_flag(object, kBandPart); }
+void Screen::MarkAsOutsideContent(Object object) { lv_obj_add_flag(object, kOutsideContent); }
 
-bool Screen::IsABand(Object object) const {
-   if (lv_obj_has_flag(object, kBandPart)) {
+bool Screen::IsOutsideContent(Object object) const {
+   if (lv_obj_has_flag(object, kOutsideContent)) {
       return true;
    }
    return object == status_ || object == header_ || object == sidebar_ || object == player_ || object == keyboard_;
 }
 
-bool Screen::InABand(Object object) const {
+bool Screen::StandsOutsideContent(Object object) const {
    for (Object walk = object; walk != nullptr; walk = lv_obj_get_parent(walk)) {
-      if (IsABand(walk)) {
+      if (IsOutsideContent(walk)) {
          return true;
       }
    }
@@ -592,7 +589,9 @@ struct Showing {
    int begins[kRowCount] = {};
    int holds[kRowCount] = {};
 
-   Object band = nullptr;
+   /// The keyboard itself, so a key that ends the task or leaves it can send
+   /// its answer to the thing the screen is listening to.
+   Object keyboard = nullptr;
    Object field = nullptr;
 
    const lv_image_dsc_t* shift = nullptr;
@@ -923,7 +922,7 @@ void KeyTouched(lv_event_t* event) {
          }
          break;
       case Does::kEscape:
-         lv_obj_send_event(showing.band, LV_EVENT_CANCEL, nullptr);
+         lv_obj_send_event(showing.keyboard, LV_EVENT_CANCEL, nullptr);
          break;
    }
 }
@@ -1064,7 +1063,7 @@ Object Screen::keyboard(const Keyboard& keys) {
    keyboard_ = lv_obj_create(root_);
    MakePlain(keyboard_);
    showing = Showing{};
-   showing.band = keyboard_;
+   showing.keyboard = keyboard_;
    lv_obj_set_pos(keyboard_, 0, top);
    lv_obj_set_size(keyboard_, panel_.width.value, panel_.height.value - top);
 
@@ -1273,7 +1272,7 @@ Object Screen::keyboard(const Keyboard& keys) {
       lv_obj_set_size(done, confirm_width, key_height);
       lv_obj_set_pos(done, right - confirm_width, bottom);
       lv_obj_add_event_cb(
-          done, [](lv_event_t*) { lv_obj_send_event(showing.band, LV_EVENT_READY, nullptr); }, LV_EVENT_CLICKED,
+          done, [](lv_event_t*) { lv_obj_send_event(showing.keyboard, LV_EVENT_READY, nullptr); }, LV_EVENT_CLICKED,
           nullptr);
       right -= confirm_width + gap;
    }
@@ -1317,7 +1316,7 @@ Object Screen::card(const Card& what) {
 
    // It catches what is touched, so nothing behind it answers whilst it stands.
    lv_obj_add_flag(dimming_, LV_OBJ_FLAG_CLICKABLE);
-   MarkAsBandPart(dimming_);
+   MarkAsOutsideContent(dimming_);
 
    card_ = lv_obj_create(dimming_);
    MakePlain(card_);
@@ -1338,7 +1337,7 @@ Object Screen::card(const Card& what) {
 
    lv_obj_set_flex_flow(card_, LV_FLEX_FLOW_COLUMN);
    lv_obj_set_style_pad_row(card_, panel_(token::kGroup).value, 0);
-   MarkAsBandPart(card_);
+   MarkAsOutsideContent(card_);
 
    // The title, with the symbol for its kind before it.
    Object heading = lv_obj_create(card_);
@@ -1358,6 +1357,13 @@ Object Screen::card(const Card& what) {
       Object mark = lv_image_create(heading);
       lv_image_set_src(mark, what.symbol);
       lv_obj_set_size(mark, symbol, symbol);
+
+      // Centred in the box the token gives it. A symbol is written with its
+      // empty border cut off, so it is smaller than that box in one direction
+      // or both, and the graphics library would put it in the top left corner.
+      // Beside a title it would then read as a symbol that does not line up
+      // with the words next to it.
+      lv_image_set_inner_align(mark, LV_IMAGE_ALIGN_CENTER);
       lv_obj_set_style_image_recolor(mark, lv_color_hex(what.kind == Card::Kind::kTrouble ? token::kDanger : Accent()),
                                      0);
       lv_obj_set_style_image_recolor_opa(mark, LV_OPA_COVER, 0);
@@ -2032,7 +2038,7 @@ Object Bar(Object parent, const Panel& panel, float filled) {
 
    // The two are one shape rather than two surfaces beside each other, so the
    // inner corner is the outer one and the check that compares them agrees.
-   Screen::MarkAsBandPart(full);
+   Screen::MarkAsOutsideContent(full);
    return track;
 }
 

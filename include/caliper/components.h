@@ -266,7 +266,7 @@ class Screen {
     *
     * Always there once the device is set up, so that any area is one touch
     * away. On the left rather than along the bottom because this panel is short
-    * and wide: the content has 300 points of height and 768 of width, so a band
+    * and wide: the content has 300 points of height and 768 of width, so a bar
     * at the bottom takes from what is scarce and one at the side does not.
     *
     * It runs the whole height of the panel and moves both the left edge of the
@@ -349,7 +349,7 @@ class Screen {
     *
     * It is drawn as a pill standing clear of the sidebar, the right edge and
     * the bottom edge by the same distance, so it reads as lying over the screen
-    * rather than as another band fixed to it.
+    * rather than as another bar fixed to it.
     *
     * Named like a variable rather than in the style of a function, for the same
     * reason `status_bar` and `sidebar` are: `PlayerController` is taken by what
@@ -445,35 +445,35 @@ class Screen {
    Object root() const { return root_; }
 
    /**
-    * Whether an object is one of the bands or sits in one.
+    * Whether an object stands outside the content, or inside something that does.
     *
-    * A band reaches outside the content area by definition, so the check that
-    * keeps content clear of the bands cannot be applied to the bands
-    * themselves. Every other check still is.
+    * The status bar, the header, the sidebar, the player and the keyboard reach
+    * outside the content by definition, so the check that keeps content inside
+    * it cannot be applied to them. Every other check still is.
     *
     * @param object The object to ask about.
-    * @returns True when the band check does not apply to it.
+    * @returns True when the content check does not apply to it.
     */
-   bool InABand(Object object) const;
+   bool StandsOutsideContent(Object object) const;
 
-   /// Whether an object is one of the bands itself, which spans the panel and
-   /// therefore holds no margin.
-   bool IsABand(Object object) const;
+   /// Whether an object is one of those things itself, which spans the panel
+   /// and therefore holds no margin.
+   bool IsOutsideContent(Object object) const;
 
    /**
-    * Says that an object is a piece a band is drawn from rather than something
-    * standing in one.
+    * Says that an object is a piece one of them is drawn from rather than
+    * something standing in one.
     *
-    * A band is sometimes laid in parts: the sidebar's surface is two pieces
-    * with a gap for the open item, and the player's pill is two ends and a
-    * middle. Each piece reaches the edge of what it belongs to and holds no
-    * margin of its own, which is what a band does and what a thing inside one
-    * may not. Marked on the object rather than kept in a list, so a band may be
-    * laid in as many pieces as its shape needs.
+    * One of them is sometimes laid in parts: the sidebar's surface is two
+    * pieces with a gap for the open item, and the player's pill is two ends and
+    * a middle. Each piece reaches the edge of what it belongs to and holds no
+    * margin of its own, which is what a thing standing outside the content does
+    * and what a thing inside it may not. Marked on the object rather than kept
+    * in a list, so one may be laid in as many pieces as its shape needs.
     *
     * @param object The piece.
     */
-   static void MarkAsBandPart(Object object);
+   static void MarkAsOutsideContent(Object object);
 
   private:
    Panel panel_;
