@@ -85,6 +85,9 @@ inline constexpr Point kGrid{2};
 inline constexpr Point kPanelJc8048w500Width{800};
 inline constexpr Point kPanelJc8048w500Height{480};
 inline constexpr float kPanelJc8048w500PointsPerMm = 7.35f;
+inline constexpr Point kPanel5DsiTouchAWidth{1280};
+inline constexpr Point kPanel5DsiTouchAHeight{720};
+inline constexpr float kPanel5DsiTouchAPointsPerMm = 11.56f;
 
 // The palette. A colour has no measurement, so these pass through as they
 // were written.

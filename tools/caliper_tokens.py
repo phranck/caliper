@@ -8,6 +8,7 @@ tokens/caliper.toml and run it again.
 # them a millimetre holds.
 PANELS = {
     "jc8048w500": {"width": 800, "height": 480, "points_per_mm": 7.35},
+    "5_dsi_touch_a": {"width": 1280, "height": 720, "points_per_mm": 11.56},
 }
 
 SPACING_MM = {
