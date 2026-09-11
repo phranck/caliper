@@ -197,6 +197,30 @@ inline constexpr Panel kJc8048w500{.width = token::kPanelJc8048w500Width,
 static_assert(kJc8048w500(token::kFingertip) == 66_pt);
 static_assert(kJc8048w500(token::kThumb) == 88_pt);
 
+/**
+ * The second device's glass, a Waveshare 5-DSI-TOUCH-A.
+ *
+ * Half again as dense as the first, and almost exactly the same piece of glass
+ * to a person looking at it: 110.7 by 62.3 millimetres against 108.8 by 65.3.
+ * Two millimetres wider and three shorter.
+ *
+ * That is the whole point of measuring in millimetres. Nothing in an interface
+ * built on this library has to know which of the two it is drawn on, and a
+ * layout that fills the height has three millimetres less to fill, which the
+ * checks find rather than the eye.
+ *
+ * Wide, though the panel is built tall. Which way round the pixels reach the
+ * glass is the display driver's business and sits below this library.
+ */
+inline constexpr Panel k5DsiTouchA{.width = token::kPanel5DsiTouchAWidth,
+                                   .height = token::kPanel5DsiTouchAHeight,
+                                   .points_per_mm = token::kPanel5DsiTouchAPointsPerMm};
+
+// The same two figures on the second panel, and they are the reason it needs no
+// other change: a fingertip is a fingertip whichever glass it lands on.
+static_assert(k5DsiTouchA(token::kFingertip) == 104_pt);
+static_assert(k5DsiTouchA(token::kThumb) == 139_pt);
+
 // The four grades of the type scale, which the drawings of the interface use to
 // the point.
 static_assert(kJc8048w500.TypeSize(token::kTitle) == 60_pt);

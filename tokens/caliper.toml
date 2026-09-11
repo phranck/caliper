@@ -22,6 +22,15 @@ width = 800
 height = 480
 points_per_mm = 7.35
 
+# The second device's glass, a Waveshare 5-DSI-TOUCH-A. Written the way the
+# interface is laid out on it, which is wide, though the panel is built tall and
+# the display driver turns it. The density is the diagonal in pixels over the
+# diagonal in millimetres: 1468.6 over 127.
+[panel.5_dsi_touch_a]
+width = 1280
+height = 720
+points_per_mm = 11.56
+
 [spacing]
 edge = "2.18 mm"      # the screen's edge to anything inside it
 group = "3.27 mm"     # two groups side by side, such as a cover and its text
